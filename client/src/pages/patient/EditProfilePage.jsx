@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
-import api from '../../lib/api'
 import {
   UserRound, X, Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat
 } from 'lucide-react'
@@ -41,16 +40,16 @@ export default function EditProfilePage() {
   const handleSaveProfile = async () => {
     setProfileSaving(true)
     try {
-      const { data } = await api.put('/auth/user', {
+      await updateUser({
         name: editName,
-        email: editEmail,
+        email: editEmail !== user?.email ? editEmail : undefined,
         password: editPassword || undefined,
-        avatar: editAvatar
+        avatar: editAvatar,
+        avatar_url: editAvatar,  // compatibilidad con Supabase
       })
-      updateUser(data.user)
       navigate('/patient/profile')
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al guardar perfil')
+      alert(err.response?.data?.error || err.message || 'Error al guardar perfil')
     } finally {
       setProfileSaving(false)
     }

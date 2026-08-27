@@ -5,6 +5,7 @@ import { ProtectedRoute } from './components/ProtectedRoute'
 // Auth
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
+import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
 
 // Paciente
 import PatientLayout from './pages/patient/PatientLayout'
@@ -35,6 +36,7 @@ export default function App() {
           {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
           {/* Paciente */}
           <Route

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import {
@@ -30,7 +30,7 @@ export function AvatarDisplay({ avatar, size = 28, className = "" }) {
 
 export default function PatientProfile() {
   usePageTitle('Mi Perfil')
-  const { user, logout, updateUser } = useAuth()
+  const { user, logout, updateUser, linkPsychologist } = useAuth()
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [linkLoading, setLinkLoading] = useState(false)
@@ -62,12 +62,11 @@ export default function PatientProfile() {
     setLinkError('')
     setLinkLoading(true)
     try {
-      const { data } = await api.post('/auth/link', { inviteCode: code })
-      setLinkMsg(data.message)
-      updateUser(data.user)
+      const result = await linkPsychologist(code)
+      setLinkMsg(result.message)
       setCode('')
     } catch (err) {
-      setLinkError(err.response?.data?.error || 'Error al vincular.')
+      setLinkError(err.response?.data?.error || err.message || 'Error al vincular.')
     } finally {
       setLinkLoading(false)
     }
