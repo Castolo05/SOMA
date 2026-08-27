@@ -9,14 +9,20 @@ export function AuthProvider({ children }) {
 
   // Carga el perfil completo desde la tabla profiles
   async function loadProfile(authUser) {
-    if (!authUser) { setUser(null); return }
-    const { data: profile } = await supabase
+    if (!authUser) { setUser(null); return null }
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authUser.id)
       .single()
+    
+    if (error) {
+      console.error("Error cargando perfil:", error)
+      return null
+    }
+
     if (profile) {
-      setUser({
+      const userData = {
         id: profile.id,
         name: profile.name,
         email: authUser.email,
@@ -24,8 +30,11 @@ export function AuthProvider({ children }) {
         inviteCode: profile.invite_code,
         psychologistId: profile.psychologist_id,
         avatarUrl: profile.avatar_url,
-      })
+      }
+      setUser(userData)
+      return userData
     }
+    return null
   }
 
   useEffect(() => {
@@ -52,8 +61,9 @@ export function AuthProvider({ children }) {
       err.response = { data: { error: translateError(error.message) } }
       throw err
     }
-    await loadProfile(data.user)
-    return user
+    const userData = await loadProfile(data.user)
+    if (!userData) throw new Error("No se pudo cargar el perfil del usuario. Verifica si ejecutaste el script SQL en Supabase.")
+    return userData
   }
 
   const register = async (name, email, password, role) => {
@@ -70,8 +80,13 @@ export function AuthProvider({ children }) {
     // El perfil se crea via trigger en la DB.
     // Esperamos un momento para que el trigger ejecute y luego cargamos el perfil.
     await new Promise(r => setTimeout(r, 800))
-    await loadProfile(data.user)
-    return user
+    const userData = await loadProfile(data.user)
+    if (!userData) {
+      const err = new Error("La cuenta fue creada pero falta la tabla 'profiles'. Debes ejecutar el script SQL de migración en Supabase.")
+      err.response = { data: { error: err.message } }
+      throw err
+    }
+    return userData
   }
 
   const logout = async () => {
