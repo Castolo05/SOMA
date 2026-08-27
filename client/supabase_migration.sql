@@ -121,11 +121,20 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER set_profiles_updated_at     BEFORE UPDATE ON public.profiles     FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-CREATE TRIGGER set_journal_updated_at      BEFORE UPDATE ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-CREATE TRIGGER set_session_notes_updated_at BEFORE UPDATE ON public.session_notes  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-CREATE TRIGGER set_appointments_updated_at BEFORE UPDATE ON public.appointments   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
-CREATE TRIGGER set_goals_updated_at        BEFORE UPDATE ON public.therapy_goals  FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+DROP TRIGGER IF EXISTS set_profiles_updated_at ON public.profiles;
+CREATE TRIGGER set_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS set_journal_updated_at ON public.journal_entries;
+CREATE TRIGGER set_journal_updated_at BEFORE UPDATE ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS set_session_notes_updated_at ON public.session_notes;
+CREATE TRIGGER set_session_notes_updated_at BEFORE UPDATE ON public.session_notes FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS set_appointments_updated_at ON public.appointments;
+CREATE TRIGGER set_appointments_updated_at BEFORE UPDATE ON public.appointments FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
+
+DROP TRIGGER IF EXISTS set_goals_updated_at ON public.therapy_goals;
+CREATE TRIGGER set_goals_updated_at BEFORE UPDATE ON public.therapy_goals FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
 -- ============================================================
 -- ROW LEVEL SECURITY (RLS) — Protección de datos
@@ -140,10 +149,12 @@ ALTER TABLE public.therapy_goals   ENABLE ROW LEVEL SECURITY;
 
 -- ── profiles ──────────────────────────────────────────────
 -- Ver tu propio perfil
+DROP POLICY IF EXISTS "profiles: ver propio" ON public.profiles;
 CREATE POLICY "profiles: ver propio" ON public.profiles
   FOR SELECT USING (auth.uid() = id);
 
 -- Psicólogo ve perfiles de sus pacientes
+DROP POLICY IF EXISTS "profiles: psicologo ve sus pacientes" ON public.profiles;
 CREATE POLICY "profiles: psicologo ve sus pacientes" ON public.profiles
   FOR SELECT USING (
     EXISTS (
@@ -155,6 +166,7 @@ CREATE POLICY "profiles: psicologo ve sus pacientes" ON public.profiles
   );
 
 -- Paciente puede ver perfil de su psicólogo (para mostrar nombre)
+DROP POLICY IF EXISTS "profiles: paciente ve su psicologo" ON public.profiles;
 CREATE POLICY "profiles: paciente ve su psicologo" ON public.profiles
   FOR SELECT USING (
     EXISTS (
@@ -166,27 +178,33 @@ CREATE POLICY "profiles: paciente ve su psicologo" ON public.profiles
   );
 
 -- Cualquiera puede buscar un psicólogo por invite_code (para vincularse)
+DROP POLICY IF EXISTS "profiles: buscar por invite_code" ON public.profiles;
 CREATE POLICY "profiles: buscar por invite_code" ON public.profiles
   FOR SELECT USING (invite_code IS NOT NULL AND role = 'PSYCHOLOGIST');
 
 -- Actualizar tu propio perfil
+DROP POLICY IF EXISTS "profiles: actualizar propio" ON public.profiles;
 CREATE POLICY "profiles: actualizar propio" ON public.profiles
   FOR UPDATE USING (auth.uid() = id);
 
 -- ── journal_entries ───────────────────────────────────────
 -- Paciente: CRUD de sus propias entradas
+DROP POLICY IF EXISTS "journal: paciente ve sus entradas" ON public.journal_entries;
 CREATE POLICY "journal: paciente ve sus entradas" ON public.journal_entries
   FOR SELECT USING (auth.uid() = patient_id);
 
+DROP POLICY IF EXISTS "journal: paciente crea" ON public.journal_entries;
 CREATE POLICY "journal: paciente crea" ON public.journal_entries
   FOR INSERT WITH CHECK (auth.uid() = patient_id);
 
+DROP POLICY IF EXISTS "journal: paciente actualiza (24h)" ON public.journal_entries;
 CREATE POLICY "journal: paciente actualiza (24h)" ON public.journal_entries
   FOR UPDATE USING (
     auth.uid() = patient_id
     AND created_at > NOW() - INTERVAL '24 hours'
   );
 
+DROP POLICY IF EXISTS "journal: paciente elimina (24h)" ON public.journal_entries;
 CREATE POLICY "journal: paciente elimina (24h)" ON public.journal_entries
   FOR DELETE USING (
     auth.uid() = patient_id
@@ -194,6 +212,7 @@ CREATE POLICY "journal: paciente elimina (24h)" ON public.journal_entries
   );
 
 -- Psicólogo: solo lectura de entradas de SUS pacientes
+DROP POLICY IF EXISTS "journal: psicologo lee entradas de sus pacientes" ON public.journal_entries;
 CREATE POLICY "journal: psicologo lee entradas de sus pacientes" ON public.journal_entries
   FOR SELECT USING (
     EXISTS (
@@ -208,22 +227,26 @@ CREATE POLICY "journal: psicologo lee entradas de sus pacientes" ON public.journ
 
 -- ── habits ────────────────────────────────────────────────
 -- Paciente: CRUD total de sus propios hábitos
+DROP POLICY IF EXISTS "habits: paciente CRUD" ON public.habits;
 CREATE POLICY "habits: paciente CRUD" ON public.habits
   FOR ALL USING (auth.uid() = user_id) WITH CHECK (auth.uid() = user_id);
 
 -- ── session_notes — PACIENTES NO PUEDEN ACCEDER NUNCA ────
 -- Solo el psicólogo que las creó puede ver y editar sus notas
+DROP POLICY IF EXISTS "session_notes: solo el psicologo" ON public.session_notes;
 CREATE POLICY "session_notes: solo el psicologo" ON public.session_notes
   FOR ALL USING (auth.uid() = psychologist_id)
   WITH CHECK (auth.uid() = psychologist_id);
 
 -- ── appointments ──────────────────────────────────────────
 -- Psicólogo: CRUD total de sus citas
+DROP POLICY IF EXISTS "appointments: psicologo CRUD" ON public.appointments;
 CREATE POLICY "appointments: psicologo CRUD" ON public.appointments
   FOR ALL USING (auth.uid() = psychologist_id)
   WITH CHECK (auth.uid() = psychologist_id);
 
 -- Paciente: solo lectura de sus citas futuras
+DROP POLICY IF EXISTS "appointments: paciente ve las suyas" ON public.appointments;
 CREATE POLICY "appointments: paciente ve las suyas" ON public.appointments
   FOR SELECT USING (
     auth.uid() = patient_id
@@ -232,11 +255,13 @@ CREATE POLICY "appointments: paciente ve las suyas" ON public.appointments
 
 -- ── therapy_goals ─────────────────────────────────────────
 -- Psicólogo: CRUD
+DROP POLICY IF EXISTS "goals: psicologo CRUD" ON public.therapy_goals;
 CREATE POLICY "goals: psicologo CRUD" ON public.therapy_goals
   FOR ALL USING (auth.uid() = psychologist_id)
   WITH CHECK (auth.uid() = psychologist_id);
 
 -- Paciente: solo lectura de sus metas
+DROP POLICY IF EXISTS "goals: paciente lee sus metas" ON public.therapy_goals;
 CREATE POLICY "goals: paciente lee sus metas" ON public.therapy_goals
   FOR SELECT USING (auth.uid() = patient_id);
 
