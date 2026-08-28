@@ -7,17 +7,39 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Carga el perfil completo desde la tabla profiles
+  // Carga el perfil completo desde la tabla profiles.
+  // Si no existe (ej: cuenta creada antes del trigger), lo crea automáticamente.
   async function loadProfile(authUser) {
     if (!authUser) { setUser(null); return null }
-    const { data: profile, error } = await supabase
+
+    let { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authUser.id)
       .single()
-    
-    if (error) {
-      console.error("Error cargando perfil:", error)
+
+    // PGRST116 = "0 rows returned" → el perfil no existe aún (trigger no corrió)
+    if (error?.code === 'PGRST116') {
+      const meta = authUser.user_metadata || authUser.raw_user_meta_data || {}
+      const role = meta.role || 'PATIENT'
+      const name = meta.name || authUser.email?.split('@')[0] || 'Usuario'
+      const inviteCode = role === 'PSYCHOLOGIST'
+        ? Math.random().toString(36).slice(2, 10).toUpperCase()
+        : null
+
+      const { data: created, error: insertError } = await supabase
+        .from('profiles')
+        .insert({ id: authUser.id, name, role, invite_code: inviteCode })
+        .select()
+        .single()
+
+      if (insertError) {
+        console.error('Error creando perfil:', insertError)
+        return null
+      }
+      profile = created
+    } else if (error) {
+      console.error('Error cargando perfil:', error.code, error.message)
       return null
     }
 
@@ -29,7 +51,6 @@ export function AuthProvider({ children }) {
         role: profile.role,
         inviteCode: profile.invite_code,
         psychologistId: profile.psychologist_id,
-        // Usamos `avatar` como nombre canónico en toda la app
         avatar: profile.avatar_url || null,
       }
       setUser(userData)

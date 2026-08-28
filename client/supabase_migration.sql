@@ -182,10 +182,16 @@ DROP POLICY IF EXISTS "profiles: buscar por invite_code" ON public.profiles;
 CREATE POLICY "profiles: buscar por invite_code" ON public.profiles
   FOR SELECT USING (invite_code IS NOT NULL AND role = 'PSYCHOLOGIST');
 
+-- Insertar su propio perfil (fallback si el trigger no corrió)
+DROP POLICY IF EXISTS "profiles: insertar propio" ON public.profiles;
+CREATE POLICY "profiles: insertar propio" ON public.profiles
+  FOR INSERT WITH CHECK (auth.uid() = id);
+
 -- Actualizar tu propio perfil
 DROP POLICY IF EXISTS "profiles: actualizar propio" ON public.profiles;
 CREATE POLICY "profiles: actualizar propio" ON public.profiles
-  FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE USING (auth.uid() = id) WITH CHECK (auth.uid() = id);
+
 
 -- ── journal_entries ───────────────────────────────────────
 -- Paciente: CRUD de sus propias entradas
