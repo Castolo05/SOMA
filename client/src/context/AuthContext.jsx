@@ -29,7 +29,8 @@ export function AuthProvider({ children }) {
         role: profile.role,
         inviteCode: profile.invite_code,
         psychologistId: profile.psychologist_id,
-        avatarUrl: profile.avatar_url,
+        // Usamos `avatar` como nombre canónico en toda la app
+        avatar: profile.avatar_url || null,
       }
       setUser(userData)
       return userData
@@ -102,7 +103,7 @@ export function AuthProvider({ children }) {
         role,
         inviteCode: null,
         psychologistId: null,
-        avatarUrl: null,
+        avatar: null,
       }
       setUser(userData)
     }
@@ -131,14 +132,22 @@ export function AuthProvider({ children }) {
       await supabase.auth.updateUser({ password: newData.password })
     }
     // Actualizar perfil en la tabla profiles
+    // El campo canónico en el state es `avatar`; en la DB es `avatar_url`
     const updates = {}
     if (newData.name) updates.name = newData.name
-    if (newData.avatar_url !== undefined) updates.avatar_url = newData.avatar_url
+    const avatarValue = newData.avatar ?? newData.avatar_url
+    if (avatarValue !== undefined) updates.avatar_url = avatarValue
     if (Object.keys(updates).length > 0) {
-      await supabase.from('profiles').update(updates).eq('id', user.id)
+      const { error } = await supabase.from('profiles').update(updates).eq('id', user.id)
+      if (error) throw error
     }
-    // Refrescar el estado local
-    setUser(prev => ({ ...prev, ...newData }))
+    // Refrescar el estado local usando el campo canónico `avatar`
+    setUser(prev => ({
+      ...prev,
+      ...(newData.name ? { name: newData.name } : {}),
+      ...(newData.email ? { email: newData.email } : {}),
+      ...(avatarValue !== undefined ? { avatar: avatarValue } : {}),
+    }))
   }
 
   const linkPsychologist = async (inviteCode) => {

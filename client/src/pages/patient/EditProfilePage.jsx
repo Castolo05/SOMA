@@ -44,8 +44,7 @@ export default function EditProfilePage() {
         name: editName,
         email: editEmail !== user?.email ? editEmail : undefined,
         password: editPassword || undefined,
-        avatar: editAvatar,
-        avatar_url: editAvatar,  // compatibilidad con Supabase
+        avatar: editAvatar || null,
       })
       navigate('/patient/profile')
     } catch (err) {
