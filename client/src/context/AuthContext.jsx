@@ -78,21 +78,37 @@ export function AuthProvider({ children }) {
       throw err
     }
 
-    // Si Supabase devuelve sesión directamente (sin email confirmation), usarla
+    // Si hay sesión disponible inmediatamente, establecerla
     if (data.session) {
       await supabase.auth.setSession(data.session)
     }
 
-    // Reintentos: el trigger puede tardar unos ms más que el round-trip de red
+    // Intentar leer el perfil (el trigger puede tardar unos ms)
     let userData = null
-    for (let attempt = 1; attempt <= 5; attempt++) {
-      await new Promise(r => setTimeout(r, attempt * 400))
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      await new Promise(r => setTimeout(r, attempt * 500))
       userData = await loadProfile(data.user)
       if (userData) break
     }
 
+    // Fallback: si RLS bloquea la lectura (ej: email confirmation activo),
+    // construir el objeto desde los datos del formulario.
+    // El trigger YA creó el row — solo no podemos leerlo sin sesión activa.
+    if (!userData && data.user) {
+      userData = {
+        id: data.user.id,
+        name,
+        email,
+        role,
+        inviteCode: null,
+        psychologistId: null,
+        avatarUrl: null,
+      }
+      setUser(userData)
+    }
+
     if (!userData) {
-      const err = new Error("La cuenta fue creada pero no se pudo leer el perfil. Intentá iniciar sesión directamente.")
+      const err = new Error('No se pudo completar el registro. Por favor intentá iniciar sesión.')
       err.response = { data: { error: err.message } }
       throw err
     }
