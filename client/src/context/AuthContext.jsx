@@ -55,6 +55,7 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
+
   const login = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
@@ -62,10 +63,23 @@ export function AuthProvider({ children }) {
       err.response = { data: { error: translateError(error.message) } }
       throw err
     }
-    const userData = await loadProfile(data.user)
-    if (!userData) throw new Error("No se pudo cargar el perfil del usuario. Verifica si ejecutaste el script SQL en Supabase.")
+
+    // Reintentos: la sesión puede tardar unos ms en propagar al RLS
+    let userData = null
+    for (let attempt = 1; attempt <= 4; attempt++) {
+      userData = await loadProfile(data.user)
+      if (userData) break
+      await new Promise(r => setTimeout(r, attempt * 300))
+    }
+
+    if (!userData) {
+      const err = new Error('No se pudo cargar el perfil. Intentá de nuevo.')
+      err.response = { data: { error: err.message } }
+      throw err
+    }
     return userData
   }
+
 
   const register = async (name, email, password, role) => {
     const { data, error } = await supabase.auth.signUp({
