@@ -77,12 +77,22 @@ export function AuthProvider({ children }) {
       err.response = { data: { error: translateError(error.message) } }
       throw err
     }
-    // El perfil se crea via trigger en la DB.
-    // Esperamos un momento para que el trigger ejecute y luego cargamos el perfil.
-    await new Promise(r => setTimeout(r, 800))
-    const userData = await loadProfile(data.user)
+
+    // Si Supabase devuelve sesión directamente (sin email confirmation), usarla
+    if (data.session) {
+      await supabase.auth.setSession(data.session)
+    }
+
+    // Reintentos: el trigger puede tardar unos ms más que el round-trip de red
+    let userData = null
+    for (let attempt = 1; attempt <= 5; attempt++) {
+      await new Promise(r => setTimeout(r, attempt * 400))
+      userData = await loadProfile(data.user)
+      if (userData) break
+    }
+
     if (!userData) {
-      const err = new Error("La cuenta fue creada pero falta la tabla 'profiles'. Debes ejecutar el script SQL de migración en Supabase.")
+      const err = new Error("La cuenta fue creada pero no se pudo leer el perfil. Intentá iniciar sesión directamente.")
       err.response = { data: { error: err.message } }
       throw err
     }
