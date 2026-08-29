@@ -42,7 +42,6 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
     setHabitData(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }))
 
   const handleSubmit = () => {
-    if (!preferInSession && !content.trim()) return
     onSubmit({ mood, content, completedHabits, habitData })
   }
 
@@ -266,7 +265,7 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
         )}
         <button
           onClick={handleSubmit}
-          disabled={submitting || (!preferInSession && !content.trim())}
+          disabled={submitting}
           className="btn-patient flex-1 flex items-center justify-center gap-1.5 text-sm shadow-sm"
         >
           <Save size={15} />
@@ -288,21 +287,22 @@ export default function PatientDashboard() {
   const [editMode, setEditMode] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
-  const [chartDays, setChartDays] = useState(14)
+  const [saveError, setSaveError] = useState('')
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
 
   useEffect(() => {
-    Promise.all([
-      api.get('/journal'),
-      api.get('/appointments'),
-      api.get('/habits'),
-    ]).then(([jRes, aRes, hRes]) => {
-      setEntries(jRes.data.entries)
-      setAppointments(aRes.data.appointments)
-      setHabits(hRes.data.habits)
-    }).catch(() => {}).finally(() => setLoading(false))
+    // Cargar cada recurso de forma independiente:
+    // si uno falla (ej: journal o appointments con 401 temporal),
+    // los hábitos siguen cargando y aparecen en el formulario.
+    setLoading(true)
+    const fetches = [
+      api.get('/journal').then(r => setEntries(r.data.entries)).catch(() => {}),
+      api.get('/appointments').then(r => setAppointments(r.data.appointments)).catch(() => {}),
+      api.get('/habits').then(r => setHabits(r.data.habits)).catch(() => {}),
+    ]
+    Promise.all(fetches).finally(() => setLoading(false))
   }, [])
 
   const todayEntry = entries.find((e) => isSameDay(new Date(e.createdAt), new Date()))
@@ -323,6 +323,7 @@ export default function PatientDashboard() {
     : null
 
   const handleCreate = async ({ mood, content, completedHabits, habitData }) => {
+    setSaveError('')
     setSubmitting(true)
     try {
       const { data } = await api.post('/journal', { moodScore: mood, content, completedHabits, habitData })
@@ -330,7 +331,11 @@ export default function PatientDashboard() {
       showSuccess('¡Nota de hoy guardada! 🎉')
       setEditMode(false)
     } catch (err) {
-      if (err.response?.status === 409) showSuccess('Ya existe una nota hoy.')
+      if (err.response?.status === 409) {
+        showSuccess('Ya existe una nota hoy.')
+      } else {
+        setSaveError(err.response?.data?.error || err.message || 'Error al guardar. Intentá de nuevo.')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -383,6 +388,14 @@ export default function PatientDashboard() {
           {successMsg}
         </div>
       )}
+
+      {/* ── Error de guardado ── */}
+      {saveError && (
+        <div className="card bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-sm font-semibold text-center animate-fade-in shadow-none">
+          ⚠️ {saveError}
+        </div>
+      )}
+
 
       {/* ── SECCIÓN PRINCIPAL: Nota de hoy ── */}
       {!wroteToday ? (
