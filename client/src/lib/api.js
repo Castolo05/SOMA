@@ -6,11 +6,53 @@
 import { supabase } from './supabase'
 
 // ── Obtener usuario autenticado actual ────────────────────
+// Usamos getSession() (caché local) en lugar de getUser() (llamada a red)
+// para evitar race conditions justo después del registro donde el JWT
+// puede no haber propagado aún a los servidores de validación de Supabase.
 async function currentUser() {
-  const { data: { user } } = await supabase.auth.getUser()
+  // Primero intentamos con la sesión en caché (rápido, sin red)
+  const { data: { session } } = await supabase.auth.getSession()
+  const user = session?.user ?? null
   if (!user) return null
-  const { data: profile } = await supabase.from('profiles').select('*').eq('id', user.id).single()
-  if (!profile) return null
+
+  // Intentar leer el perfil con reintentos (puede haber delay de RLS post-registro)
+  let profile = null
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', user.id)
+      .single()
+    if (data) { profile = data; break }
+    // Si es un error de "0 rows" y no el último intento, esperar y reintentar
+    if (error?.code === 'PGRST116' && attempt < 3) {
+      await new Promise(r => setTimeout(r, attempt * 400))
+    } else {
+      break
+    }
+  }
+
+  // Fallback: perfil no existe en DB pero la sesión es válida.
+  // Intentar crearlo, y si falla (ya existe por race condition), ignorar.
+  if (!profile) {
+    const meta = user.user_metadata || {}
+    const role = meta.role || 'PATIENT'
+    const name = meta.name || user.email?.split('@')[0] || 'Usuario'
+    await supabase
+      .from('profiles')
+      .insert({ id: user.id, name, role })
+      .select()
+      .single()
+    // Independientemente del resultado, construir con los metadatos del token
+    return {
+      id: user.id,
+      email: user.email,
+      role,
+      inviteCode: null,
+      psychologistId: null,
+    }
+  }
+
   return {
     id: user.id,
     email: user.email,
@@ -19,6 +61,7 @@ async function currentUser() {
     psychologistId: profile.psychologist_id,
   }
 }
+
 
 // ── Helpers ───────────────────────────────────────────────
 function ok(data) { return Promise.resolve({ data }) }

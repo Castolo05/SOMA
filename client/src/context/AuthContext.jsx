@@ -87,10 +87,26 @@ export function AuthProvider({ children }) {
 
     // Reintentos: la sesión puede tardar unos ms en propagar al RLS
     let userData = null
-    for (let attempt = 1; attempt <= 4; attempt++) {
+    for (let attempt = 1; attempt <= 5; attempt++) {
       userData = await loadProfile(data.user)
       if (userData) break
-      await new Promise(r => setTimeout(r, attempt * 300))
+      await new Promise(r => setTimeout(r, attempt * 400))
+    }
+
+    // Fallback: si RLS bloquea la lectura transitoriamente, construir
+    // desde los metadatos del token — la sesión es válida en cualquier caso.
+    if (!userData && data.user) {
+      const meta = data.user.user_metadata || {}
+      userData = {
+        id: data.user.id,
+        name: meta.name || data.user.email?.split('@')[0] || 'Usuario',
+        email: data.user.email,
+        role: meta.role || 'PATIENT',
+        inviteCode: null,
+        psychologistId: null,
+        avatar: null,
+      }
+      setUser(userData)
     }
 
     if (!userData) {
@@ -114,34 +130,49 @@ export function AuthProvider({ children }) {
       throw err
     }
 
-    // Si hay sesión disponible inmediatamente, establecerla
+    // Si Supabase devuelve sesión directamente (email confirmation desactivado)
     if (data.session) {
       await supabase.auth.setSession(data.session)
-    }
-
-    // Intentar leer el perfil (el trigger puede tardar unos ms)
-    let userData = null
-    for (let attempt = 1; attempt <= 4; attempt++) {
-      await new Promise(r => setTimeout(r, attempt * 500))
-      userData = await loadProfile(data.user)
-      if (userData) break
-    }
-
-    // Fallback: si RLS bloquea la lectura (ej: email confirmation activo),
-    // construir el objeto desde los datos del formulario.
-    // El trigger YA creó el row — solo no podemos leerlo sin sesión activa.
-    if (!userData && data.user) {
-      userData = {
-        id: data.user.id,
-        name,
-        email,
-        role,
-        inviteCode: null,
-        psychologistId: null,
-        avatar: null,
+      // Intentar leer el perfil con reintentos (trigger puede tardar unos ms)
+      let userData = null
+      for (let attempt = 1; attempt <= 5; attempt++) {
+        await new Promise(r => setTimeout(r, attempt * 400))
+        userData = await loadProfile(data.user)
+        if (userData) break
       }
-      setUser(userData)
+      // Fallback con datos del formulario si RLS aún no propagó
+      if (!userData && data.user) {
+        userData = {
+          id: data.user.id,
+          name,
+          email,
+          role,
+          inviteCode: null,
+          psychologistId: null,
+          avatar: null,
+        }
+        setUser(userData)
+      }
+      if (userData) return userData
     }
+
+    // Sin sesión = Supabase requiere confirmación de email.
+    // No dejamos entrar al dashboard: sin sesión, todas las
+    // operaciones de DB fallan con 401.
+    if (!data.session) {
+      const err = new Error(
+        '¡Cuenta creada! Revisá tu email y confirmá tu dirección para poder iniciar sesión.'
+      )
+      err.response = {
+        data: {
+          error: err.message,
+          isEmailConfirmation: true,
+        },
+      }
+      throw err
+    }
+
+    const userData = null
 
     if (!userData) {
       const err = new Error('No se pudo completar el registro. Por favor intentá iniciar sesión.')
