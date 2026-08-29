@@ -332,6 +332,7 @@ export default function PatientDashboard() {
       showSuccess('¡Nota de hoy guardada! 🎉')
       setEditMode(false)
     } catch (err) {
+      console.error('❌ Error guardando nota:', err)
       if (err.response?.status === 409) {
         showSuccess('Ya existe una nota hoy.')
       } else {
