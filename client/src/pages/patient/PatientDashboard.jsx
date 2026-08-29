@@ -42,6 +42,7 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
     setHabitData(prev => ({ ...prev, [id]: { ...prev[id], [field]: value } }))
 
   const handleSubmit = () => {
+    if (!preferInSession && !content.trim()) return
     onSubmit({ mood, content, completedHabits, habitData })
   }
 
@@ -265,7 +266,7 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
         )}
         <button
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || (!preferInSession && !content.trim())}
           className="btn-patient flex-1 flex items-center justify-center gap-1.5 text-sm shadow-sm"
         >
           <Save size={15} />
