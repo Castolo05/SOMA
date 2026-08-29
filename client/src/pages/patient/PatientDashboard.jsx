@@ -289,6 +289,7 @@ export default function PatientDashboard() {
   const [submitting, setSubmitting] = useState(false)
   const [successMsg, setSuccessMsg] = useState('')
   const [saveError, setSaveError] = useState('')
+  const [chartDays, setChartDays] = useState(14)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
