@@ -86,6 +86,16 @@ export function AuthProvider({ children }) {
       throw err
     }
 
+    // Fuerza la persistencia completa y verifica el adaptador seguro nativo.
+    if (shouldTrustDevice && data.session) {
+      const { error: persistError } = await supabase.auth.setSession(data.session)
+      if (persistError) {
+        const err = new Error('No se pudo conservar la sesión en este dispositivo.')
+        err.response = { data: { error: err.message } }
+        throw err
+      }
+    }
+
     // Reintentos: la sesión puede tardar unos ms en propagar al RLS
     let userData = null
     for (let attempt = 1; attempt <= 5; attempt++) {

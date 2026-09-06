@@ -56,6 +56,8 @@ const secureSessionStorage = {
 
     try {
       await SecureStorage.setItem(key, value)
+      const savedValue = await SecureStorage.getItem(key)
+      if (savedValue !== value) throw new Error('La sesión no pudo verificarse en almacenamiento seguro.')
       localStorage.removeItem(key)
     } catch (error) {
       console.warn('No se pudo guardar la sesión segura; se usa el almacenamiento local.', error)
