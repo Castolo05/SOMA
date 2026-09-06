@@ -9,7 +9,6 @@ export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })
-  const [trustDevice, setTrustDevice] = useState(true)
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,7 +18,7 @@ export default function LoginPage() {
     setError('')
     setLoading(true)
     try {
-      const user = await login(form.email, form.password, trustDevice)
+      const user = await login(form.email, form.password)
       navigate(user?.role === 'PATIENT' ? '/patient' : '/psych', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión.')
@@ -98,16 +97,6 @@ export default function LoginPage() {
                 ¿Olvidaste tu contraseña?
               </Link>
             </div>
-
-            <label className="flex items-center gap-3 text-sm text-gray-600 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={trustDevice}
-                onChange={(e) => setTrustDevice(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300 text-sage-500 focus:ring-sage-400"
-              />
-              <span>Confiar en este dispositivo y mantener la sesión iniciada</span>
-            </label>
 
             <button
               id="login-submit"

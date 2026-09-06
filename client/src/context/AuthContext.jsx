@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { setSessionPersistence, supabase } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
@@ -77,23 +77,12 @@ export function AuthProvider({ children }) {
   }, [])
 
 
-  const login = async (email, password, shouldTrustDevice = true) => {
-    await setSessionPersistence(shouldTrustDevice)
+  const login = async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       const err = new Error(error.message)
       err.response = { data: { error: translateError(error.message) } }
       throw err
-    }
-
-    // Fuerza la persistencia completa y verifica el adaptador seguro nativo.
-    if (shouldTrustDevice && data.session) {
-      const { error: persistError } = await supabase.auth.setSession(data.session)
-      if (persistError) {
-        const err = new Error('No se pudo conservar la sesión en este dispositivo.')
-        err.response = { data: { error: err.message } }
-        throw err
-      }
     }
 
     // Reintentos: la sesión puede tardar unos ms en propagar al RLS
