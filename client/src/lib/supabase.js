@@ -1,5 +1,5 @@
 import { Capacitor } from '@capacitor/core'
-import { registerPlugin } from '@capacitor/core'
+import { Preferences } from '@capacitor/preferences'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -17,31 +17,18 @@ if (!supabaseUrl || !supabaseAnonKey) {
 const isNativeApp = Capacitor.isNativePlatform()
 let trustDevice = localStorage.getItem('nexo_trusted_device') !== 'false'
 
-const EncryptedSession = registerPlugin('EncryptedSession')
-
-const sessionStorage = {
+const preferencesSessionStorage = {
   async getItem(key) {
     if (!trustDevice) return null
-    if (isNativeApp) {
-      const { value } = await EncryptedSession.get()
-      return value
-    }
-    return localStorage.getItem(key)
+    const { value } = await Preferences.get({ key })
+    return value
   },
   async setItem(key, value) {
     if (!trustDevice) return
-    if (isNativeApp) {
-      await EncryptedSession.set({ value })
-      return
-    }
-    localStorage.setItem(key, value)
+    await Preferences.set({ key, value })
   },
   async removeItem(key) {
-    if (isNativeApp) {
-      await EncryptedSession.remove()
-      return
-    }
-    localStorage.removeItem(key)
+    await Preferences.remove({ key })
   },
 }
 
@@ -50,7 +37,7 @@ export async function setSessionPersistence(shouldTrustDevice) {
   localStorage.setItem('nexo_trusted_device', String(shouldTrustDevice))
 
   if (!shouldTrustDevice) {
-    await sessionStorage.removeItem('supabase.auth.token')
+    await Preferences.remove({ key: 'supabase.auth.token' })
   }
 }
 
@@ -59,6 +46,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    storage: sessionStorage,
+    storage: isNativeApp ? preferencesSessionStorage : undefined,
   },
 })
