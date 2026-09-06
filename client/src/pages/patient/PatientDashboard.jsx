@@ -5,7 +5,8 @@ import {
   TrendingUp, CheckCircle2, Save, X, Edit2,
 } from 'lucide-react'
 import api from '../../lib/api'
-import { MOOD_ICONS, HABIT_ICONS, formatDateShort, isSameDay, isEditable } from '../../lib/constants'
+import { MOOD_ICONS, HABIT_ICONS, entryDateKey, isEditable } from '../../lib/constants'
+import { syncDailyReminders } from '../../lib/reminders'
 import MoodIcon from '../../components/MoodIcon'
 import MoodChart from '../../components/MoodChart'
 import { usePageTitle } from '../../hooks/usePageTitle'
@@ -23,7 +24,7 @@ function formatAppointmentDate(dateStr) {
 }
 
 // ── Formulario de nota inline ────────────────────────────────────
-function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], initialHabitData = {}, habits = [], onSubmit, onCancel, isEdit = false, submitting }) {
+function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], initialHabitData = {}, habits = [], onSubmit, onCancel, isEdit = false, submitting, dayLabel = 'hoy' }) {
   const [mood, setMood] = useState(initialMood)
   const [content, setContent] = useState(initialContent)
   // For "toggle" habits: array of IDs
@@ -81,7 +82,7 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
 
       {/* Texto libre */}
       <div className="card">
-        <label className="label mb-2">¿Qué pasó hoy?</label>
+        <label className="label mb-2">¿Qué pasó {dayLabel}?</label>
         <textarea
           className="input resize-none h-28 mb-3"
           placeholder={preferInSession ? '(Opcional) Puedes dejar esto vacío...' : 'Contá cómo te sentiste, qué te pasó...'}
@@ -270,7 +271,7 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
           className="btn-patient flex-1 flex items-center justify-center gap-1.5 text-sm shadow-sm"
         >
           <Save size={15} />
-          {submitting ? 'Guardando...' : isEdit ? 'Actualizar nota' : 'Guardar nota de hoy'}
+          {submitting ? 'Guardando...' : isEdit ? `Actualizar nota de ${dayLabel}` : `Guardar nota de ${dayLabel}`}
         </button>
       </div>
     </div>
@@ -290,6 +291,7 @@ export default function PatientDashboard() {
   const [successMsg, setSuccessMsg] = useState('')
   const [saveError, setSaveError] = useState('')
   const [chartDays, setChartDays] = useState(14)
+  const [yesterdayMode, setYesterdayMode] = useState(false)
 
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Buenos días' : hour < 19 ? 'Buenas tardes' : 'Buenas noches'
@@ -300,16 +302,24 @@ export default function PatientDashboard() {
     // los hábitos siguen cargando y aparecen en el formulario.
     setLoading(true)
     const fetches = [
-      api.get('/journal').then(r => setEntries(r.data.entries)).catch(() => {}),
+      api.get('/journal').then(r => {
+        setEntries(r.data.entries)
+        // El permiso se solicita una vez al entrar como paciente. Si la persona
+        // lo rechaza, puede volver a intentarlo desde Perfil.
+        syncDailyReminders(r.data.entries, { requestPermission: true }).catch(() => {})
+      }).catch(() => {}),
       api.get('/appointments').then(r => setAppointments(r.data.appointments)).catch(() => {}),
       api.get('/habits').then(r => setHabits(r.data.habits)).catch(() => {}),
     ]
     Promise.all(fetches).finally(() => setLoading(false))
   }, [])
 
-  const todayEntry = entries.find((e) => isSameDay(new Date(e.createdAt), new Date()))
+  const todayDate = entryDateKey()
+  const yesterdayDate = entryDateKey(new Date(Date.now() - 86400000))
+  const todayEntry = entries.find((entry) => entry.entryDate === todayDate)
+  const yesterdayEntry = entries.find((entry) => entry.entryDate === yesterdayDate)
   const wroteToday = !!todayEntry
-  const canEditToday = wroteToday && isEditable(todayEntry?.createdAt)
+  const canEditToday = wroteToday && isEditable(todayEntry?.entryDate)
   const nextAppointment = appointments[0] || null
 
   // Filtrar entradas según el periodo del gráfico para el promedio
@@ -324,14 +334,17 @@ export default function PatientDashboard() {
     ? Math.round((chartFilteredEntries.reduce((s, e) => s + e.moodScore, 0) / chartFilteredEntries.length) * 10) / 10
     : null
 
-  const handleCreate = async ({ mood, content, completedHabits, habitData }) => {
+  const handleCreate = async ({ mood, content, completedHabits, habitData }, entryDate = todayDate) => {
     setSaveError('')
     setSubmitting(true)
     try {
-      const { data } = await api.post('/journal', { moodScore: mood, content, completedHabits, habitData })
-      setEntries((prev) => [data.entry, ...prev])
-      showSuccess('¡Nota de hoy guardada! 🎉')
+      const { data } = await api.post('/journal', { moodScore: mood, content, completedHabits, habitData, entryDate })
+      const nextEntries = [data.entry, ...entries]
+      setEntries(nextEntries)
+      syncDailyReminders(nextEntries).catch(() => {})
+      showSuccess(entryDate === todayDate ? '¡Nota de hoy guardada! 🎉' : '¡Nota de ayer guardada!')
       setEditMode(false)
+      setYesterdayMode(false)
     } catch (err) {
       console.error('❌ Error guardando nota:', err)
       if (err.response?.status === 409) {
@@ -344,13 +357,16 @@ export default function PatientDashboard() {
     }
   }
 
-  const handleUpdate = async ({ mood, content, completedHabits, habitData }) => {
+  const handleUpdate = async (entry, { mood, content, completedHabits, habitData }) => {
     setSubmitting(true)
     try {
-      const { data } = await api.put(`/journal/${todayEntry.id}`, { moodScore: mood, content, completedHabits, habitData })
-      setEntries((prev) => prev.map((e) => e.id === todayEntry.id ? data.entry : e))
+      const { data } = await api.put(`/journal/${entry.id}`, { moodScore: mood, content, completedHabits, habitData })
+      const nextEntries = entries.map((item) => item.id === entry.id ? data.entry : item)
+      setEntries(nextEntries)
+      syncDailyReminders(nextEntries).catch(() => {})
       showSuccess('Nota actualizada.')
       setEditMode(false)
+      setYesterdayMode(false)
     } catch (err) {
       alert(err.response?.data?.error || 'Error al actualizar.')
     } finally {
@@ -408,7 +424,7 @@ export default function PatientDashboard() {
             ¿Cómo te sentís hoy?
           </p>
           <NoteForm
-            onSubmit={handleCreate}
+            onSubmit={(form) => handleCreate(form, todayDate)}
             habits={habits}
             submitting={submitting}
           />
@@ -425,7 +441,7 @@ export default function PatientDashboard() {
             initialHabits={todayEntry.completedHabits || []}
             initialHabitData={todayEntry.habitData || {}}
             habits={habits}
-            onSubmit={handleUpdate}
+            onSubmit={(form) => handleUpdate(todayEntry, form)}
             onCancel={() => setEditMode(false)}
             isEdit
             submitting={submitting}
@@ -518,6 +534,50 @@ export default function PatientDashboard() {
             )}
           </div>
         </div>
+      )}
+
+      {/* ── Recuperar o editar únicamente la anotación de ayer ── */}
+      {yesterdayMode ? (
+        <div>
+          <div className="flex items-center justify-between mb-2 px-1">
+            <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">
+              {yesterdayEntry ? 'Editando la nota de ayer' : 'Anotación pendiente de ayer'}
+            </p>
+            <span className="text-[11px] text-gray-400">Disponible solo hoy</span>
+          </div>
+          <NoteForm
+            initialMood={yesterdayEntry?.moodScore ?? 5}
+            initialContent={yesterdayEntry?.content ?? ''}
+            initialHabits={yesterdayEntry?.completedHabits || []}
+            initialHabitData={yesterdayEntry?.habitData || {}}
+            habits={habits}
+            dayLabel="ayer"
+            onSubmit={(form) => yesterdayEntry
+              ? handleUpdate(yesterdayEntry, form)
+              : handleCreate(form, yesterdayDate)}
+            onCancel={() => setYesterdayMode(false)}
+            isEdit={Boolean(yesterdayEntry)}
+            submitting={submitting}
+          />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setYesterdayMode(true)}
+          className="w-full card !p-4 flex items-center gap-3 text-left border-indigo-100 dark:border-indigo-900/60 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+        >
+          <span className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500">
+            <Edit2 size={19} />
+          </span>
+          <span className="flex-1">
+            <span className="block text-sm font-bold text-gray-700 dark:text-gray-200">
+              {yesterdayEntry ? '¿Querés revisar la nota de ayer?' : '¿Te olvidaste de anotar ayer?'}
+            </span>
+            <span className="block text-xs text-gray-400 mt-0.5">
+              {yesterdayEntry ? 'Todavía podés editarla hasta que termine el día.' : 'Todavía podés crearla. Después de hoy se bloqueará.'}
+            </span>
+          </span>
+        </button>
       )}
 
       {/* ── Próxima sesión: removida ── */}

@@ -103,6 +103,50 @@ nexomente/
 
 ---
 
+## 📱 App Android (APK de SOMA)
+
+El cliente también puede compilarse como una aplicación Android nativa mediante
+Capacitor. Conserva el nombre **SOMA**, el icono de `client/public/logo.png` y
+todas las pantallas web, con recordatorios locales que funcionan aun cuando la
+app está cerrada.
+
+### Antes de compilar
+
+1. En Supabase, ejecutar una vez
+   [`client/supabase_mobile_migration.sql`](client/supabase_mobile_migration.sql).
+   La migración agrega `entry_date`, deja una sola anotación por paciente/día y
+   hace cumplir en base de datos que solo se puede crear, editar o borrar una
+   nota de hoy o de ayer.
+2. Instalar Android Studio con Android SDK Platform 34 y JDK 17. Configurar
+   `JAVA_HOME` para que apunte al JDK y `ANDROID_HOME` al SDK de Android.
+
+### Generar e instalar un APK de prueba
+
+```bash
+cd client
+npm install
+npm run android:apk
+```
+
+El APK de prueba queda en
+`client/android/app/build/outputs/apk/debug/app-debug.apk`. También podés abrir
+el proyecto nativo con `npm run android:open` y ejecutar en un emulador o un
+teléfono desde Android Studio.
+
+### Recordatorios
+
+- A las **23:00**, SOMA invita de manera amable a anotar el día si todavía no
+  existe una nota.
+- A las **12:00** del día siguiente, si falta la nota de ayer, recuerda que aún
+  se puede completar o editarla.
+- En **Perfil → Recordatorios diarios** se pueden desactivar en cualquier
+  momento. Android pide autorización al abrir el dashboard por primera vez.
+
+Los avisos se planifican en la hora local del teléfono y se reprograman al
+guardar o modificar una anotación, de modo que el aviso puntual se cancela.
+
+---
+
 ## ❌ No necesitas instalar
 
 - PostgreSQL ✅ (usa SQLite en archivo local)

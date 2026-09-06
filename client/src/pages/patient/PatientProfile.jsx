@@ -8,6 +8,7 @@ import {
 import { useNavigate, Link } from 'react-router-dom'
 import { HABIT_ICONS } from '../../lib/constants'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import ReminderSettings from '../../components/ReminderSettings'
 
 // Mapeo de animalitos para el avatar
 const ANIMAL_ICONS = {
@@ -39,6 +40,7 @@ export default function PatientProfile() {
 
   // Hábitos
   const [habits, setHabits] = useState([])
+  const [entries, setEntries] = useState([])
   const [newText, setNewText] = useState('')
   const [newIcon, setNewIcon] = useState('CheckCircle')
   const [newTrackingType, setNewTrackingType] = useState('toggle')
@@ -54,6 +56,7 @@ export default function PatientProfile() {
 
   useEffect(() => {
     api.get('/habits').then(({ data }) => setHabits(data.habits)).catch(() => {})
+    api.get('/journal').then(({ data }) => setEntries(data.entries)).catch(() => {})
   }, [])
 
   const handleLink = async (e) => {
@@ -195,6 +198,8 @@ export default function PatientProfile() {
           <div className="text-xs text-sage-500 font-semibold mt-0.5">Toca para editar perfil</div>
         </div>
       </div>
+
+      <ReminderSettings entries={entries} />
 
       {/* Gestión de hábitos */}
       <div className="card space-y-3">

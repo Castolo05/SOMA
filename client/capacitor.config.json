@@ -1,0 +1,11 @@
+{
+  "appId": "com.soma.app",
+  "appName": "SOMA",
+  "webDir": "dist",
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_soma",
+      "iconColor": "#8FBC8F"
+    }
+  }
+}

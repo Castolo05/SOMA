@@ -4,6 +4,7 @@
 // cambios en los componentes existentes.
 // ============================================================
 import { supabase } from './supabase'
+import { addDays, entryDateKey, entryDateToDate } from './constants'
 
 // ── Obtener usuario autenticado actual ────────────────────
 // Usamos getSession() (caché local) en lugar de getUser() (llamada a red)
@@ -87,7 +88,7 @@ const api = {
         .from('journal_entries')
         .select('*')
         .eq('patient_id', targetId)
-        .order('created_at', { ascending: false })
+        .order('entry_date', { ascending: false })
       if (error) return fail(error.message)
       // Normalizar snake_case → camelCase para compatibilidad
       const entries = (data || []).map(normalizeEntry)
@@ -134,15 +135,16 @@ const api = {
       const enriched = await Promise.all((patients || []).map(async (p) => {
         const { data: entries } = await supabase
           .from('journal_entries')
-          .select('mood_score, created_at')
+          .select('mood_score, entry_date, created_at')
           .eq('patient_id', p.id)
-          .order('created_at', { ascending: false })
+          .order('entry_date', { ascending: false })
           .limit(10)
         const lastEntry = entries?.[0]
         const last3 = (entries || []).slice(0, 3)
         const hasAlert = last3.length >= 3 && last3.every(e => e.mood_score <= 3)
-        const daysSinceLast = lastEntry
-          ? Math.floor((Date.now() - new Date(lastEntry.created_at)) / 86400000)
+        const lastEntryDate = lastEntry?.entry_date || lastEntry?.created_at
+        const daysSinceLast = lastEntryDate
+          ? Math.floor((Date.now() - entryDateToDate(lastEntryDate)) / 86400000)
           : null
         return {
           id: p.id,
@@ -153,7 +155,7 @@ const api = {
           psychologistId: p.psychologist_id,
           totalEntries: (entries || []).length,
           lastMood: lastEntry?.mood_score ?? null,
-          lastEntryDate: lastEntry?.created_at ?? null,
+          lastEntryDate: lastEntryDate ?? null,
           hasAlert,
           hasInactivityAlert: daysSinceLast !== null && daysSinceLast >= 5,
           daysSinceLastEntry: daysSinceLast,
@@ -165,11 +167,11 @@ const api = {
     // ── GET /patients/:id/insights ────────────────────────
     if (url.match(/^\/patients\/.+\/insights$/)) {
       const patientId = url.split('/')[2]
-      const { data: entries } = await supabase
-        .from('journal_entries')
-        .select('mood_score, completed_habits, created_at')
-        .eq('patient_id', patientId)
-        .order('created_at', { ascending: false })
+        const { data: entries } = await supabase
+          .from('journal_entries')
+          .select('mood_score, completed_habits, entry_date, created_at')
+          .eq('patient_id', patientId)
+          .order('entry_date', { ascending: false })
       const normalized = (entries || []).map(normalizeEntry)
       return ok(computeInsights(normalized))
     }
@@ -249,18 +251,25 @@ const api = {
 
     // ── POST /journal ─────────────────────────────────────
     if (url === '/journal') {
-      // Verificar que no haya entrada de hoy
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
+      const today = entryDateKey()
+      const yesterday = entryDateKey(addDays(new Date(), -1))
+      const requestedEntryDate = body.entryDate || today
+
+      if (requestedEntryDate !== today && requestedEntryDate !== yesterday) {
+        return fail('Solo podés crear anotaciones de hoy o de ayer.', 403)
+      }
+
+      // Una entrada por día de registro, incluso cuando se completa ayer.
       const { data: existing } = await supabase
         .from('journal_entries')
         .select('id')
         .eq('patient_id', user?.id)
-        .gte('created_at', today.toISOString())
+        .eq('entry_date', requestedEntryDate)
         .limit(1)
       if (existing?.length > 0) {
-        const err = new Error('Ya existe una entrada hoy.')
-        err.response = { status: 409, data: { error: 'Ya existe una entrada hoy.' } }
+        const dayLabel = requestedEntryDate === today ? 'hoy' : 'ayer'
+        const err = new Error(`Ya existe una entrada de ${dayLabel}.`)
+        err.response = { status: 409, data: { error: `Ya existe una entrada de ${dayLabel}.` } }
         return Promise.reject(err)
       }
       // Mergear completedHabits con habitData
@@ -279,6 +288,7 @@ const api = {
           completed_habits: merged,
           habit_data: body.habitData || {},
           flagged_for_session: false,
+          entry_date: requestedEntryDate,
         })
         .select()
         .single()
@@ -565,6 +575,7 @@ export default api
 // Normalizadores snake_case → camelCase
 // ============================================================
 function normalizeEntry(e) {
+  const entryDate = e.entry_date || entryDateKey(e.created_at)
   return {
     id: e.id,
     patientId: e.patient_id,
@@ -573,7 +584,11 @@ function normalizeEntry(e) {
     completedHabits: e.completed_habits || [],
     habitData: e.habit_data || {},
     flaggedForSession: e.flagged_for_session,
-    createdAt: e.created_at,
+    // Las vistas de diario trabajan con el día de la experiencia, no el
+    // instante técnico en que se subió el formulario.
+    entryDate,
+    createdAt: `${entryDate}T12:00:00`,
+    submittedAt: e.created_at,
     updatedAt: e.updated_at,
   }
 }

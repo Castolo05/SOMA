@@ -74,9 +74,42 @@ export const isSameDay = (a, b) => {
     da.getDate() === db.getDate()
 }
 
-export const isEditable = (createdAt) => {
-  const hours = (Date.now() - new Date(createdAt).getTime()) / 3600000
-  return hours <= 24
+export const startOfDay = (date = new Date()) => {
+  const day = new Date(date)
+  day.setHours(0, 0, 0, 0)
+  return day
+}
+
+export const addDays = (date, days) => {
+  const result = startOfDay(date)
+  result.setDate(result.getDate() + days)
+  return result
+}
+
+export const entryDateKey = (date = new Date()) => {
+  const localDate = new Date(date)
+  const year = localDate.getFullYear()
+  const month = String(localDate.getMonth() + 1).padStart(2, '0')
+  const day = String(localDate.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+export const entryDateFromDate = (value) => entryDateKey(value)
+
+// Una fecha YYYY-MM-DD se interpreta al mediodía local para evitar saltos por UTC.
+export const entryDateToDate = (entryDate) => {
+  if (!entryDate) return new Date()
+  if (entryDate instanceof Date) return entryDate
+  if (/^\d{4}-\d{2}-\d{2}$/.test(entryDate)) return new Date(`${entryDate}T12:00:00`)
+  return new Date(entryDate)
+}
+
+// La ventana de edición se define por día calendario: hoy o ayer.
+export const isEditable = (entryDate) => {
+  const target = entryDateKey(entryDateToDate(entryDate))
+  const today = entryDateKey()
+  const yesterday = entryDateKey(addDays(new Date(), -1))
+  return target === today || target === yesterday
 }
 
 export const MONTH_NAMES = [

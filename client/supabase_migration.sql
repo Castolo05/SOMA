@@ -22,13 +22,15 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE TABLE IF NOT EXISTS public.journal_entries (
   id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   patient_id      UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+  entry_date      DATE NOT NULL DEFAULT (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE,
   mood_score      INTEGER NOT NULL CHECK (mood_score BETWEEN 1 AND 10),
   content         TEXT DEFAULT '',
   completed_habits TEXT[] DEFAULT '{}',       -- Array de IDs de hábitos completados
   habit_data      JSONB DEFAULT '{}',         -- { [habitId]: { done, qty, note } }
   flagged_for_session BOOLEAN DEFAULT FALSE,
   created_at      TIMESTAMPTZ DEFAULT NOW(),
-  updated_at      TIMESTAMPTZ DEFAULT NOW()
+  updated_at      TIMESTAMPTZ DEFAULT NOW(),
+  UNIQUE (patient_id, entry_date)
 );
 
 -- ── Tabla: habits ────────────────────────────────────────
@@ -127,6 +129,21 @@ CREATE TRIGGER set_profiles_updated_at BEFORE UPDATE ON public.profiles FOR EACH
 DROP TRIGGER IF EXISTS set_journal_updated_at ON public.journal_entries;
 CREATE TRIGGER set_journal_updated_at BEFORE UPDATE ON public.journal_entries FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+CREATE OR REPLACE FUNCTION public.prevent_journal_entry_date_change()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.entry_date IS DISTINCT FROM OLD.entry_date THEN
+    RAISE EXCEPTION 'La fecha de una anotación no puede modificarse.';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS journal_entry_date_is_immutable ON public.journal_entries;
+CREATE TRIGGER journal_entry_date_is_immutable
+  BEFORE UPDATE ON public.journal_entries
+  FOR EACH ROW EXECUTE FUNCTION public.prevent_journal_entry_date_change();
+
 DROP TRIGGER IF EXISTS set_session_notes_updated_at ON public.session_notes;
 CREATE TRIGGER set_session_notes_updated_at BEFORE UPDATE ON public.session_notes FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
@@ -201,20 +218,32 @@ CREATE POLICY "journal: paciente ve sus entradas" ON public.journal_entries
 
 DROP POLICY IF EXISTS "journal: paciente crea" ON public.journal_entries;
 CREATE POLICY "journal: paciente crea" ON public.journal_entries
-  FOR INSERT WITH CHECK (auth.uid() = patient_id);
+  FOR INSERT WITH CHECK (
+    auth.uid() = patient_id
+    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 1)
+                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
+  );
 
 DROP POLICY IF EXISTS "journal: paciente actualiza (24h)" ON public.journal_entries;
+DROP POLICY IF EXISTS "journal: paciente actualiza hoy o ayer" ON public.journal_entries;
 CREATE POLICY "journal: paciente actualiza (24h)" ON public.journal_entries
   FOR UPDATE USING (
     auth.uid() = patient_id
-    AND created_at > NOW() - INTERVAL '24 hours'
+    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 1)
+                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
+  ) WITH CHECK (
+    auth.uid() = patient_id
+    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 1)
+                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
   );
 
 DROP POLICY IF EXISTS "journal: paciente elimina (24h)" ON public.journal_entries;
+DROP POLICY IF EXISTS "journal: paciente elimina hoy o ayer" ON public.journal_entries;
 CREATE POLICY "journal: paciente elimina (24h)" ON public.journal_entries
   FOR DELETE USING (
     auth.uid() = patient_id
-    AND created_at > NOW() - INTERVAL '24 hours'
+    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 1)
+                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
   );
 
 -- Psicólogo: solo lectura de entradas de SUS pacientes
@@ -276,6 +305,7 @@ CREATE POLICY "goals: paciente lee sus metas" ON public.therapy_goals
 -- ============================================================
 CREATE INDEX IF NOT EXISTS idx_journal_patient_id   ON public.journal_entries(patient_id);
 CREATE INDEX IF NOT EXISTS idx_journal_created_at   ON public.journal_entries(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_journal_patient_entry_date ON public.journal_entries(patient_id, entry_date DESC);
 CREATE INDEX IF NOT EXISTS idx_habits_user_id        ON public.habits(user_id);
 CREATE INDEX IF NOT EXISTS idx_session_notes_psych   ON public.session_notes(psychologist_id);
 CREATE INDEX IF NOT EXISTS idx_session_notes_patient ON public.session_notes(patient_id);
