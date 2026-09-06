@@ -1,5 +1,11 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import {
+  clearSavedSession,
+  loadSavedSession,
+  saveSession,
+  setSessionPersistence,
+  supabase,
+} from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
@@ -60,14 +66,34 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    // Verificar sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      loadProfile(session?.user ?? null).finally(() => setLoading(false))
-    })
+    // Restaurar manualmente la sesión guardada en el almacenamiento local del APK.
+    const restoreSession = async () => {
+      const savedSession = loadSavedSession()
+      if (!savedSession) {
+        setLoading(false)
+        return
+      }
+
+      const { data, error } = await supabase.auth.setSession(savedSession)
+      if (error || !data.session) {
+        clearSavedSession()
+        setLoading(false)
+        return
+      }
+
+      saveSession(data.session)
+      await loadProfile(data.session.user)
+      setLoading(false)
+    }
+
+    restoreSession()
 
     // Escuchar cambios de autenticación (login, logout, refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (session && localStorage.getItem('nexo_trusted_device') !== 'false') {
+          saveSession(session)
+        }
         await loadProfile(session?.user ?? null)
         setLoading(false)
       }
@@ -77,13 +103,16 @@ export function AuthProvider({ children }) {
   }, [])
 
 
-  const login = async (email, password) => {
+  const login = async (email, password, shouldTrustDevice = true) => {
+    await setSessionPersistence(shouldTrustDevice)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       const err = new Error(error.message)
       err.response = { data: { error: translateError(error.message) } }
       throw err
     }
+
+    if (shouldTrustDevice) saveSession(data.session)
 
     // Reintentos: la sesión puede tardar unos ms en propagar al RLS
     let userData = null
@@ -184,6 +213,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     await supabase.auth.signOut()
+    clearSavedSession()
     setUser(null)
   }
 

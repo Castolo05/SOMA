@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
@@ -6,12 +6,18 @@ import { usePageTitle } from '../../hooks/usePageTitle'
 
 export default function LoginPage() {
   usePageTitle('Iniciar sesión')
-  const { login } = useAuth()
+  const { login, user, loading: authLoading } = useAuth()
   const navigate = useNavigate()
   const [form, setForm] = useState({ email: '', password: '' })
   const [showPass, setShowPass] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!authLoading && user) {
+      navigate(user.role === 'PATIENT' ? '/patient' : '/psych', { replace: true })
+    }
+  }, [authLoading, navigate, user])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
