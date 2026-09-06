@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
+import { setSessionPersistence, supabase } from '../lib/supabase'
 
 const AuthContext = createContext(null)
 
@@ -77,7 +77,8 @@ export function AuthProvider({ children }) {
   }, [])
 
 
-  const login = async (email, password) => {
+  const login = async (email, password, shouldTrustDevice = true) => {
+    await setSessionPersistence(shouldTrustDevice)
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       const err = new Error(error.message)
