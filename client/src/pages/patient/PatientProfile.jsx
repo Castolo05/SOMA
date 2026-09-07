@@ -3,9 +3,9 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import {
   UserRound, Link2, LogOut, Plus, Pencil, Trash2, Check, X, CheckCircle2,
-  Phone, Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat, AlertCircle
+  Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat, AlertCircle
 } from 'lucide-react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { HABIT_ICONS } from '../../lib/constants'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ReminderSettings from '../../components/ReminderSettings'
@@ -189,13 +189,6 @@ export default function PatientProfile() {
     <div className="space-y-5 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Mi Perfil</h1>
-        <Link
-          to="/patient/emergency"
-          className="flex items-center gap-2 bg-red-100 dark:bg-red-900/30 hover:bg-red-200 dark:hover:bg-red-900/50 text-red-600 dark:text-red-400 font-bold px-4 py-2 rounded-2xl transition-all shadow-sm"
-        >
-          <Phone size={16} />
-          SOS
-        </Link>
       </div>
 
       {/* Info del usuario o Edición */}
