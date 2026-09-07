@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import {
   clearSavedSession,
   loadSavedSession,
@@ -12,6 +12,7 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
+  const initializedRef = useRef(false)
 
   // Carga el perfil completo desde la tabla profiles.
   // Si no existe (ej: cuenta creada antes del trigger), lo crea automáticamente.
@@ -70,6 +71,7 @@ export function AuthProvider({ children }) {
     const restoreSession = async () => {
       const savedSession = loadSavedSession()
       if (!savedSession) {
+        initializedRef.current = true
         setLoading(false)
         return
       }
@@ -77,12 +79,14 @@ export function AuthProvider({ children }) {
       const { data, error } = await supabase.auth.setSession(savedSession)
       if (error || !data.session) {
         clearSavedSession()
+        initializedRef.current = true
         setLoading(false)
         return
       }
 
       saveSession(data.session)
       await loadProfile(data.session.user)
+      initializedRef.current = true
       setLoading(false)
     }
 
@@ -91,6 +95,7 @@ export function AuthProvider({ children }) {
     // Escuchar cambios de autenticación (login, logout, refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        if (!initializedRef.current) return
         if (session && localStorage.getItem('nexo_trusted_device') !== 'false') {
           saveSession(session)
         }
@@ -272,10 +277,27 @@ export function AuthProvider({ children }) {
     return { message: `¡Vinculado con ${psych.name}!` }
   }
 
+  if (loading) return <InitialLoadingScreen />
+
   return (
     <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, linkPsychologist }}>
       {children}
     </AuthContext.Provider>
+  )
+}
+
+function InitialLoadingScreen() {
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-sage-50 via-white to-lavender-100">
+      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg">
+        <img src="/logo.png" alt="SOMA" className="h-full w-full object-cover" />
+      </div>
+      <p className="mt-5 text-lg font-bold tracking-wide text-gray-800">SOMA</p>
+      <div className="mt-4 flex items-center gap-2 text-sm text-gray-500" role="status" aria-live="polite">
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-sage-200 border-t-sage-500" />
+        <span>Preparando tu espacio...</span>
+      </div>
+    </div>
   )
 }
 
