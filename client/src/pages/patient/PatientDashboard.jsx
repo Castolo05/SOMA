@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import {
   TrendingUp, CheckCircle2, Save, X, Edit2,
@@ -10,6 +9,7 @@ import { syncDailyReminders } from '../../lib/reminders'
 import MoodIcon from '../../components/MoodIcon'
 import MoodChart from '../../components/MoodChart'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 
 function todayString() {
   return new Date().toLocaleDateString('es-AR', {
@@ -282,9 +282,10 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
 export default function PatientDashboard() {
   usePageTitle('Mi día')
   const { user } = useAuth()
-  const [entries, setEntries] = useState([])
-  const [habits, setHabits] = useState([])
-  const [appointments, setAppointments] = useState([])
+  const initialCache = getPatientCache()
+  const [entries, setEntries] = useState(initialCache.entries || [])
+  const [habits, setHabits] = useState(initialCache.habits || [])
+  const [appointments, setAppointments] = useState(initialCache.appointments || [])
   const [loading, setLoading] = useState(true)
   const [editMode, setEditMode] = useState(false)
   const [submitting, setSubmitting] = useState(false)
@@ -304,12 +305,13 @@ export default function PatientDashboard() {
     const fetches = [
       api.get('/journal').then(r => {
         setEntries(r.data.entries)
+        updatePatientCache('entries', r.data.entries)
         // El permiso se solicita una vez al entrar como paciente. Si la persona
         // lo rechaza, puede volver a intentarlo desde Perfil.
         syncDailyReminders(r.data.entries, { requestPermission: true }).catch(() => {})
       }).catch(() => {}),
-      api.get('/appointments').then(r => setAppointments(r.data.appointments)).catch(() => {}),
-      api.get('/habits').then(r => setHabits(r.data.habits)).catch(() => {}),
+      api.get('/appointments').then(r => { setAppointments(r.data.appointments); updatePatientCache('appointments', r.data.appointments) }).catch(() => {}),
+      api.get('/habits').then(r => { setHabits(r.data.habits); updatePatientCache('habits', r.data.habits) }).catch(() => {}),
     ]
     Promise.all(fetches).finally(() => setLoading(false))
   }, [])
@@ -341,6 +343,7 @@ export default function PatientDashboard() {
       const { data } = await api.post('/journal', { moodScore: mood, content, completedHabits, habitData, entryDate })
       const nextEntries = [data.entry, ...entries]
       setEntries(nextEntries)
+      updatePatientCache('entries', nextEntries)
       syncDailyReminders(nextEntries).catch(() => {})
       showSuccess(entryDate === todayDate ? '¡Nota de hoy guardada! 🎉' : '¡Nota de ayer guardada!')
       setEditMode(false)
@@ -363,6 +366,7 @@ export default function PatientDashboard() {
       const { data } = await api.put(`/journal/${entry.id}`, { moodScore: mood, content, completedHabits, habitData })
       const nextEntries = entries.map((item) => item.id === entry.id ? data.entry : item)
       setEntries(nextEntries)
+      updatePatientCache('entries', nextEntries)
       syncDailyReminders(nextEntries).catch(() => {})
       showSuccess('Nota actualizada.')
       setEditMode(false)
@@ -581,16 +585,6 @@ export default function PatientDashboard() {
       )}
 
       {/* ── Próxima sesión: removida ── */}
-
-      {/* ── Vinculación pendiente ── */}
-      {!user?.psychologistId && (
-        <div className="card border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-900/20 shadow-none">
-          <p className="text-sm text-indigo-700 dark:text-indigo-400">
-            💡 Sin psicólogo vinculado.{' '}
-            <Link to="/patient/profile" className="font-bold underline">Ingresar código</Link>
-          </p>
-        </div>
-      )}
 
       {/* ── Gráfico (movido a Historial) ── */}
     </div>

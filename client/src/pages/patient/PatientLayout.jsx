@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Home, BookOpen, User, Moon, Sun, LogOut, Phone } from 'lucide-react'
+import { preloadPatientData } from '../../lib/patientCache'
 
 export default function PatientLayout() {
   const { user, logout } = useAuth()
@@ -23,6 +24,10 @@ export default function PatientLayout() {
     if (el) el.scrollTo(0, 0)
     else window.scrollTo(0, 0)
   }, [location.pathname])
+
+  useEffect(() => {
+    if (user?.role === 'PATIENT') preloadPatientData()
+  }, [user?.id, user?.role])
 
   const handleLogout = () => { logout(); navigate('/login') }
 

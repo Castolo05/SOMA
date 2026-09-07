@@ -6,6 +6,7 @@ import MoodCalendar from '../../components/MoodCalendar'
 import MoodChart from '../../components/MoodChart'
 import { Trash2, ChevronDown, ChevronUp, Clock, TrendingUp, TrendingDown, Minus, BarChart2, Book, Calendar } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 
 // ── Tarjeta de correlación hábito-ánimo ──────────────────
 function HabitCorrelationCard({ data }) {
@@ -109,9 +110,10 @@ function HabitCorrelationCard({ data }) {
 // ── Página de historial ───────────────────────────────────
 export default function HistoryPage() {
   usePageTitle('Historial')
-  const [entries, setEntries] = useState([])
-  const [habits, setHabits] = useState([])
-  const [correlation, setCorrelation] = useState([])
+  const initialCache = getPatientCache()
+  const [entries, setEntries] = useState(initialCache.entries || [])
+  const [habits, setHabits] = useState(initialCache.habits || [])
+  const [correlation, setCorrelation] = useState(initialCache.correlation || [])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -119,6 +121,10 @@ export default function HistoryPage() {
   const [tab, setTab] = useState('entries') // 'entries' | 'correlation' | 'chart'
 
   useEffect(() => {
+    if (initialCache.entries && initialCache.habits && initialCache.correlation) {
+      setLoading(false)
+      return
+    }
     Promise.all([
       api.get('/journal'),
       api.get('/habits'),
@@ -127,6 +133,9 @@ export default function HistoryPage() {
       setEntries(jRes.data.entries)
       setHabits(hRes.data.habits)
       setCorrelation(cRes.data)
+      updatePatientCache('entries', jRes.data.entries)
+      updatePatientCache('habits', hRes.data.habits)
+      updatePatientCache('correlation', cRes.data)
     }).catch(() => {}).finally(() => setLoading(false))
   }, [])
 
@@ -135,7 +144,11 @@ export default function HistoryPage() {
     setDeleting(id)
     try {
       await api.delete(`/journal/${id}`)
-      setEntries((prev) => prev.filter((e) => e.id !== id))
+      setEntries((prev) => {
+        const nextEntries = prev.filter((e) => e.id !== id)
+        updatePatientCache('entries', nextEntries)
+        return nextEntries
+      })
     } catch (err) {
       alert(err.response?.data?.error || 'Error al eliminar.')
     } finally {

@@ -3,12 +3,13 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import {
   UserRound, Link2, LogOut, Plus, Pencil, Trash2, Check, X, CheckCircle2,
-  Phone, Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat
+  Phone, Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat, AlertCircle
 } from 'lucide-react'
 import { useNavigate, Link } from 'react-router-dom'
 import { HABIT_ICONS } from '../../lib/constants'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ReminderSettings from '../../components/ReminderSettings'
+import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 
 // Mapeo de animalitos para el avatar
 const ANIMAL_ICONS = {
@@ -39,8 +40,9 @@ export default function PatientProfile() {
   const [linkError, setLinkError] = useState('')
 
   // Hábitos
-  const [habits, setHabits] = useState([])
-  const [entries, setEntries] = useState([])
+  const initialCache = getPatientCache()
+  const [habits, setHabits] = useState(initialCache.habits || [])
+  const [entries, setEntries] = useState(initialCache.entries || [])
   const [newText, setNewText] = useState('')
   const [newIcon, setNewIcon] = useState('CheckCircle')
   const [newTrackingType, setNewTrackingType] = useState('toggle')
@@ -55,8 +57,8 @@ export default function PatientProfile() {
   const [editHasNote, setEditHasNote] = useState(false)
 
   useEffect(() => {
-    api.get('/habits').then(({ data }) => setHabits(data.habits)).catch(() => {})
-    api.get('/journal').then(({ data }) => setEntries(data.entries)).catch(() => {})
+    if (!initialCache.habits) api.get('/habits').then(({ data }) => { setHabits(data.habits); updatePatientCache('habits', data.habits) }).catch(() => {})
+    if (!initialCache.entries) api.get('/journal').then(({ data }) => { setEntries(data.entries); updatePatientCache('entries', data.entries) }).catch(() => {})
   }, [])
 
   const handleLink = async (e) => {
@@ -89,7 +91,11 @@ export default function PatientProfile() {
         unit: newTrackingType !== 'toggle' ? newUnit.trim() : '',
         hasNote: newHasNote,
       })
-      setHabits(prev => [...prev, data.habit])
+      setHabits(prev => {
+        const nextHabits = [...prev, data.habit]
+        updatePatientCache('habits', nextHabits)
+        return nextHabits
+      })
       setNewText('')
       setNewIcon('CheckCircle')
       setNewTrackingType('toggle')
@@ -108,7 +114,11 @@ export default function PatientProfile() {
         unit: editTrackingType !== 'toggle' ? editUnit.trim() : '',
         hasNote: editHasNote,
       })
-      setHabits(prev => prev.map(h => h.id === id ? data.habit : h))
+      setHabits(prev => {
+        const nextHabits = prev.map(h => h.id === id ? data.habit : h)
+        updatePatientCache('habits', nextHabits)
+        return nextHabits
+      })
       setEditingId(null)
     } catch { alert('Error al guardar.') }
   }
@@ -117,7 +127,11 @@ export default function PatientProfile() {
     if (!confirm('¿Eliminar este hábito? Se quitará de las notas existentes.')) return
     try {
       await api.delete(`/habits/${id}`)
-      setHabits(prev => prev.filter(h => h.id !== id))
+      setHabits(prev => {
+        const nextHabits = prev.filter(h => h.id !== id)
+        updatePatientCache('habits', nextHabits)
+        return nextHabits
+      })
     } catch { alert('Error al eliminar.') }
   }
 
@@ -363,6 +377,9 @@ export default function PatientProfile() {
           </div>
         ) : (
           <>
+            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2 mb-3">
+              <AlertCircle size={18} className="shrink-0" /> No tienes psicólogo vinculado
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
               Ingresa el código que te proporcionó tu psicólogo para vincular tus cuentas.
             </p>
