@@ -153,10 +153,18 @@ export function AuthProvider({ children }) {
 
 
   const register = async (name, email, password, role) => {
+    const normalizedRole = role === 'PSYCHOLOGIST' ? 'PATIENT' : role || 'PATIENT'
+
+    if (normalizedRole !== 'PATIENT') {
+      const err = new Error('La creación de cuentas de psicólogo aún no está disponible.')
+      err.response = { data: { error: err.message } }
+      throw err
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name, role } },
+      options: { data: { name, role: normalizedRole } },
     })
     if (error) {
       const err = new Error(error.message)

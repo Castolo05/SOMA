@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Home, BookOpen, User, Moon, Sun, LogOut, Phone } from 'lucide-react'
+import { Home, BookOpen, User, Moon, Sun, LogOut } from 'lucide-react'
 import { preloadPatientData } from '../../lib/patientCache'
 
 export default function PatientLayout() {
@@ -43,20 +43,13 @@ export default function PatientLayout() {
       <header className="shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between shadow-sm">
         <div className="flex items-center gap-2">
           <img src="/logo.png" alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
-          <span className="font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
+          <div className="flex flex-col leading-none">
+            <span className="font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
+            <span className="text-[10px] font-medium tracking-[0.18em] text-gray-400 uppercase">v1.0.0</span>
+          </div>
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Emergencia siempre visible */}
-          <Link
-            to="/patient/emergency"
-            className="p-2.5 rounded-xl text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-            title="Líneas de emergencia"
-            aria-label="Líneas de emergencia y crisis"
-          >
-            <Phone size={18} />
-          </Link>
-
           <button
             onClick={() => setDarkMode(d => !d)}
             className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"

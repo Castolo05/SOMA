@@ -64,12 +64,10 @@ export default function RegisterPage() {
               </button>
               <button
                 type="button"
-                onClick={() => setForm({ ...form, role: 'PSYCHOLOGIST' })}
-                className={`flex flex-col items-center p-4 rounded-2xl border-2 transition-all duration-200 ${
-                  form.role === 'PSYCHOLOGIST'
-                    ? 'border-indigo-500 bg-indigo-50 text-indigo-600'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                }`}
+                disabled
+                className="flex cursor-not-allowed flex-col items-center rounded-2xl border-2 border-gray-200 bg-gray-100 p-4 text-gray-400 opacity-60 transition-all duration-200"
+                aria-label="Registro de psicólogo no disponible aún"
+                title="Próximamente"
               >
                 <Stethoscope size={28} className="mb-1" />
                 <span className="font-semibold text-sm">Psicólogo/a</span>

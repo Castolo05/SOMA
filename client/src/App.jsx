@@ -55,19 +55,31 @@ function FirstVisitTutorial() {
       icon: HeartPulse,
       title: '¿Qué es SOMA?',
       description: 'SOMA es una app de bienestar emocional para registrar cómo te sentís, acompañarte en tu rutina y mantenerte conectado con tu cuidado.',
-      points: ['Seguimiento diario de tu ánimo.', 'Registro de hábitos y experiencias.', 'Espacio seguro para reflexionar.'],
+      points: [
+        'Seguimiento diario de tu ánimo.',
+        'Registro de hábitos y experiencias.',
+        'Espacio seguro para reflexionar.',
+      ],
     },
     {
       icon: BookOpen,
       title: '¿Para qué sirve?',
       description: 'Te ayuda a entender tus patrones, reconocer momentos difíciles y llevar un historial claro de tu proceso emocional.',
-      points: ['Guardar notas y observaciones diarias.', 'Ver tu evolución en el historial.', 'Tener un panorama más completo de tu bienestar.'],
+      points: [
+        'Guardar notas y observaciones diarias.',
+        'Ver tu evolución en el historial.',
+        'Tener un panorama más completo de tu bienestar.',
+      ],
     },
     {
       icon: BrainCircuit,
       title: '¿Cómo funciona?',
-      description: 'Cada día podés registrar tu estado de ánimo, hábitos y pensamientos. Si te vincularon con un psicólogo, también podés ver ese acompañamiento dentro de la app.',
-      points: ['Elegí tu estado de ánimo cada día.', 'Marcá hábitos cumplidos o pendientes.', 'Usá la respiración y la emergencia cuando lo necesites.'],
+      description: 'Cada día podés registrar tu estado de ánimo, hábitos y pensamientos. Si te vincularon con un profesional de salud mental, este puede acceder a la información para hacer un seguimiento y acompañamiento.',
+      points: [
+        'Elegí tu estado de ánimo cada día.',
+        'Marcá hábitos cumplidos o pendientes.',
+        'Tené en cuenta que es un proyecto independiente y una versión temprana en desarrollo, sujeta a cambios.',
+      ],
     },
   ]
 
