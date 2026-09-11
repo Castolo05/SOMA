@@ -5,8 +5,27 @@ import api from '../../lib/api'
 import { MOOD_ICONS, formatDateShort } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
 import AppointmentCalendar from '../../components/AppointmentCalendar'
-import { AlertTriangle, Users, ChevronRight, Copy, Check, CalendarDays } from 'lucide-react'
+import { Responsive, WidthProvider } from 'react-grid-layout'
+import { AlertTriangle, Users, ChevronRight, Copy, Check, CalendarDays, GripVertical, RotateCcw } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
+
+const ResponsiveGridLayout = WidthProvider(Responsive)
+
+const DEFAULT_LAYOUT = [
+  { i: 'alerts', x: 0, y: 0, w: 12, h: 2, minW: 4, minH: 2 },
+  { i: 'content', x: 0, y: 2, w: 12, h: 12, minW: 6, minH: 7 },
+]
+
+const getLayoutKey = (userId) => `psych_dashboard_layout_${userId || 'local'}`
+
+const loadLayout = (userId) => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(getLayoutKey(userId)))
+    return Array.isArray(saved) && saved.length ? saved : DEFAULT_LAYOUT
+  } catch {
+    return DEFAULT_LAYOUT
+  }
+}
 
 export default function PsychDashboard() {
   usePageTitle('Panel')
@@ -15,6 +34,7 @@ export default function PsychDashboard() {
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
   const [tab, setTab] = useState('patients') // 'patients' | 'agenda'
+  const [layout, setLayout] = useState(() => loadLayout(user?.id))
 
   useEffect(() => {
     api.get('/patients')
@@ -23,6 +43,21 @@ export default function PsychDashboard() {
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    setLayout(loadLayout(user?.id))
+  }, [user?.id])
+
+  const handleLayoutChange = (nextLayout) => {
+    setLayout(nextLayout)
+    localStorage.setItem(getLayoutKey(user?.id), JSON.stringify(nextLayout))
+  }
+
+  const resetLayout = () => {
+    const nextLayout = DEFAULT_LAYOUT.map((item) => ({ ...item }))
+    setLayout(nextLayout)
+    localStorage.setItem(getLayoutKey(user?.id), JSON.stringify(nextLayout))
+  }
+
   const copyCode = () => {
     navigator.clipboard.writeText(user?.inviteCode || '')
     setCopied(true)
@@ -30,9 +65,10 @@ export default function PsychDashboard() {
   }
 
   const alerts = patients.filter((p) => p.hasAlert)
+  const activeLayout = layout.filter((item) => item.i === 'content' || alerts.length > 0)
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="animate-fade-in">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
@@ -57,58 +93,60 @@ export default function PsychDashboard() {
         )}
       </div>
 
-      {/* Alertas */}
-      {alerts.length > 0 && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4">
-          <div className="flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold mb-3">
-            <AlertTriangle size={18} />
-            {alerts.length} paciente{alerts.length > 1 ? 's' : ''} con ánimo bajo consecutivo
-          </div>
-          <div className="space-y-2">
-            {alerts.map((p) => (
-              <Link
-                key={p.id}
-                to={`/psych/patients/${p.id}`}
-                className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl px-4 py-2.5 hover:shadow-sm transition-all"
-              >
-                <div className="flex items-center gap-3">
-                  <MoodIcon score={p.lastMood} size={18} />
-                  <span className="font-medium text-gray-800 dark:text-white">{p.name}</span>
-                </div>
-                <ChevronRight size={16} className="text-red-400" />
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Tabs: Pacientes / Mi Agenda */}
-      <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl">
-        <button
-          onClick={() => setTab('patients')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-            tab === 'patients'
-              ? 'bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-400 shadow-sm'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-          }`}
-        >
-          <Users size={16} /> Mis Pacientes
-        </button>
-        <button
-          onClick={() => setTab('agenda')}
-          className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-all duration-200 ${
-            tab === 'agenda'
-              ? 'bg-white dark:bg-gray-700 text-indigo-700 dark:text-indigo-400 shadow-sm'
-              : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'
-          }`}
-        >
-          <CalendarDays size={16} /> Mi Agenda
+      <div className="flex justify-end mb-3">
+        <button onClick={resetLayout} className="btn-ghost flex items-center gap-2 text-xs py-2 px-3" title="Restablecer distribución">
+          <RotateCcw size={14} /> Restablecer paneles
         </button>
       </div>
 
-      {/* Contenido del tab */}
-      {tab === 'patients' && (
-        <div className="animate-fade-in">
+      <ResponsiveGridLayout
+        className="psych-dashboard-grid"
+        layouts={{ lg: activeLayout, md: activeLayout, sm: activeLayout }}
+        rowHeight={38}
+        margin={[16, 16]}
+        containerPadding={[0, 0]}
+        isDraggable
+        isResizable
+        draggableHandle=".psych-panel-handle"
+        onLayoutChange={handleLayoutChange}
+        breakpoints={{ lg: 1024, md: 768, sm: 0 }}
+        cols={{ lg: 12, md: 8, sm: 1 }}
+        compactType="vertical"
+        useCSSTransforms
+      >
+        {alerts.length > 0 && (
+          <section key="alerts" className="psych-panel bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-2xl p-4">
+            <div className="psych-panel-handle flex items-center gap-2 text-red-700 dark:text-red-400 font-semibold mb-3 cursor-move">
+              <GripVertical size={16} className="text-red-300" />
+              <AlertTriangle size={18} />
+              {alerts.length} paciente{alerts.length > 1 ? 's' : ''} con ánimo bajo consecutivo
+            </div>
+            <div className="space-y-2 overflow-auto max-h-[calc(100%-2rem)]">
+              {alerts.map((p) => (
+                <Link key={p.id} to={`/psych/patients/${p.id}`} className="flex items-center justify-between bg-white dark:bg-gray-800 rounded-xl px-4 py-2.5 hover:shadow-sm transition-all">
+                  <div className="flex items-center gap-3"><MoodIcon score={p.lastMood} size={18} /><span className="font-medium text-gray-800 dark:text-white">{p.name}</span></div>
+                  <ChevronRight size={16} className="text-red-400" />
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+
+        <section key="content" className="psych-panel card-psych dark:bg-gray-800 dark:border-gray-700">
+          <div className="psych-panel-handle flex items-center gap-2 mb-3 cursor-move">
+            <GripVertical size={16} className="text-gray-300" />
+            <div className="flex-1 flex gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
+              <button onClick={() => setTab('patients')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'patients' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
+                <Users size={16} /> Mis Pacientes
+              </button>
+              <button onClick={() => setTab('agenda')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'agenda' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
+                <CalendarDays size={16} /> Mi Agenda
+              </button>
+            </div>
+          </div>
+
+          {tab === 'patients' && (
+            <div className="animate-fade-in">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
               <Users size={16} /> Pacientes activos
@@ -161,14 +199,12 @@ export default function PsychDashboard() {
               ))}
             </div>
           )}
-        </div>
-      )}
+            </div>
+          )}
 
-      {tab === 'agenda' && (
-        <div className="animate-fade-in">
-          <AppointmentCalendar patients={patients} />
-        </div>
-      )}
+          {tab === 'agenda' && <div className="animate-fade-in"><AppointmentCalendar patients={patients} /></div>}
+        </section>
+      </ResponsiveGridLayout>
     </div>
   )
 }

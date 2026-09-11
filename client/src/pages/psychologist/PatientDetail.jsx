@@ -9,13 +9,16 @@ import {
   Wifi, Target, CheckCircle2, Circle, Trash2, ChevronDown, ChevronUp,
   Save, X, Calendar, Eye, EyeOff, LayoutGrid
 } from 'lucide-react'
+import { Responsive, WidthProvider } from 'react-grid-layout'
 import { usePageTitle } from '../../hooks/usePageTitle'
+
+const ResponsiveGridLayout = WidthProvider(Responsive)
 
 // ── Wrapper para paneles modulares ────────────────────────
 function PanelWrapper({ title, icon: Icon, onHide, children, className = '' }) {
   return (
     <div className={`card-psych dark:bg-gray-800 h-full flex flex-col p-0 ${className}`}>
-      <div className="draggable-handle cursor-move flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-t-2xl">
+      <div className="psych-panel-handle cursor-move flex items-center justify-between p-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 rounded-t-2xl">
         <div className="flex items-center gap-2">
           {Icon && <Icon size={16} className="text-indigo-500" />}
           <span className="text-sm font-bold text-gray-700 dark:text-gray-200">{title}</span>
@@ -297,6 +300,25 @@ const PANELS = [
   { i: 'notes', label: 'Notas de Sesión', icon: Save },
 ]
 
+const DEFAULT_PATIENT_LAYOUT = [
+  { i: 'pre-session', x: 0, y: 0, w: 4, h: 4, minW: 3, minH: 3 },
+  { i: 'mood-chart', x: 4, y: 0, w: 8, h: 7, minW: 5, minH: 5 },
+  { i: 'entries', x: 0, y: 7, w: 8, h: 9, minW: 5, minH: 6 },
+  { i: 'goals', x: 8, y: 7, w: 4, h: 7, minW: 3, minH: 5 },
+  { i: 'notes', x: 8, y: 14, w: 4, h: 8, minW: 3, minH: 5 },
+]
+
+const getPatientLayoutKey = (patientId) => `psych_patient_layout_${patientId}`
+
+const loadPatientLayout = (patientId) => {
+  try {
+    const saved = JSON.parse(localStorage.getItem(getPatientLayoutKey(patientId)))
+    return Array.isArray(saved) && saved.length ? saved : DEFAULT_PATIENT_LAYOUT
+  } catch {
+    return DEFAULT_PATIENT_LAYOUT
+  }
+}
+
 // ── Vista principal PatientDetail ─────────────────────────
 export default function PatientDetail() {
   const { id } = useParams()
@@ -311,6 +333,7 @@ export default function PatientDetail() {
     const saved = localStorage.getItem(`psych_dashboard_visible_${id}`)
     return saved ? JSON.parse(saved) : PANELS.map(p => p.i)
   })
+  const [panelLayout, setPanelLayout] = useState(() => loadPatientLayout(id))
 
   const [showMenu, setShowMenu] = useState(false)
 
@@ -321,6 +344,19 @@ export default function PatientDetail() {
       return next
     })
   }
+
+  const handlePanelLayoutChange = (nextLayout) => {
+    setPanelLayout(nextLayout)
+    localStorage.setItem(getPatientLayoutKey(id), JSON.stringify(nextLayout))
+  }
+
+  const resetPanelLayout = () => {
+    const nextLayout = DEFAULT_PATIENT_LAYOUT.map((item) => ({ ...item }))
+    setPanelLayout(nextLayout)
+    localStorage.setItem(getPatientLayoutKey(id), JSON.stringify(nextLayout))
+  }
+
+  const activePanelLayout = panelLayout.filter((item) => visiblePanels.includes(item.i))
 
   useEffect(() => {
     const load = async () => {
@@ -388,63 +424,33 @@ export default function PatientDetail() {
         </div>
       </div>
 
-      {/* Paneles en layout CSS de 2 columnas */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Columna principal (2/3) */}
-        <div className="lg:col-span-2 space-y-4">
-          {visiblePanels.includes('pre-session') && (
-            <PanelWrapper title="Ficha Pre-Sesión" icon={TrendingUp} onHide={() => togglePanel('pre-session')}>
-              <PreSessionCard insights={insights} />
-            </PanelWrapper>
-          )}
-          {visiblePanels.includes('mood-chart') && (
-            <PanelWrapper title="Evolución del Ánimo" icon={TrendingUp} onHide={() => togglePanel('mood-chart')}>
-              <div style={{ minHeight: 240 }}>
-                <MoodChart entries={entries} mode="psych" height={240} defaultDays={14} />
-              </div>
-            </PanelWrapper>
-          )}
-          {visiblePanels.includes('entries') && (
-            <PanelWrapper title="Entradas de Paciente" icon={Calendar} onHide={() => togglePanel('entries')}>
-              <div className="space-y-2">
-                {entries.map((entry) => {
-                  const config = MOOD_ICONS[entry.moodScore]
-                  const open = expandedEntry === entry.id
-                  return (
-                    <div key={entry.id} className={`rounded-xl border transition-all cursor-pointer ${open ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700'}`}>
-                      <div className="flex items-center gap-2 p-2" onClick={() => setExpandedEntry(open ? null : entry.id)}>
-                        <div className="w-8 h-8 rounded-lg flex flex-col items-center justify-center shrink-0" style={{ backgroundColor: config?.bg }}>
-                          <MoodIcon score={entry.moodScore} size={12} />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-1.5"><span className="text-[11px] font-bold" style={{ color: config?.color }}>{config?.label}</span></div>
-                          <p className="text-[10px] text-gray-400 truncate capitalize">{formatDate(entry.createdAt)}</p>
-                        </div>
-                        {open ? <ChevronUp size={12} className="text-gray-400" /> : <ChevronDown size={12} className="text-gray-400" />}
-                      </div>
-                      {open && <div className="px-2 pb-2 border-t border-gray-100 pt-2 animate-fade-in text-[11px] text-gray-700 whitespace-pre-wrap">{entry.content}</div>}
-                    </div>
-                  )
-                })}
-              </div>
-            </PanelWrapper>
-          )}
-        </div>
-
-        {/* Columna lateral (1/3) */}
-        <div className="space-y-4">
-          {visiblePanels.includes('goals') && (
-            <PanelWrapper title="Objetivos Terapéuticos" icon={Target} onHide={() => togglePanel('goals')}>
-              <TherapyGoals patientId={id} />
-            </PanelWrapper>
-          )}
-          {visiblePanels.includes('notes') && (
-            <PanelWrapper title="Notas de Sesión" icon={Save} onHide={() => togglePanel('notes')}>
-              <SessionNotes patientId={id} />
-            </PanelWrapper>
-          )}
-        </div>
+      <div className="flex justify-end mb-3">
+        <button onClick={resetPanelLayout} className="btn-ghost flex items-center gap-2 text-xs py-2 px-3" title="Restablecer distribución">
+          <LayoutGrid size={14} /> Restablecer distribución
+        </button>
       </div>
+
+      <ResponsiveGridLayout
+        className="psych-dashboard-grid"
+        layouts={{ lg: activePanelLayout, md: activePanelLayout, sm: activePanelLayout }}
+        rowHeight={38}
+        margin={[16, 16]}
+        containerPadding={[0, 0]}
+        isDraggable
+        isResizable
+        draggableHandle=".psych-panel-handle"
+        onLayoutChange={handlePanelLayoutChange}
+        breakpoints={{ lg: 1024, md: 768, sm: 0 }}
+        cols={{ lg: 12, md: 8, sm: 1 }}
+        compactType="vertical"
+        useCSSTransforms
+      >
+        {visiblePanels.includes('pre-session') && <div key="pre-session"><PanelWrapper title="Ficha Pre-Sesión" icon={TrendingUp} onHide={() => togglePanel('pre-session')}><PreSessionCard insights={insights} /></PanelWrapper></div>}
+        {visiblePanels.includes('mood-chart') && <div key="mood-chart"><PanelWrapper title="Evolución del Ánimo" icon={TrendingUp} onHide={() => togglePanel('mood-chart')}><MoodChart entries={entries} mode="psych" height={240} defaultDays={14} /></PanelWrapper></div>}
+        {visiblePanels.includes('entries') && <div key="entries"><PanelWrapper title="Entradas de Paciente" icon={Calendar} onHide={() => togglePanel('entries')}><div className="space-y-2">{entries.map((entry) => { const config = MOOD_ICONS[entry.moodScore]; const open = expandedEntry === entry.id; return <div key={entry.id} className={`rounded-xl border transition-all cursor-pointer ${open ? 'border-indigo-200 bg-indigo-50/30' : 'border-gray-100 hover:border-gray-200 dark:border-gray-700'}`}><div className="flex items-center gap-2 p-2" onClick={() => setExpandedEntry(open ? null : entry.id)}><div className="w-8 h-8 rounded-lg flex flex-col items-center justify-center shrink-0" style={{ backgroundColor: config?.bg }}><MoodIcon score={entry.moodScore} size={12} /></div><div className="flex-1 min-w-0"><div className="flex items-center gap-1.5"><span className="text-[11px] font-bold" style={{ color: config?.color }}>{config?.label}</span></div><p className="text-[10px] text-gray-400 truncate capitalize">{formatDate(entry.createdAt)}</p></div>{open ? <ChevronUp size={12} className="text-gray-400" /> : <ChevronDown size={12} className="text-gray-400" />}</div>{open && <div className="px-2 pb-2 border-t border-gray-100 pt-2 animate-fade-in text-[11px] text-gray-700 whitespace-pre-wrap">{entry.content}</div>}</div> })}</div></PanelWrapper></div>}
+        {visiblePanels.includes('goals') && <div key="goals"><PanelWrapper title="Objetivos Terapéuticos" icon={Target} onHide={() => togglePanel('goals')}><TherapyGoals patientId={id} /></PanelWrapper></div>}
+        {visiblePanels.includes('notes') && <div key="notes"><PanelWrapper title="Notas de Sesión" icon={Save} onHide={() => togglePanel('notes')}><SessionNotes patientId={id} /></PanelWrapper></div>}
+      </ResponsiveGridLayout>
     </div>
   )
 }

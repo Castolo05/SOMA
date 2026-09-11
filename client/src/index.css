@@ -60,6 +60,32 @@
   border-radius: 1rem;
 }
 
+.psych-dashboard-grid {
+  min-height: 320px;
+}
+
+.psych-panel {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.psych-panel .react-resizable-handle::after {
+  background-color: #eef2ff;
+  border-color: #818cf8;
+}
+
+@media (max-width: 767px) {
+  .psych-dashboard-grid {
+    margin-inline: -0.25rem;
+  }
+
+  .psych-dashboard-grid .react-grid-item {
+    width: 100% !important;
+    left: 0 !important;
+  }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
