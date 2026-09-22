@@ -63,7 +63,9 @@ export default function PsychLayout() {
       {/* Nav */}
       <nav className="flex-1 space-y-1">
         {navItems.map(({ to, icon, label }) => {
-          const active = location.pathname === to
+          const active = to === '/psych'
+            ? location.pathname === to
+            : location.pathname === to || location.pathname.startsWith(`${to}/`)
           return (
             <Link
               key={to}
@@ -183,6 +185,7 @@ export default function PsychLayout() {
               <Link
                 key={to}
                 to={to}
+                aria-current={location.pathname === to ? 'page' : undefined}
                 className={`p-2 rounded-lg transition-colors min-w-11 min-h-11 flex items-center justify-center ${
                   location.pathname === to
                     ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30'

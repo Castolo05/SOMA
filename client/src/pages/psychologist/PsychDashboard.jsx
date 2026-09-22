@@ -4,9 +4,8 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import { MOOD_ICONS, formatDateShort } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
-import AppointmentCalendar from '../../components/AppointmentCalendar'
 import { Responsive, WidthProvider } from 'react-grid-layout'
-import { AlertTriangle, Users, ChevronRight, Copy, Check, CalendarDays, GripVertical, RotateCcw } from 'lucide-react'
+import { AlertTriangle, Users, ChevronRight, Copy, Check, GripVertical } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
@@ -44,7 +43,6 @@ export default function PsychDashboard() {
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
-  const [tab, setTab] = useState('patients') // 'patients' | 'agenda'
   const [layout, setLayout] = useState(() => loadLayout(user?.id))
 
   useEffect(() => {
@@ -59,12 +57,6 @@ export default function PsychDashboard() {
   }, [user?.id])
 
   const handleLayoutChange = (nextLayout) => {
-    setLayout(nextLayout)
-    localStorage.setItem(getLayoutKey(user?.id), JSON.stringify(nextLayout))
-  }
-
-  const resetLayout = () => {
-    const nextLayout = DEFAULT_LAYOUT.map((item) => ({ ...item }))
     setLayout(nextLayout)
     localStorage.setItem(getLayoutKey(user?.id), JSON.stringify(nextLayout))
   }
@@ -109,12 +101,6 @@ export default function PsychDashboard() {
         )}
       </div>
 
-      <div className="flex justify-end mb-3">
-        <button onClick={resetLayout} className="btn-ghost flex items-center gap-2 text-xs py-2 px-3" title="Restablecer distribución">
-          <RotateCcw size={14} /> Restablecer paneles
-        </button>
-      </div>
-
       <ResponsiveGridLayout
         className="psych-dashboard-grid"
         layouts={responsiveLayouts}
@@ -151,18 +137,10 @@ export default function PsychDashboard() {
         <section key="content" className="psych-panel card-psych dark:bg-gray-800 dark:border-gray-700">
           <div className="psych-panel-handle flex items-center gap-2 mb-3 cursor-move">
             <GripVertical size={16} className="text-gray-300" />
-            <div className="flex-1 flex gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
-              <button onClick={() => setTab('patients')} className={`flex-1 flex items-center justify-center gap-2 min-h-11 px-2 rounded-lg text-sm font-semibold transition-all ${tab === 'patients' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
-                <Users size={16} /> Mis Pacientes
-              </button>
-              <button onClick={() => setTab('agenda')} className={`flex-1 flex items-center justify-center gap-2 min-h-11 px-2 rounded-lg text-sm font-semibold transition-all ${tab === 'agenda' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
-                <CalendarDays size={16} /> Mi Agenda
-              </button>
-            </div>
+            <h2 className="flex-1 font-semibold text-gray-700 dark:text-gray-200">Mis Pacientes</h2>
           </div>
 
-          {tab === 'patients' && (
-            <div className="animate-fade-in">
+          <div className="animate-fade-in">
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-semibold text-gray-700 dark:text-gray-200 flex items-center gap-2">
               <Users size={16} /> Pacientes activos
@@ -215,10 +193,7 @@ export default function PsychDashboard() {
               ))}
             </div>
           )}
-            </div>
-          )}
-
-          {tab === 'agenda' && <div className="animate-fade-in"><AppointmentCalendar patients={patients} /></div>}
+          </div>
         </section>
       </ResponsiveGridLayout>
     </div>
