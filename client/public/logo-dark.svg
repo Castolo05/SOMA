@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title desc">
+  <title id="title">SOMA</title>
+  <desc id="desc">Logo SOMA con fondo teal y brote cian</desc>
+  <rect width="512" height="512" rx="116" fill="#2f5d62"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#b2ffff" stroke-width="22"/>
+  <path d="M252 363c-49 3-91-29-91-78 0-40 16-68 13-74 56 1 96 31 96 83 0 22-5 43-18 61Z" fill="none" stroke="#b2ffff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M255 300c5-45 25-80 68-96 9-3 28-6 44-3 2 22-3 45-15 64-22 35-54 48-97 49Z" fill="none" stroke="#b2ffff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M256 361c-1-48-1-82 16-119" fill="none" stroke="#b2ffff" stroke-width="22" stroke-linecap="round"/>
+</svg>

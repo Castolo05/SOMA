@@ -3,6 +3,7 @@ import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Home, BookOpen, User, Moon, Sun, LogOut } from 'lucide-react'
 import { preloadPatientData } from '../../lib/patientCache'
+import ThemeLogo from '../../components/ThemeLogo'
 
 export default function PatientLayout() {
   const { user, logout } = useAuth()
@@ -44,7 +45,7 @@ export default function PatientLayout() {
       {/* Header */}
       <header className="shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
         <div className="flex items-center gap-2.5">
-          <img src="/logo.png" alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
+          <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
           <div className="flex flex-col leading-none">
             <span className="font-display font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
             <span className="text-[10px] font-semibold tracking-[0.18em] text-sage-600 dark:text-sage-400 uppercase">tu espacio de bienestar</span>

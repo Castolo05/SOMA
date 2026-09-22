@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
+import ThemeLogo from '../../components/ThemeLogo'
 import { LayoutDashboard, Users, LogOut, ChevronRight, Moon, Sun, ChevronLeft, Menu, X } from 'lucide-react'
 
 export default function PsychLayout() {
@@ -36,7 +37,7 @@ export default function PsychLayout() {
     <>
       {/* Logo + toggle */}
       <div className="flex items-center gap-2 px-2 mb-8">
-        <img src="/logo.png" alt="SOMA" className="w-9 h-9 rounded-xl shadow-sm shrink-0" />
+        <ThemeLogo alt="SOMA" className="w-9 h-9 rounded-xl shadow-sm shrink-0" />
         {(!collapsed || isMobile) && (
           <span className="font-bold text-gray-900 dark:text-white text-lg">SOMA</span>
         )}
@@ -174,7 +175,7 @@ export default function PsychLayout() {
             >
               <Menu size={20} />
             </button>
-            <img src="/logo.png" alt="SOMA" className="w-7 h-7 rounded-lg shadow-sm" />
+            <ThemeLogo alt="SOMA" className="w-7 h-7 rounded-lg shadow-sm" />
             <span className="font-bold text-gray-800 dark:text-white">SOMA</span>
           </div>
           <div className="flex gap-1 items-center">
