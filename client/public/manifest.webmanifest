@@ -1,0 +1,35 @@
+{
+  "id": "/",
+  "name": "SOMA",
+  "short_name": "SOMA",
+  "description": "Tu espacio seguro de bienestar mental.",
+  "lang": "es-AR",
+  "dir": "ltr",
+  "start_url": "/#/login",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#2f5d62",
+  "background_color": "#2f5d62",
+  "categories": ["health", "lifestyle"],
+  "icons": [
+    {
+      "src": "/logo-light.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo-light.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-light.png",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

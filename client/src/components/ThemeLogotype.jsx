@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-export default function ThemeLogo({ alt = 'SOMA', className = '' }) {
+export default function ThemeLogotype({ alt = 'SOMA', className = '' }) {
   const [theme, setTheme] = useState(() => document.documentElement.dataset.theme || 'light')
 
   useEffect(() => {
@@ -11,5 +11,11 @@ export default function ThemeLogo({ alt = 'SOMA', className = '' }) {
     return () => observer.disconnect()
   }, [])
 
-  return <img src={theme === 'dark' ? '/logo-dark.svg' : '/logo-light.png'} alt={alt} className={className} />
+  return (
+    <img
+      src={theme === 'dark' ? '/logo-dark.svg' : '/logotype-light.png'}
+      alt={alt}
+      className={className}
+    />
+  )
 }

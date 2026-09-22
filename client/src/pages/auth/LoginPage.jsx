@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ThemeLogo from '../../components/ThemeLogo'
+import ThemeLogotype from '../../components/ThemeLogotype'
 
 export default function LoginPage() {
   usePageTitle('Iniciar sesión')
@@ -41,7 +42,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-lg mb-4 overflow-hidden border border-gray-100">
-            <ThemeLogo alt="SOMA Logo" className="w-full h-full object-cover" />
+            <ThemeLogotype alt="SOMA Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="font-display text-3xl font-bold text-gray-800">SOMA</h1>
           <p className="text-gray-500 mt-1">Tu espacio seguro de bienestar mental</p>

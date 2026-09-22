@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { ArrowLeft, Mail, CheckCircle } from 'lucide-react'
 import ThemeLogo from '../../components/ThemeLogo'
+import ThemeLogotype from '../../components/ThemeLogotype'
 
 export default function ForgotPasswordPage() {
   usePageTitle('Recuperar contraseña')
@@ -34,7 +35,7 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-lg mb-4 overflow-hidden border border-gray-100">
-            <ThemeLogo alt="SOMA Logo" className="w-full h-full object-cover" />
+            <ThemeLogotype alt="SOMA Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="text-3xl font-bold text-gray-800">SOMA</h1>
         </div>

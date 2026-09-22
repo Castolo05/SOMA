@@ -7,6 +7,7 @@ import {
   supabase,
 } from '../lib/supabase'
 import ThemeLogo from '../components/ThemeLogo'
+import ThemeLogotype from '../components/ThemeLogotype'
 
 const AuthContext = createContext(null)
 
@@ -299,7 +300,7 @@ function InitialLoadingScreen() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f2c6b6] dark:bg-[#2f5d62]">
       <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-[#c8b3b0] bg-[#f9e2da] shadow-lg dark:border-[#b8c2c1] dark:bg-[#345f63]">
-        <ThemeLogo alt="SOMA" className="h-full w-full object-cover" />
+        <ThemeLogotype alt="SOMA" className="h-full w-full object-contain" />
       </div>
       <p className="mt-5 text-lg font-bold tracking-wide text-gray-800">SOMA</p>
       <div className="mt-4 flex items-center gap-2 text-sm text-gray-500" role="status" aria-live="polite">
