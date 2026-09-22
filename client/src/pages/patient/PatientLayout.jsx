@@ -40,7 +40,7 @@ export default function PatientLayout() {
   ]
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-[#fff8ef] dark:bg-[#0d1728] transition-colors duration-300 overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-[#f1dcc3] dark:bg-[#0d1728] transition-colors duration-300 overflow-hidden">
       {/* Header */}
       <header className="shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
         <div className="flex items-center gap-2.5">
