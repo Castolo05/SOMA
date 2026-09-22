@@ -99,30 +99,30 @@
 
 html {
   scroll-behavior: smooth;
-  background: #f4f7f5;
+  background: #fff8ef;
 }
 
 body {
   font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7f5;
-  color: #193238;
-  --surface: #ffffff;
-  --surface-muted: #edf3f1;
-  --border: #dbe7e3;
-  --text-muted: #5e7475;
-  --track-bg: #dbe7e3;
+  background-color: #fff8ef;
+  color: #3d2924;
+  --surface: #fffdf9;
+  --surface-muted: #fff0df;
+  --border: #f0d8c2;
+  --text-muted: #806b60;
+  --track-bg: #f0d8c2;
 }
 
 .dark body {
-  background-color: #102124;
-  color: #edf6f3;
-  --surface: #173034;
-  --surface-muted: #1d3b3f;
-  --border: #2d4c4f;
-  --text-muted: #a4bfbd;
-  --track-bg: #385659;
+  background-color: #0d1728;
+  color: #e8f0ff;
+  --surface: #14243b;
+  --surface-muted: #1b3150;
+  --border: #304b70;
+  --text-muted: #aabbd4;
+  --track-bg: #38557c;
 }
 
 h1, h2, h3, h4 {
@@ -155,7 +155,7 @@ button, a, input, textarea, select {
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: #374151;
+  background: #38557c;
 }
 
 /* ── Componentes ─────────────────────────────────────────── */
@@ -175,15 +175,15 @@ button, a, input, textarea, select {
   }
 
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-3xl p-5 sm:p-6 border border-sage-100 dark:border-gray-700 shadow-[0_8px_28px_rgba(25,50,56,0.05)];
+    @apply bg-white dark:bg-[#14243b] rounded-3xl p-5 sm:p-6 border border-sage-100 dark:border-[#304b70] shadow-[0_8px_28px_rgba(93,55,32,0.08)];
   }
 
   .card-pastel {
-    @apply bg-sage-50 dark:bg-gray-800 rounded-3xl border border-sage-100 dark:border-gray-700 p-5 sm:p-6 shadow-sm;
+    @apply bg-sage-50 dark:bg-[#1b3150] rounded-3xl border border-sage-100 dark:border-[#304b70] p-5 sm:p-6 shadow-sm;
   }
 
   .card-psych {
-    @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-[0_6px_22px_rgba(25,50,56,0.045)] p-4 sm:p-5 transition-colors duration-200;
+    @apply bg-white dark:bg-[#14243b] rounded-2xl border border-[#eadfd5] dark:border-[#304b70] shadow-[0_6px_22px_rgba(37,61,99,0.12)] p-4 sm:p-5 transition-colors duration-200;
   }
 
   /* ── Inputs — borde más oscuro en modo claro ── */
@@ -332,6 +332,38 @@ button, a, input, textarea, select {
 
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out;
+}
+
+/* Temperatura cromática por modo: marfil/terracota en claro y navy/azul en oscuro. */
+.dark .dark\:bg-gray-900 {
+  background-color: #111f35 !important;
+}
+
+.dark .dark\:bg-gray-800 {
+  background-color: #14243b !important;
+}
+
+.dark .dark\:bg-gray-700 {
+  background-color: #1b3150 !important;
+}
+
+.dark .dark\:bg-gray-800\/50 {
+  background-color: rgb(27 49 80 / 50%) !important;
+}
+
+.bg-gray-100 {
+  background-color: #fff0df !important;
+}
+
+.dark .dark\:border-gray-800,
+.dark .dark\:border-gray-700,
+.dark .dark\:border-gray-600 {
+  border-color: #304b70 !important;
+}
+
+.dark .dark\:text-gray-100,
+.dark .dark\:text-white {
+  color: #e8f0ff !important;
 }
 
 @media (prefers-reduced-motion: reduce) {

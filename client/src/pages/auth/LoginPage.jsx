@@ -34,7 +34,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f4f7f5] p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#fff8ef] dark:bg-[#0d1728] p-4 relative overflow-hidden">
       <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}

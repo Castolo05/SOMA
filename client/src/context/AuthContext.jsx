@@ -296,7 +296,7 @@ export function AuthProvider({ children }) {
 
 function InitialLoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f4f7f5]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#fff8ef] dark:bg-[#0d1728]">
       <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-gray-100 bg-white shadow-lg">
         <img src="/logo.png" alt="SOMA" className="h-full w-full object-cover" />
       </div>
