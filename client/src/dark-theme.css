@@ -217,3 +217,48 @@ html[data-theme='dark'] .bg-sky-100 { background-color: #173b56 !important; }
 html[data-theme='dark'] .text-sky-500,
 html[data-theme='dark'] .text-sky-600 { color: #82bfe0 !important; }
 html[data-theme='dark'] .border-sky-200 { border-color: #396d91 !important; }
+
+/* Paleta de referencia: cian luminoso, turquesa, hielo, gris azulado y teal profundo. */
+html[data-theme='dark'] {
+  --ref-dark-cyan: #b2ffff;
+  --ref-dark-turquoise: #7fd1c8;
+  --ref-dark-ice: #e9f7f6;
+  --ref-dark-mist: #b8c2c1;
+  --ref-dark-teal: #2f5d62;
+  background: var(--ref-dark-teal);
+}
+
+html[data-theme='dark'] body {
+  background-color: var(--ref-dark-teal);
+  color: var(--ref-dark-ice);
+  --surface: #345f63;
+  --surface-muted: var(--ref-dark-teal);
+  --border: var(--ref-dark-mist);
+  --text-muted: var(--ref-dark-mist);
+  --track-bg: var(--ref-dark-mist);
+}
+
+html[data-theme='dark'] .card,
+html[data-theme='dark'] .card-psych { background-color: #345f63 !important; border-color: var(--ref-dark-mist) !important; }
+html[data-theme='dark'] .card-pastel,
+html[data-theme='dark'] .bg-gray-50,
+html[data-theme='dark'] .bg-gray-100 { background-color: var(--ref-dark-teal) !important; }
+html[data-theme='dark'] .input,
+html[data-theme='dark'] .input-psych,
+html[data-theme='dark'] .bg-white,
+html[data-theme='dark'] .bg-white\/90,
+html[data-theme='dark'] .bg-white\/95 { background-color: #345f63 !important; border-color: var(--ref-dark-mist) !important; }
+html[data-theme='dark'] .label,
+html[data-theme='dark'] .text-gray-600,
+html[data-theme='dark'] .text-gray-700,
+html[data-theme='dark'] .text-gray-800,
+html[data-theme='dark'] .text-gray-900 { color: var(--ref-dark-ice) !important; }
+html[data-theme='dark'] .text-gray-400,
+html[data-theme='dark'] .text-gray-500 { color: var(--ref-dark-mist) !important; }
+html[data-theme='dark'] .btn-patient,
+html[data-theme='dark'] .react-grid-item.react-grid-placeholder { background-color: var(--ref-dark-turquoise) !important; }
+html[data-theme='dark'] .btn-psych { background-color: var(--ref-dark-cyan) !important; color: var(--ref-dark-teal) !important; }
+html[data-theme='dark'] .btn-ghost { border-color: var(--ref-dark-mist) !important; color: var(--ref-dark-ice) !important; }
+html[data-theme='dark'] .tag { background-color: var(--ref-dark-teal) !important; border-color: var(--ref-dark-mist) !important; color: var(--ref-dark-ice) !important; }
+html[data-theme='dark'] :focus-visible { outline-color: var(--ref-dark-cyan); }
+html[data-theme='dark'] ::-webkit-scrollbar-thumb { background: var(--ref-dark-mist); }

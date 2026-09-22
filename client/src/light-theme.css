@@ -206,3 +206,48 @@ html[data-theme='light'] .bg-sky-50,
 html[data-theme='light'] .bg-sky-100 { background-color: #eadccf !important; }
 html[data-theme='light'] .text-sky-500,
 html[data-theme='light'] .text-sky-600 { color: #785b68 !important; }
+
+/* Paleta de referencia: coral suave, rosa empolvado, marfil, topo y ciruela. */
+html[data-theme='light'] {
+  --ref-light-coral: #f2c6b6;
+  --ref-light-rose: #f9e2da;
+  --ref-light-ivory: #fff6f0;
+  --ref-light-taupe: #c8b3b0;
+  --ref-light-plum: #5a4b4b;
+  background: var(--ref-light-coral);
+}
+
+html[data-theme='light'] body {
+  background-color: var(--ref-light-coral);
+  color: var(--ref-light-plum);
+  --surface: var(--ref-light-rose);
+  --surface-muted: var(--ref-light-coral);
+  --border: var(--ref-light-taupe);
+  --text-muted: var(--ref-light-plum);
+  --track-bg: var(--ref-light-taupe);
+}
+
+html[data-theme='light'] .card,
+html[data-theme='light'] .card-psych { background-color: var(--ref-light-rose) !important; border-color: var(--ref-light-taupe) !important; }
+html[data-theme='light'] .card-pastel,
+html[data-theme='light'] .bg-gray-50,
+html[data-theme='light'] .bg-gray-100 { background-color: var(--ref-light-coral) !important; }
+html[data-theme='light'] .input,
+html[data-theme='light'] .input-psych,
+html[data-theme='light'] .bg-white,
+html[data-theme='light'] .bg-white\/90,
+html[data-theme='light'] .bg-white\/95 { background-color: var(--ref-light-ivory) !important; border-color: var(--ref-light-taupe) !important; }
+html[data-theme='light'] .label,
+html[data-theme='light'] .text-gray-600,
+html[data-theme='light'] .text-gray-700,
+html[data-theme='light'] .text-gray-800,
+html[data-theme='light'] .text-gray-900 { color: var(--ref-light-plum) !important; }
+html[data-theme='light'] .text-gray-400,
+html[data-theme='light'] .text-gray-500 { color: #806f70 !important; }
+html[data-theme='light'] .btn-patient,
+html[data-theme='light'] .react-grid-item.react-grid-placeholder { background-color: var(--ref-light-coral) !important; }
+html[data-theme='light'] .btn-psych { background-color: var(--ref-light-plum) !important; }
+html[data-theme='light'] .btn-ghost { border-color: var(--ref-light-taupe) !important; color: var(--ref-light-plum) !important; }
+html[data-theme='light'] .tag { background-color: var(--ref-light-rose) !important; border-color: var(--ref-light-taupe) !important; color: var(--ref-light-plum) !important; }
+html[data-theme='light'] :focus-visible { outline-color: var(--ref-light-plum); }
+html[data-theme='light'] ::-webkit-scrollbar-thumb { background: var(--ref-light-taupe); }

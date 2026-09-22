@@ -296,8 +296,8 @@ export function AuthProvider({ children }) {
 
 function InitialLoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f1dcc3] dark:bg-[#0d1728]">
-      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-peach-200 bg-[#e9c19e] shadow-lg dark:border-indigo-800 dark:bg-[#132943]">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f2c6b6] dark:bg-[#2f5d62]">
+      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-[#c8b3b0] bg-[#f9e2da] shadow-lg dark:border-[#b8c2c1] dark:bg-[#345f63]">
         <img src="/logo.png" alt="SOMA" className="h-full w-full object-cover" />
       </div>
       <p className="mt-5 text-lg font-bold tracking-wide text-gray-800">SOMA</p>

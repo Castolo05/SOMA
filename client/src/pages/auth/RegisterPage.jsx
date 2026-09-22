@@ -27,7 +27,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f1dcc3] dark:bg-[#0d1728] p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#f2c6b6] dark:bg-[#2f5d62] p-4 relative overflow-hidden">
       <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
       <div className="w-full max-w-md animate-fade-in">
         <div className="text-center mb-8">
@@ -38,7 +38,7 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-1">Crea tu cuenta gratuita</p>
         </div>
 
-        <div className="bg-[#edd2b4] rounded-3xl shadow-xl border border-[#d3a174] p-8">
+        <div className="bg-[#f9e2da] rounded-3xl shadow-xl border border-[#c8b3b0] p-8">
           <h2 className="text-xl font-bold text-gray-800 mb-6">Registrarse</h2>
 
           {error && (
