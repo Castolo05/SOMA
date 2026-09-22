@@ -38,21 +38,21 @@ export default function PatientLayout() {
   ]
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-[#EFF2F7] dark:bg-gray-950 transition-colors duration-300 overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-[#f4f7f5] dark:bg-[#102124] transition-colors duration-300 overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-2">
+      <header className="shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
+        <div className="flex items-center gap-2.5">
           <img src="/logo.png" alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
           <div className="flex flex-col leading-none">
-            <span className="font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
-            <span className="text-[10px] font-medium tracking-[0.18em] text-gray-400 uppercase">v1.0.0</span>
+            <span className="font-display font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
+            <span className="text-[10px] font-semibold tracking-[0.18em] text-sage-600 dark:text-sage-400 uppercase">tu espacio de bienestar</span>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setDarkMode(d => !d)}
-            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-sage-50 dark:hover:bg-gray-800 transition-colors"
             aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
           >
             {darkMode ? <Sun size={18} /> : <Moon size={18} />}
@@ -60,7 +60,7 @@ export default function PatientLayout() {
 
           <button
             onClick={handleLogout}
-            className="p-2.5 rounded-xl text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors"
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors"
             aria-label="Cerrar sesión"
           >
             <LogOut size={18} />
@@ -70,24 +70,24 @@ export default function PatientLayout() {
 
       {/* Contenido principal */}
       <main id="scrollable-main" className="flex-1 overflow-y-auto">
-        <div className="max-w-lg mx-auto px-4 py-5 pb-8">
+        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 pb-8">
           <Outlet />
         </div>
       </main>
 
       {/* Nav inferior mobile-first con soporte de safe-area (iPhone notch/home) */}
       <nav
-        className="shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 shadow-[0_-1px_12px_rgba(0,0,0,0.06)]"
+        className="shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-sage-100 dark:border-gray-800 shadow-[0_-1px_18px_rgba(25,50,56,0.08)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
-        <div className="max-w-lg mx-auto flex justify-around items-center py-1">
+        <div className="max-w-xl mx-auto flex justify-around items-center py-1">
           {navItems.map(({ to, icon, label }) => {
             const active = location.pathname === to
             return (
               <Link
                 key={to}
                 to={to}
-                className={`flex flex-col items-center gap-0.5 min-w-[72px] min-h-[52px] px-3 py-2 rounded-2xl transition-all duration-200 ${
+                className={`flex flex-col items-center gap-0.5 min-w-[72px] min-h-11 px-3 py-2 rounded-2xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-sage-400 ${
                   active
                     ? 'text-sage-500 bg-sage-50 dark:bg-sage-900/20'
                     : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'

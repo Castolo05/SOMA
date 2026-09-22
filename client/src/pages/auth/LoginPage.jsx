@@ -34,19 +34,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-sage-50 via-white to-lavender-100 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#f4f7f5] p-4 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-lg mb-4 overflow-hidden border border-gray-100">
             <img src="/logo.png" alt="SOMA Logo" className="w-full h-full object-cover" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">SOMA</h1>
+          <h1 className="font-display text-3xl font-bold text-gray-800">SOMA</h1>
           <p className="text-gray-500 mt-1">Tu espacio seguro de bienestar mental</p>
         </div>
 
         {/* Card */}
-        <div className="bg-white rounded-3xl shadow-xl border border-gray-100 p-8">
+        <div className="relative bg-white rounded-3xl shadow-[0_18px_60px_rgba(25,50,56,0.12)] border border-sage-100 p-6 sm:p-8">
           <h2 className="text-xl font-bold text-gray-800 mb-6">Iniciar sesión</h2>
 
           {error && (

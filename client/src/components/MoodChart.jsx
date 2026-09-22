@@ -69,7 +69,7 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
     if (onDaysChange) onDaysChange(d)
     else setInternalDays(d)
   }
-  const lineColor = mode === 'psych' ? '#4f46e5' : '#6ba86b'
+  const lineColor = mode === 'psych' ? '#267783' : '#2f876e'
 
   // Filtrar entradas por período seleccionado
   const chartData = useMemo(() => {
@@ -101,7 +101,7 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
             <button
               key={value}
               onClick={() => handleDaysChange(value)}
-              className={`text-[11px] px-2.5 py-1 rounded-lg font-bold transition-all ${
+              className={`text-[11px] px-2.5 min-h-11 rounded-lg font-bold transition-all ${
                 currentDays === value
                   ? mode === 'psych'
                     ? 'bg-indigo-600 text-white'

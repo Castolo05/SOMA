@@ -176,7 +176,7 @@ export default function HistoryPage() {
   return (
     <div className="space-y-4 animate-fade-in pb-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Historial</h1>
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">Historial</h1>
         <p className="text-sm text-gray-400">{entries.length} entradas</p>
       </div>
 
@@ -184,7 +184,7 @@ export default function HistoryPage() {
       <div className="flex gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl mb-4">
         <button
           onClick={() => setTab('entries')}
-          className={`flex-1 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
+          className={`flex-1 min-h-11 px-1 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
             tab === 'entries'
               ? 'bg-white dark:bg-gray-700 text-sage-600 shadow-sm'
               : 'text-gray-500 dark:text-gray-400'
@@ -194,7 +194,7 @@ export default function HistoryPage() {
         </button>
         <button
           onClick={() => setTab('chart')}
-          className={`flex-1 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
+          className={`flex-1 min-h-11 px-1 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
             tab === 'chart'
               ? 'bg-white dark:bg-gray-700 text-sage-600 shadow-sm'
               : 'text-gray-500 dark:text-gray-400'
@@ -204,7 +204,7 @@ export default function HistoryPage() {
         </button>
         <button
           onClick={() => setTab('correlation')}
-          className={`flex-1 py-2 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
+          className={`flex-1 min-h-11 px-1 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
             tab === 'correlation'
               ? 'bg-white dark:bg-gray-700 text-sage-600 shadow-sm'
               : 'text-gray-500 dark:text-gray-400'

@@ -27,6 +27,17 @@ const loadLayout = (userId) => {
   }
 }
 
+const layoutForColumns = (items, columns) => items.map((item) => {
+  const width = columns === 1 ? 1 : Math.min(item.w, columns)
+  const x = columns === 1 ? 0 : Math.min(item.x, columns - width)
+  return {
+    ...item,
+    x,
+    w: width,
+    minW: Math.min(item.minW || 1, columns),
+  }
+})
+
 export default function PsychDashboard() {
   usePageTitle('Panel')
   const { user } = useAuth()
@@ -66,11 +77,16 @@ export default function PsychDashboard() {
 
   const alerts = patients.filter((p) => p.hasAlert)
   const activeLayout = layout.filter((item) => item.i === 'content' || alerts.length > 0)
+  const responsiveLayouts = {
+    lg: layoutForColumns(activeLayout, 12),
+    md: layoutForColumns(activeLayout, 8),
+    sm: layoutForColumns(activeLayout, 1),
+  }
 
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
             Buen día, {user?.name?.split(' ')[0]} 👋
@@ -82,7 +98,7 @@ export default function PsychDashboard() {
         {user?.inviteCode && (
           <button
             onClick={copyCode}
-            className="flex items-center gap-2 bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-700 rounded-xl px-4 py-2.5 transition-all"
+            className="flex items-center gap-2 self-start bg-indigo-50 dark:bg-indigo-900/20 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 border border-indigo-200 dark:border-indigo-700 rounded-xl px-4 py-2.5 transition-all focus-visible:ring-2 focus-visible:ring-indigo-400"
           >
             <div>
               <div className="text-xs text-indigo-400 font-medium text-left">Tu código</div>
@@ -101,7 +117,7 @@ export default function PsychDashboard() {
 
       <ResponsiveGridLayout
         className="psych-dashboard-grid"
-        layouts={{ lg: activeLayout, md: activeLayout, sm: activeLayout }}
+        layouts={responsiveLayouts}
         rowHeight={38}
         margin={[16, 16]}
         containerPadding={[0, 0]}
@@ -136,10 +152,10 @@ export default function PsychDashboard() {
           <div className="psych-panel-handle flex items-center gap-2 mb-3 cursor-move">
             <GripVertical size={16} className="text-gray-300" />
             <div className="flex-1 flex gap-1 bg-gray-100 dark:bg-gray-700 p-1 rounded-xl">
-              <button onClick={() => setTab('patients')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'patients' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
+              <button onClick={() => setTab('patients')} className={`flex-1 flex items-center justify-center gap-2 min-h-11 px-2 rounded-lg text-sm font-semibold transition-all ${tab === 'patients' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
                 <Users size={16} /> Mis Pacientes
               </button>
-              <button onClick={() => setTab('agenda')} className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'agenda' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
+              <button onClick={() => setTab('agenda')} className={`flex-1 flex items-center justify-center gap-2 min-h-11 px-2 rounded-lg text-sm font-semibold transition-all ${tab === 'agenda' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-300 hover:text-gray-700 dark:hover:text-white'}`}>
                 <CalendarDays size={16} /> Mi Agenda
               </button>
             </div>

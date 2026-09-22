@@ -183,7 +183,7 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
                     {/* Cantidad + nota si está marcado */}
                     {done && (
                       <div className="px-4 pb-3 space-y-2 border-t border-sage-200 dark:border-sage-800/50 pt-2">
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <input
                             type="number"
                             min="0"
@@ -259,7 +259,7 @@ function NoteForm({ initialMood = 5, initialContent = '', initialHabits = [], in
       )}
 
       {/* Acciones */}
-      <div className="flex gap-2">
+      <div className="flex flex-col-reverse sm:flex-row gap-2">
         {onCancel && (
           <button onClick={onCancel} className="btn-ghost flex-1 flex items-center justify-center gap-1.5 text-sm">
             <X size={15} /> Cancelar
@@ -396,11 +396,11 @@ export default function PatientDashboard() {
   return (
     <div className="space-y-4 animate-fade-in pb-6">
       {/* ── Fecha + Saludo ── */}
-      <div className="px-1 pt-1">
+      <div className="px-1 pt-1 sm:pt-2">
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest capitalize">
           {todayString()}
         </p>
-        <h1 className="text-2xl font-bold text-gray-800 dark:text-white mt-0.5">
+        <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mt-0.5">
           {greeting}, {user?.name?.split(' ')[0]}
         </h1>
       </div>

@@ -14,6 +14,16 @@ import { usePageTitle } from '../../hooks/usePageTitle'
 
 const ResponsiveGridLayout = WidthProvider(Responsive)
 
+const layoutForColumns = (items, columns) => items.map((item) => {
+  const width = columns === 1 ? 1 : Math.min(item.w, columns)
+  return {
+    ...item,
+    x: columns === 1 ? 0 : Math.min(item.x, columns - width),
+    w: width,
+    minW: Math.min(item.minW || 1, columns),
+  }
+})
+
 // ── Wrapper para paneles modulares ────────────────────────
 function PanelWrapper({ title, icon: Icon, onHide, children, className = '' }) {
   return (
@@ -44,7 +54,7 @@ function PreSessionCard({ insights }) {
   const trendColor = trendNum > 0 ? 'text-emerald-600' : trendNum < 0 ? 'text-red-500' : 'text-gray-400'
 
   return (
-    <div className="grid grid-cols-2 gap-3 h-full">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 h-full">
       {/* Promedio semana actual */}
       <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-3 flex flex-col items-center justify-center text-center h-full">
         <p className="text-xs text-gray-400 mb-1">Esta semana</p>
@@ -357,6 +367,11 @@ export default function PatientDetail() {
   }
 
   const activePanelLayout = panelLayout.filter((item) => visiblePanels.includes(item.i))
+  const responsivePanelLayouts = {
+    lg: layoutForColumns(activePanelLayout, 12),
+    md: layoutForColumns(activePanelLayout, 8),
+    sm: layoutForColumns(activePanelLayout, 1),
+  }
 
   useEffect(() => {
     const load = async () => {
@@ -387,8 +402,8 @@ export default function PatientDetail() {
   return (
     <div className="space-y-5 animate-fade-in relative pb-10">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link to="/psych/patients" className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
+      <div className="flex items-start gap-3">
+        <Link to="/psych/patients" className="min-h-11 min-w-11 flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl transition-colors">
           <ArrowLeft size={20} className="text-gray-500 dark:text-gray-400" />
         </Link>
         <div className="flex-1">
@@ -401,8 +416,8 @@ export default function PatientDetail() {
         </div>
 
         {/* Dropdown de Paneles */}
-        <div className="relative">
-          <button onClick={() => setShowMenu(!showMenu)} className="btn-ghost flex items-center gap-2 text-sm py-2 px-3">
+        <div className="relative shrink-0">
+          <button onClick={() => setShowMenu(!showMenu)} className="btn-ghost flex items-center gap-2 text-sm py-2 px-3" aria-expanded={showMenu}>
             <LayoutGrid size={16} /> Paneles
           </button>
           {showMenu && (
@@ -432,7 +447,7 @@ export default function PatientDetail() {
 
       <ResponsiveGridLayout
         className="psych-dashboard-grid"
-        layouts={{ lg: activePanelLayout, md: activePanelLayout, sm: activePanelLayout }}
+        layouts={responsivePanelLayouts}
         rowHeight={38}
         margin={[16, 16]}
         containerPadding={[0, 0]}

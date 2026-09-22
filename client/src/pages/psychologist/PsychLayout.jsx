@@ -41,7 +41,7 @@ export default function PsychLayout() {
         {!isMobile && (
           <button
             onClick={() => setCollapsed(c => !c)}
-            className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="ml-auto min-h-11 min-w-11 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-sage-50 dark:hover:bg-gray-800 transition-colors"
             title={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
           >
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
@@ -50,7 +50,7 @@ export default function PsychLayout() {
         {isMobile && (
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-gray-600"
+            className="ml-auto min-h-11 min-w-11 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600"
           >
             <X size={18} />
           </button>
@@ -66,7 +66,7 @@ export default function PsychLayout() {
               key={to}
               to={to}
               title={collapsed && !isMobile ? label : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 text-sm font-medium ${
+              className={`flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-xl transition-all duration-200 text-sm font-medium focus-visible:ring-2 focus-visible:ring-indigo-400 ${
                 active
                   ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
                   : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
@@ -134,10 +134,10 @@ export default function PsychLayout() {
   )
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] dark:bg-gray-950 flex transition-colors duration-300">
+    <div className="min-h-screen bg-[#f4f7f5] dark:bg-[#102124] flex transition-colors duration-300">
       {/* ── Sidebar desktop ── */}
       <aside
-        className={`bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex-col py-6 px-4 shrink-0 hidden lg:flex transition-all duration-300 sticky top-0 h-screen overflow-y-auto ${
+        className={`bg-[#fbfdfc] dark:bg-gray-900 border-r border-sage-100 dark:border-gray-800 flex-col py-6 px-4 shrink-0 hidden lg:flex transition-all duration-300 sticky top-0 h-screen overflow-y-auto ${
           collapsed ? 'w-[72px]' : 'w-64'
         }`}
       >
@@ -153,7 +153,7 @@ export default function PsychLayout() {
             onClick={() => setMobileMenuOpen(false)}
           />
           {/* Panel */}
-          <aside className="relative w-72 bg-white dark:bg-gray-900 h-full flex flex-col py-6 px-4 shadow-2xl animate-slide-up">
+          <aside className="relative w-[min(19rem,88vw)] bg-white dark:bg-gray-900 h-full flex flex-col py-6 px-4 shadow-2xl animate-slide-up">
             <SidebarContent isMobile />
           </aside>
         </div>
@@ -162,12 +162,13 @@ export default function PsychLayout() {
       {/* Contenido principal */}
       <main className="flex-1 overflow-auto">
         {/* Top bar móvil */}
-        <header className="lg:hidden bg-white dark:bg-gray-900 border-b border-gray-100 dark:border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        <header className="lg:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-3 sm:px-4 py-3 flex items-center justify-between sticky top-0 z-40">
           <div className="flex items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors mr-1"
+              className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-gray-500 hover:bg-sage-50 dark:hover:bg-gray-800 transition-colors mr-1"
               aria-label="Abrir menú"
+              aria-expanded={mobileMenuOpen}
             >
               <Menu size={20} />
             </button>
@@ -179,7 +180,7 @@ export default function PsychLayout() {
               <Link
                 key={to}
                 to={to}
-                className={`p-2 rounded-lg transition-colors min-w-[40px] min-h-[40px] flex items-center justify-center ${
+                className={`p-2 rounded-lg transition-colors min-w-11 min-h-11 flex items-center justify-center ${
                   location.pathname === to
                     ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30'
                     : 'text-gray-400 dark:text-gray-500'
@@ -190,20 +191,20 @@ export default function PsychLayout() {
             ))}
             <button
               onClick={() => setDarkMode(d => !d)}
-              className="p-2 text-gray-400 dark:text-gray-500 min-w-[40px] min-h-[40px] flex items-center justify-center"
+              className="p-2 text-gray-400 dark:text-gray-500 min-w-11 min-h-11 flex items-center justify-center"
             >
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <button
               onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-red-500 min-w-[40px] min-h-[40px] flex items-center justify-center"
+              className="p-2 text-gray-400 hover:text-red-500 min-w-11 min-h-11 flex items-center justify-center"
             >
               <LogOut size={18} />
             </button>
           </div>
         </header>
 
-        <div className="p-4 lg:p-6 max-w-6xl mx-auto">
+        <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
           <Outlet />
         </div>
       </main>

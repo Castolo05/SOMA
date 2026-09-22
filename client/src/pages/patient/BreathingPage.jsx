@@ -5,7 +5,7 @@ import { usePageTitle } from '../../hooks/usePageTitle'
 
 const PHASES = [
   { label: 'Inhala', duration: 4, color: '#059669' },
-  { label: 'Sostén', duration: 4, color: '#4f46e5' },
+  { label: 'Sostén', duration: 4, color: '#267783' },
   { label: 'Exhala', duration: 4, color: '#0d9488' },
 ]
 

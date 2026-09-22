@@ -5,46 +5,47 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        sans: ['Nunito', 'Inter', 'sans-serif'],
+        sans: ['DM Sans', 'sans-serif'],
+        display: ['Space Grotesk', 'DM Sans', 'sans-serif'],
       },
       colors: {
-        // ── Paleta paciente — pasteles cálidos ──
+        // ── Paleta SOMA — bienestar clínico cálido ──
         sage: {
-          50:  '#f0f7f0',
-          100: '#dceddc',
-          200: '#bbd9bb',
-          300: '#8FBC8F',
-          400: '#6ba86b',
-          500: '#4f8c4f',
-          600: '#3d6e3d',
+          50:  '#edf8f4',
+          100: '#d8f0e7',
+          200: '#b4e1d0',
+          300: '#7cc7ad',
+          400: '#4eaa8b',
+          500: '#2f876e',
+          600: '#236653',
         },
         lavender: {
-          50:  '#f5f3ff',
-          100: '#ede9fe',
-          200: '#ddd6fe',
-          300: '#c4b5fd',
-          400: '#a78bfa',
+          50:  '#eff7f8',
+          100: '#d9edf0',
+          200: '#b7dce2',
+          300: '#83c3cc',
+          400: '#55a3b0',
         },
         peach: {
-          50:  '#fff7f0',
-          100: '#ffe8d6',
-          200: '#ffd0b5',
-          300: '#ffb088',
+          50:  '#fff6ef',
+          100: '#ffe4d3',
+          200: '#ffc6aa',
+          300: '#f49a73',
         },
         sky: {
           pastel: '#e0f2fe',
         },
-        // ── Paleta psicólogo — profesional ──
+        // ── Paleta psicólogo — azul petróleo profesional ──
         indigo: {
-          50:  '#eef2ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4F46E5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
+          50:  '#edf5f6',
+          100: '#d8e9eb',
+          200: '#b4d4d8',
+          400: '#4e9ca6',
+          500: '#267783',
+          600: '#1b5d68',
+          700: '#154b55',
+          800: '#123e47',
+          900: '#0d3038',
         },
         // ── Colores de ánimo 1-10 ──
         mood: {

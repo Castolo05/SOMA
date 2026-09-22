@@ -44,7 +44,7 @@ export default function DayDetailModal({ date, entries = [], appointments = [], 
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
           >
             <X size={20} className="text-gray-400" />
           </button>

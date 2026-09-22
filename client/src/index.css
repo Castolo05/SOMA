@@ -1,5 +1,5 @@
 /* ── Fuentes ─────────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap');
 /* Estilos base para react-grid-layout (inline, sin dependencia del paquete instalado) */
 
 .react-resizable-handle {
@@ -99,21 +99,44 @@
 
 html {
   scroll-behavior: smooth;
+  background: #f4f7f5;
 }
 
 body {
-  font-family: 'Nunito', 'Inter', sans-serif;
+  font-family: 'DM Sans', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  /* Modo claro: fondo pastel tierno */
-  background-color: #f3f3f3;
-  color: #1a1f2e;
+  background-color: #f4f7f5;
+  color: #193238;
+  --surface: #ffffff;
+  --surface-muted: #edf3f1;
+  --border: #dbe7e3;
+  --text-muted: #5e7475;
+  --track-bg: #dbe7e3;
 }
 
 .dark body {
-  background-color: #0d0f18;
-  color: #e8eaf0;
-  --track-bg: #374151;
+  background-color: #102124;
+  color: #edf6f3;
+  --surface: #173034;
+  --surface-muted: #1d3b3f;
+  --border: #2d4c4f;
+  --text-muted: #a4bfbd;
+  --track-bg: #385659;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Space Grotesk', 'DM Sans', sans-serif;
+  letter-spacing: -0.02em;
+}
+
+button, a, input, textarea, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 3px solid rgba(47, 135, 110, 0.45);
+  outline-offset: 2px;
 }
 
 /* ── Scrollbar ───────────────────────────────────────────── */
@@ -140,7 +163,7 @@ body {
 
   /* ── Botones ── */
   .btn-patient {
-    @apply bg-sage-400 hover:bg-sage-500 text-white font-bold py-3.5 px-6 rounded-[24px] transition-all duration-200 shadow-sm hover:shadow-md active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-sage-500 hover:bg-sage-600 text-white font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   .btn-psych {
@@ -148,25 +171,24 @@ body {
   }
 
   .btn-ghost {
-    @apply border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium py-2.5 px-5 rounded-xl transition-all duration-200;
+    @apply border border-gray-300 dark:border-gray-600 hover:bg-sage-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium py-2.5 px-5 rounded-xl transition-all duration-200;
   }
 
-  /* ── Cards — más redondeadas y tiernas ── */
   .card {
-    @apply bg-white dark:bg-gray-800 rounded-[28px] p-6 border border-peach-100 dark:border-gray-700 shadow-sm;
+    @apply bg-white dark:bg-gray-800 rounded-3xl p-5 sm:p-6 border border-sage-100 dark:border-gray-700 shadow-[0_8px_28px_rgba(25,50,56,0.05)];
   }
 
   .card-pastel {
-    @apply bg-gradient-to-br from-lavender-50 to-peach-50 dark:from-gray-800 dark:to-gray-800 rounded-[28px] border border-lavender-100 dark:border-gray-700 p-6 shadow-sm;
+    @apply bg-sage-50 dark:bg-gray-800 rounded-3xl border border-sage-100 dark:border-gray-700 p-5 sm:p-6 shadow-sm;
   }
 
   .card-psych {
-    @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm p-5 transition-colors duration-200;
+    @apply bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-[0_6px_22px_rgba(25,50,56,0.045)] p-4 sm:p-5 transition-colors duration-200;
   }
 
   /* ── Inputs — borde más oscuro en modo claro ── */
   .input {
-    @apply w-full px-4 py-3.5 rounded-[20px] border border-peach-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sage-400 dark:focus:ring-sage-500 transition-all duration-200 text-base shadow-sm;
+    @apply w-full px-4 py-3.5 rounded-2xl border border-sage-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sage-400 dark:focus:ring-sage-500 transition-all duration-200 text-base shadow-sm;
   }
 
   .input-psych {
@@ -185,7 +207,7 @@ body {
 
   /* ── Glassmorphism header ── */
   .glass {
-    @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800;
+    @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800;
   }
 }
 
@@ -310,4 +332,16 @@ body {
 
 .animate-scale-in {
   animation: scaleIn 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
