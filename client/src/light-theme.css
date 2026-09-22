@@ -251,3 +251,18 @@ html[data-theme='light'] .btn-ghost { border-color: var(--ref-light-taupe) !impo
 html[data-theme='light'] .tag { background-color: var(--ref-light-rose) !important; border-color: var(--ref-light-taupe) !important; color: var(--ref-light-plum) !important; }
 html[data-theme='light'] :focus-visible { outline-color: var(--ref-light-plum); }
 html[data-theme='light'] ::-webkit-scrollbar-thumb { background: var(--ref-light-taupe); }
+
+html[data-theme='light'] .card,
+html[data-theme='light'] .card-pastel,
+html[data-theme='light'] .card-psych,
+html[data-theme='light'] .input,
+html[data-theme='light'] .input-psych,
+html[data-theme='light'] .btn-patient,
+html[data-theme='light'] .btn-psych,
+html[data-theme='light'] .btn-ghost,
+html[data-theme='light'] .tag,
+html[data-theme='light'] .glass,
+html[data-theme='light'] .react-resizable-handle::after,
+html[data-theme='light'] .react-grid-item.react-grid-placeholder { border-color: transparent !important; }
+
+html[data-theme='light'] * { border-color: transparent !important; }
