@@ -18,7 +18,7 @@
   display: block;
   width: 14px;
   height: 14px;
-  background-color: white;
+  background-color: #fff0df;
   border-radius: 50%;
   position: absolute;
   top: 50%;
@@ -30,6 +30,7 @@
 }
 
 .dark .react-resizable-handle::after {
+  background-color: #1b3150;
   border-color: #4b5563;
   /* gray-600 */
 }
@@ -175,7 +176,7 @@ button, a, input, textarea, select {
   }
 
   .card {
-    @apply bg-white dark:bg-[#14243b] rounded-3xl p-5 sm:p-6 border border-sage-100 dark:border-[#304b70] shadow-[0_8px_28px_rgba(93,55,32,0.08)];
+    @apply bg-[#fffdf9] dark:bg-[#14243b] rounded-3xl p-5 sm:p-6 border border-sage-100 dark:border-[#304b70] shadow-[0_8px_28px_rgba(93,55,32,0.08)];
   }
 
   .card-pastel {
@@ -183,16 +184,16 @@ button, a, input, textarea, select {
   }
 
   .card-psych {
-    @apply bg-white dark:bg-[#14243b] rounded-2xl border border-[#eadfd5] dark:border-[#304b70] shadow-[0_6px_22px_rgba(37,61,99,0.12)] p-4 sm:p-5 transition-colors duration-200;
+    @apply bg-[#fffdf9] dark:bg-[#14243b] rounded-2xl border border-[#eadfd5] dark:border-[#304b70] shadow-[0_6px_22px_rgba(37,61,99,0.12)] p-4 sm:p-5 transition-colors duration-200;
   }
 
   /* ── Inputs — borde más oscuro en modo claro ── */
   .input {
-    @apply w-full px-4 py-3.5 rounded-2xl border border-sage-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sage-400 dark:focus:ring-sage-500 transition-all duration-200 text-base shadow-sm;
+    @apply w-full px-4 py-3.5 rounded-2xl border border-sage-200 dark:border-gray-600 bg-[#fffaf3] dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-sage-400 dark:focus:ring-sage-500 transition-all duration-200 text-base shadow-sm;
   }
 
   .input-psych {
-    @apply w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 text-sm;
+    @apply w-full px-4 py-2.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-[#fffaf3] dark:bg-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 text-sm;
   }
 
   /* ── Tags ── */
@@ -207,7 +208,7 @@ button, a, input, textarea, select {
 
   /* ── Glassmorphism header ── */
   .glass {
-    @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800;
+    @apply bg-[#fffaf3]/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800;
   }
 }
 
@@ -248,7 +249,7 @@ button, a, input, textarea, select {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: white;
+  background: #fff0df;
   border: 3px solid currentColor;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   cursor: grab;
@@ -256,7 +257,7 @@ button, a, input, textarea, select {
 }
 
 .dark .mood-slider::-webkit-slider-thumb {
-  background: #1f2937;
+  background: #1b3150;
 }
 
 .mood-slider::-webkit-slider-thumb:hover {
@@ -273,13 +274,13 @@ button, a, input, textarea, select {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: white;
-  border: 3px solid #8FBC8F;
+  background: #fff0df;
+  border: 3px solid #df7952;
   cursor: grab;
 }
 
 .dark .mood-slider::-moz-range-thumb {
-  background: #1f2937;
+  background: #1b3150;
 }
 
 /* ── Recharts ────────────────────────────────────────────── */
@@ -349,6 +350,40 @@ button, a, input, textarea, select {
 
 .dark .dark\:bg-gray-800\/50 {
   background-color: rgb(27 49 80 / 50%) !important;
+}
+
+.bg-white {
+  background-color: #fffaf3 !important;
+}
+
+.dark .bg-white {
+  background-color: #14243b !important;
+}
+
+.bg-white\/90,
+.bg-white\/95 {
+  background-color: rgb(255 250 243 / 90%) !important;
+}
+
+.dark .bg-white\/90,
+.dark .bg-white\/95 {
+  background-color: rgb(17 31 53 / 94%) !important;
+}
+
+.text-white {
+  color: #fff0df !important;
+}
+
+.dark .text-white {
+  color: #dbe9ff !important;
+}
+
+.bg-gray-50 {
+  background-color: #fff0df !important;
+}
+
+.dark .dark\:bg-gray-50 {
+  background-color: #1b3150 !important;
 }
 
 .bg-gray-100 {
