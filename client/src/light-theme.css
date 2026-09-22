@@ -1,5 +1,4 @@
-@layer components {
-  html[data-theme='light'] .btn-patient {
+html[data-theme='light'] .btn-patient {
     @apply bg-sage-500 hover:bg-sage-600 text-white font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
@@ -77,7 +76,6 @@
   html[data-theme='light'] .scrollbar-thumb {
     background: #e1bda7;
   }
-}
 
 html[data-theme='light'] .react-grid-item.react-grid-placeholder {
   background: #df7952 !important;
