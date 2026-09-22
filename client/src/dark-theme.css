@@ -177,3 +177,43 @@ html[data-theme='dark'] .text-gray-900 { color: #dbe9ff !important; }
 html[data-theme='dark'] .border-gray-100,
 html[data-theme='dark'] .border-gray-200,
 html[data-theme='dark'] .border-gray-300 { border-color: #304b70 !important; }
+
+/* Estados semánticos fríos: teal, coral, ámbar y cian sobre navy. */
+html[data-theme='dark'] .bg-emerald-50,
+html[data-theme='dark'] .bg-emerald-100,
+html[data-theme='dark'] .bg-emerald-900\/20 { background-color: #163d3a !important; }
+html[data-theme='dark'] .bg-emerald-400,
+html[data-theme='dark'] .bg-emerald-500 { background-color: #67b89e !important; }
+html[data-theme='dark'] .bg-emerald-600 { background-color: #3e927c !important; }
+html[data-theme='dark'] .text-emerald-300,
+html[data-theme='dark'] .text-emerald-400,
+html[data-theme='dark'] .text-emerald-500,
+html[data-theme='dark'] .text-emerald-600 { color: #67b89e !important; }
+html[data-theme='dark'] .border-emerald-200,
+html[data-theme='dark'] .border-emerald-800 { border-color: #2f7167 !important; }
+
+html[data-theme='dark'] .bg-red-50,
+html[data-theme='dark'] .bg-red-100,
+html[data-theme='dark'] .bg-red-900\/20,
+html[data-theme='dark'] .bg-red-900\/30 { background-color: #512d3a !important; }
+html[data-theme='dark'] .text-red-300,
+html[data-theme='dark'] .text-red-400,
+html[data-theme='dark'] .text-red-500,
+html[data-theme='dark'] .text-red-600,
+html[data-theme='dark'] .text-red-700 { color: #e38a8c !important; }
+html[data-theme='dark'] .border-red-100,
+html[data-theme='dark'] .border-red-200,
+html[data-theme='dark'] .border-red-800 { border-color: #925464 !important; }
+
+html[data-theme='dark'] .bg-orange-100,
+html[data-theme='dark'] .bg-yellow-100 { background-color: #4a3a2a !important; }
+html[data-theme='dark'] .text-orange-600,
+html[data-theme='dark'] .text-yellow-600 { color: #e5b46c !important; }
+html[data-theme='dark'] .border-orange-200,
+html[data-theme='dark'] .border-yellow-200 { border-color: #8d6b3e !important; }
+
+html[data-theme='dark'] .bg-sky-50,
+html[data-theme='dark'] .bg-sky-100 { background-color: #173b56 !important; }
+html[data-theme='dark'] .text-sky-500,
+html[data-theme='dark'] .text-sky-600 { color: #82bfe0 !important; }
+html[data-theme='dark'] .border-sky-200 { border-color: #396d91 !important; }

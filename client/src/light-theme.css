@@ -171,3 +171,38 @@ html[data-theme='light'] .text-gray-900 { color: #432f2a !important; }
 html[data-theme='light'] .border-gray-100,
 html[data-theme='light'] .border-gray-200,
 html[data-theme='light'] .border-gray-300 { border-color: #dbb692 !important; }
+
+/* Estados semánticos cálidos: cada color comunica una acción distinta. */
+html[data-theme='light'] .bg-emerald-50,
+html[data-theme='light'] .bg-emerald-100 { background-color: #dce9d8 !important; }
+html[data-theme='light'] .bg-emerald-400,
+html[data-theme='light'] .bg-emerald-500 { background-color: #5e9569 !important; }
+html[data-theme='light'] .bg-emerald-600 { background-color: #477a59 !important; }
+html[data-theme='light'] .text-emerald-300,
+html[data-theme='light'] .text-emerald-400,
+html[data-theme='light'] .text-emerald-500,
+html[data-theme='light'] .text-emerald-600,
+html[data-theme='light'] .text-emerald-700 { color: #477a59 !important; }
+html[data-theme='light'] .border-emerald-200 { border-color: #b7d1b3 !important; }
+
+html[data-theme='light'] .bg-red-50,
+html[data-theme='light'] .bg-red-100 { background-color: #f2d2c7 !important; }
+html[data-theme='light'] .text-red-300,
+html[data-theme='light'] .text-red-400,
+html[data-theme='light'] .text-red-500,
+html[data-theme='light'] .text-red-600,
+html[data-theme='light'] .text-red-700 { color: #a9473e !important; }
+html[data-theme='light'] .border-red-100,
+html[data-theme='light'] .border-red-200 { border-color: #dda59b !important; }
+
+html[data-theme='light'] .bg-orange-100,
+html[data-theme='light'] .bg-yellow-100 { background-color: #f3dfc2 !important; }
+html[data-theme='light'] .text-orange-600,
+html[data-theme='light'] .text-yellow-600 { color: #a9682c !important; }
+html[data-theme='light'] .border-orange-200,
+html[data-theme='light'] .border-yellow-200 { border-color: #dfbd8e !important; }
+
+html[data-theme='light'] .bg-sky-50,
+html[data-theme='light'] .bg-sky-100 { background-color: #eadccf !important; }
+html[data-theme='light'] .text-sky-500,
+html[data-theme='light'] .text-sky-600 { color: #785b68 !important; }
