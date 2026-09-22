@@ -1,0 +1,140 @@
+@layer components {
+  html[data-theme='light'] .btn-patient {
+    @apply bg-sage-500 hover:bg-sage-600 text-white font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  html[data-theme='light'] .btn-psych {
+    @apply bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 shadow-sm hover:shadow-md active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  html[data-theme='light'] .btn-ghost {
+    @apply border border-peach-200 hover:bg-peach-50 text-[#69483c] font-medium py-2.5 px-5 rounded-xl transition-all duration-200;
+  }
+
+  html[data-theme='light'] .card {
+    @apply bg-[#fffdf9] rounded-3xl p-5 sm:p-6 border border-peach-100 shadow-[0_8px_28px_rgba(93,55,32,0.08)];
+  }
+
+  html[data-theme='light'] .card-pastel {
+    @apply bg-sage-50 rounded-3xl border border-sage-100 p-5 sm:p-6 shadow-sm;
+  }
+
+  html[data-theme='light'] .card-psych {
+    @apply bg-[#fffdf9] rounded-2xl border border-[#eadfd5] shadow-[0_6px_22px_rgba(93,55,32,0.08)] p-4 sm:p-5 transition-colors duration-200;
+  }
+
+  html[data-theme='light'] .input {
+    @apply w-full px-4 py-3.5 rounded-2xl border border-peach-200 bg-[#fffaf3] text-[#49342c] placeholder-[#a18476] focus:outline-none focus:ring-2 focus:ring-sage-400 transition-all duration-200 text-base shadow-sm;
+  }
+
+  html[data-theme='light'] .input-psych {
+    @apply w-full px-4 py-2.5 rounded-lg border border-peach-200 bg-[#fffaf3] text-[#49342c] placeholder-[#a18476] focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all duration-200 text-sm;
+  }
+
+  html[data-theme='light'] .tag {
+    @apply text-xs font-semibold px-2.5 py-1 rounded-full bg-peach-50 text-[#914131] border border-peach-200;
+  }
+
+  html[data-theme='light'] .label {
+    @apply block text-sm font-bold text-[#69483c] mb-1.5;
+  }
+
+  html[data-theme='light'] .glass {
+    @apply bg-[#fffaf3]/95 backdrop-blur-md border-b border-peach-100;
+  }
+
+  html[data-theme='light'] .bg-white,
+  html[data-theme='light'] .bg-white\/90,
+  html[data-theme='light'] .bg-white\/95 {
+    background-color: #fffaf3 !important;
+  }
+
+  html[data-theme='light'] .bg-gray-50,
+  html[data-theme='light'] .bg-gray-100 {
+    background-color: #fff0df !important;
+  }
+
+  html[data-theme='light'] .text-white {
+    color: #fff0df !important;
+  }
+
+  html[data-theme='light'] .mood-slider::-webkit-slider-thumb,
+  html[data-theme='light'] .mood-slider::-moz-range-thumb {
+    background: #fff0df;
+    border-color: #df7952;
+  }
+
+  html[data-theme='light'] .react-resizable-handle::after {
+    background-color: #fff0df;
+    border-color: #e3bda4;
+  }
+
+  html[data-theme='light'] .psych-panel .react-resizable-handle::after {
+    background-color: #ffead7;
+    border-color: #d28b72;
+  }
+
+  html[data-theme='light'] .scrollbar-thumb {
+    background: #e1bda7;
+  }
+}
+
+html[data-theme='light'] .react-grid-item.react-grid-placeholder {
+  background: #df7952 !important;
+}
+
+html[data-theme='light'] {
+  color-scheme: light;
+  background: #fff8ef;
+}
+
+html[data-theme='light'] :focus-visible {
+  outline: 3px solid rgba(189, 89, 64, 0.45);
+  outline-offset: 2px;
+}
+
+html[data-theme='light'] ::-webkit-scrollbar-thumb {
+  background: #e1bda7;
+}
+
+html[data-theme='light'] .mood-slider::-webkit-slider-thumb,
+html[data-theme='light'] .mood-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #fff0df;
+  border: 3px solid #df7952;
+  box-shadow: 0 2px 8px rgba(93, 55, 32, 0.15);
+  cursor: grab;
+}
+
+html[data-theme='light'] .mood-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+html[data-theme='light'] body {
+  background-color: #fff8ef;
+  color: #3d2924;
+  --surface: #fffdf9;
+  --surface-muted: #fff0df;
+  --border: #f0d8c2;
+  --text-muted: #806b60;
+  --track-bg: #f0d8c2;
+}
+
+html[data-theme='light'] .dark\:bg-gray-900,
+html[data-theme='light'] .dark\:bg-gray-800,
+html[data-theme='light'] .dark\:bg-gray-700 {
+  background-color: #fff0df !important;
+}
+
+html[data-theme='light'] .dark\:border-gray-800,
+html[data-theme='light'] .dark\:border-gray-700,
+html[data-theme='light'] .dark\:border-gray-600 {
+  border-color: #f0d8c2 !important;
+}
+
+html[data-theme='light'] .dark\:text-white,
+html[data-theme='light'] .dark\:text-gray-100 {
+  color: #69483c !important;
+}

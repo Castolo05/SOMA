@@ -201,6 +201,12 @@ function FirstVisitTutorial() {
 }
 
 export default function App() {
+  useEffect(() => {
+    const psychTheme = localStorage.getItem('nexo_dark_psych') === 'true'
+    const patientTheme = localStorage.getItem('nexo_dark') === 'true'
+    document.documentElement.dataset.theme = psychTheme || patientTheme ? 'dark' : 'light'
+  }, [])
+
   return (
     <AuthProvider>
       <HashRouter>

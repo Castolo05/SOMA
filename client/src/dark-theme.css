@@ -1,0 +1,143 @@
+@layer components {
+  html[data-theme='dark'] .btn-patient {
+    @apply bg-sage-500 hover:bg-sage-400 text-[#dbe9ff] font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 shadow-[0_8px_22px_rgba(11,24,46,0.35)] hover:shadow-[0_10px_26px_rgba(11,24,46,0.5)] active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  html[data-theme='dark'] .btn-psych {
+    @apply bg-indigo-600 hover:bg-indigo-500 text-[#dbe9ff] font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 shadow-[0_8px_22px_rgba(11,24,46,0.35)] hover:shadow-[0_10px_26px_rgba(11,24,46,0.5)] active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  html[data-theme='dark'] .btn-ghost {
+    @apply border border-[#38557c] hover:bg-[#1b3150] text-[#b9cbe5] font-medium py-2.5 px-5 rounded-xl transition-all duration-200;
+  }
+
+  html[data-theme='dark'] .card {
+    @apply bg-[#14243b] rounded-3xl p-5 sm:p-6 border border-[#304b70] shadow-[0_8px_28px_rgba(4,14,31,0.32)];
+  }
+
+  html[data-theme='dark'] .card-pastel {
+    @apply bg-[#1b3150] rounded-3xl border border-[#38557c] p-5 sm:p-6 shadow-[0_8px_24px_rgba(4,14,31,0.28)];
+  }
+
+  html[data-theme='dark'] .card-psych {
+    @apply bg-[#14243b] rounded-2xl border border-[#304b70] shadow-[0_6px_22px_rgba(4,14,31,0.34)] p-4 sm:p-5 transition-colors duration-200;
+  }
+
+  html[data-theme='dark'] .input {
+    @apply w-full px-4 py-3.5 rounded-2xl border border-[#38557c] bg-[#1b3150] text-[#e8f0ff] placeholder-[#8fa7c6] focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-200 text-base shadow-sm;
+  }
+
+  html[data-theme='dark'] .input-psych {
+    @apply w-full px-4 py-2.5 rounded-lg border border-[#38557c] bg-[#1b3150] text-[#e8f0ff] placeholder-[#8fa7c6] focus:outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-200 text-sm;
+  }
+
+  html[data-theme='dark'] .tag {
+    @apply text-xs font-semibold px-2.5 py-1 rounded-full bg-[#223a60] text-[#b9cbe5] border border-[#38557c];
+  }
+
+  html[data-theme='dark'] .label {
+    @apply block text-sm font-bold text-[#b9cbe5] mb-1.5;
+  }
+
+  html[data-theme='dark'] .glass {
+    @apply bg-[#111f35]/95 backdrop-blur-md border-b border-[#304b70];
+  }
+
+  html[data-theme='dark'] .bg-white,
+  html[data-theme='dark'] .bg-white\/90,
+  html[data-theme='dark'] .bg-white\/95 {
+    background-color: #111f35 !important;
+  }
+
+  html[data-theme='dark'] .bg-gray-50,
+  html[data-theme='dark'] .bg-gray-100 {
+    background-color: #1b3150 !important;
+  }
+
+  html[data-theme='dark'] .text-white {
+    color: #dbe9ff !important;
+  }
+
+  html[data-theme='dark'] .mood-slider::-webkit-slider-thumb,
+  html[data-theme='dark'] .mood-slider::-moz-range-thumb {
+    background: #1b3150;
+    border-color: #6c91cf;
+  }
+
+  html[data-theme='dark'] .react-resizable-handle::after {
+    background-color: #1b3150;
+    border-color: #5275a5;
+  }
+
+  html[data-theme='dark'] .psych-panel .react-resizable-handle::after {
+    background-color: #223a60;
+    border-color: #6c91cf;
+  }
+}
+
+html[data-theme='dark'] .react-grid-item.react-grid-placeholder {
+  background: #6c91cf !important;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+  background: #0d1728;
+}
+
+html[data-theme='dark'] :focus-visible {
+  outline: 3px solid rgba(108, 145, 207, 0.65);
+  outline-offset: 2px;
+}
+
+html[data-theme='dark'] ::-webkit-scrollbar-thumb {
+  background: #38557c;
+}
+
+html[data-theme='dark'] .mood-slider::-webkit-slider-thumb,
+html[data-theme='dark'] .mood-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #1b3150;
+  border: 3px solid #6c91cf;
+  box-shadow: 0 2px 8px rgba(4, 14, 31, 0.35);
+  cursor: grab;
+}
+
+html[data-theme='dark'] .mood-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+html[data-theme='dark'] body {
+  background-color: #0d1728;
+  color: #e8f0ff;
+  --surface: #14243b;
+  --surface-muted: #1b3150;
+  --border: #304b70;
+  --text-muted: #aabbd4;
+  --track-bg: #38557c;
+}
+
+html[data-theme='dark'] .dark\:bg-gray-900 {
+  background-color: #111f35 !important;
+}
+
+html[data-theme='dark'] .dark\:bg-gray-800 {
+  background-color: #14243b !important;
+}
+
+html[data-theme='dark'] .dark\:bg-gray-700,
+html[data-theme='dark'] .dark\:bg-gray-800\/50 {
+  background-color: #1b3150 !important;
+}
+
+html[data-theme='dark'] .dark\:border-gray-800,
+html[data-theme='dark'] .dark\:border-gray-700,
+html[data-theme='dark'] .dark\:border-gray-600 {
+  border-color: #304b70 !important;
+}
+
+html[data-theme='dark'] .dark\:text-white,
+html[data-theme='dark'] .dark\:text-gray-100 {
+  color: #e8f0ff !important;
+}

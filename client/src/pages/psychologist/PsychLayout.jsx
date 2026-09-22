@@ -14,8 +14,10 @@ export default function PsychLayout() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark')
+      document.documentElement.dataset.theme = 'dark'
     } else {
       document.documentElement.classList.remove('dark')
+      document.documentElement.dataset.theme = 'light'
     }
     localStorage.setItem('nexo_dark_psych', darkMode)
   }, [darkMode])

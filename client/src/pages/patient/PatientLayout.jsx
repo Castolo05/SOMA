@@ -13,8 +13,10 @@ export default function PatientLayout() {
   useEffect(() => {
     if (darkMode) {
       document.documentElement.classList.add('dark')
+      document.documentElement.dataset.theme = 'dark'
     } else {
       document.documentElement.classList.remove('dark')
+      document.documentElement.dataset.theme = 'light'
     }
     localStorage.setItem('nexo_dark', darkMode)
   }, [darkMode])
