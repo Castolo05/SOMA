@@ -43,7 +43,7 @@ export default function PatientLayout() {
   return (
     <div className="h-[100dvh] flex flex-col bg-[#f2c6b6] dark:bg-[#2f5d62] transition-colors duration-300 overflow-hidden">
       {/* Header */}
-      <header className="shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
+      <header className="dark-surface-header shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
         <div className="flex items-center gap-2.5">
           <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
           <div className="flex flex-col leading-none">
@@ -80,7 +80,7 @@ export default function PatientLayout() {
 
       {/* Nav inferior mobile-first con soporte de safe-area (iPhone notch/home) */}
       <nav
-        className="shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-sage-100 dark:border-gray-800 shadow-[0_-1px_18px_rgba(25,50,56,0.08)]"
+        className="dark-surface-nav shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-sage-100 dark:border-gray-800 shadow-[0_-1px_18px_rgba(25,50,56,0.08)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="max-w-xl mx-auto flex justify-around items-center py-1">

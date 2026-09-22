@@ -290,3 +290,23 @@ html[data-theme='dark'] .dark\:bg-slate-800 { background-color: var(--ref-dark-t
 html[data-theme='dark'] .dark\:bg-slate-900 { background-color: #203f45 !important; }
 html[data-theme='dark'] .dark\:border-slate-700,
 html[data-theme='dark'] .dark\:border-slate-800 { border-color: var(--ref-dark-mist) !important; }
+
+/* Niveles de superficie: el fondo, las cards y la navegación no comparten tono. */
+html[data-theme='dark'] body,
+html[data-theme='dark'] .dark\:bg-gray-950 { background-color: #214b52 !important; }
+html[data-theme='dark'] .dark-surface-header { background-color: #193f47 !important; }
+html[data-theme='dark'] .dark-surface-nav { background-color: #16363f !important; }
+html[data-theme='dark'] .card,
+html[data-theme='dark'] .card-psych { background-color: #3d7072 !important; }
+html[data-theme='dark'] .card-pastel,
+html[data-theme='dark'] .dark\:bg-gray-700,
+html[data-theme='dark'] .dark\:bg-gray-800\/50 { background-color: #2d5b63 !important; }
+html[data-theme='dark'] .input,
+html[data-theme='dark'] .input-psych,
+html[data-theme='dark'] .dark\:bg-gray-800 { background-color: #315f68 !important; }
+html[data-theme='dark'] .tag,
+html[data-theme='dark'] .dark\:bg-slate-700,
+html[data-theme='dark'] .dark\:bg-slate-800 { background-color: #244c58 !important; }
+html[data-theme='dark'] .dark\:bg-slate-900 { background-color: #193c48 !important; }
+html[data-theme='dark'] .dark-surface-nav .dark\:bg-sage-900\/20,
+html[data-theme='dark'] .dark-surface-nav .dark\:bg-indigo-900\/30 { background-color: #245c67 !important; }
