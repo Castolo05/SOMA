@@ -139,7 +139,7 @@ export default function PsychLayout() {
     <div className="min-h-screen bg-[#f1dcc3] dark:bg-[#0d1728] flex transition-colors duration-300">
       {/* ── Sidebar desktop ── */}
       <aside
-        className={`bg-[#f4d8bb] dark:bg-[#111f35] border-r border-sage-100 dark:border-[#304b70] flex-col py-6 px-4 shrink-0 hidden lg:flex transition-all duration-300 sticky top-0 h-screen overflow-y-auto ${
+        className={`bg-[#edd2b4] dark:bg-[#111f35] border-r border-sage-100 dark:border-[#304b70] flex-col py-6 px-4 shrink-0 hidden lg:flex transition-all duration-300 sticky top-0 h-screen overflow-y-auto ${
           collapsed ? 'w-[72px]' : 'w-64'
         }`}
       >

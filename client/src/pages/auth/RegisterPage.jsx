@@ -38,7 +38,7 @@ export default function RegisterPage() {
           <p className="text-gray-500 mt-1">Crea tu cuenta gratuita</p>
         </div>
 
-        <div className="bg-[#f4d8bb] rounded-3xl shadow-xl border border-[#dfad82] p-8">
+        <div className="bg-[#edd2b4] rounded-3xl shadow-xl border border-[#d3a174] p-8">
           <h2 className="text-xl font-bold text-gray-800 mb-6">Registrarse</h2>
 
           {error && (

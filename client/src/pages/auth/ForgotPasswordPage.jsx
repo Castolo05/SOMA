@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
           <h1 className="text-3xl font-bold text-gray-800">SOMA</h1>
         </div>
 
-        <div className="bg-[#f4d8bb] rounded-3xl shadow-xl border border-[#dfad82] p-8">
+        <div className="bg-[#edd2b4] rounded-3xl shadow-xl border border-[#d3a174] p-8">
           {!sent ? (
             <>
               <h2 className="text-xl font-bold text-gray-800 mb-2">Recuperar contraseña</h2>

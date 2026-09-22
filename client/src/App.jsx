@@ -106,7 +106,7 @@ function FirstVisitTutorial() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/65 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-[30px] border border-[#d99a6c] bg-[#f4d8bb] shadow-2xl dark:border-indigo-800 dark:bg-[#14243b]">
+      <div className="w-full max-w-md overflow-hidden rounded-[30px] border border-[#cf9368] bg-[#edd2b4] shadow-2xl dark:border-indigo-800 dark:bg-[#132943]">
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-sage-600 dark:text-sage-400">
             <Sparkles size={14} />
@@ -170,7 +170,7 @@ function FirstVisitTutorial() {
               <button
                 type="button"
                 onClick={() => setStep((prev) => prev - 1)}
-                className="flex-1 rounded-2xl border border-[#d99a6c] bg-[#edc29f] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-peach-100 dark:border-indigo-800 dark:bg-[#1b3150] dark:text-gray-200 dark:hover:bg-indigo-800"
+                className="flex-1 rounded-2xl border border-[#cf9368] bg-[#e9c19e] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-peach-100 dark:border-indigo-800 dark:bg-[#193858] dark:text-gray-200 dark:hover:bg-indigo-800"
               >
                 Atrás
               </button>

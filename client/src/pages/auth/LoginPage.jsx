@@ -47,7 +47,7 @@ export default function LoginPage() {
         </div>
 
         {/* Card */}
-        <div className="relative bg-[#f4d8bb] rounded-3xl shadow-[0_18px_60px_rgba(93,55,32,0.18)] border border-[#dfad82] p-6 sm:p-8">
+        <div className="relative bg-[#edd2b4] rounded-3xl shadow-[0_18px_60px_rgba(93,55,32,0.18)] border border-[#d3a174] p-6 sm:p-8">
           <h2 className="text-xl font-bold text-gray-800 mb-6">Iniciar sesión</h2>
 
           {error && (

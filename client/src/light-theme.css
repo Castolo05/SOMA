@@ -1,9 +1,9 @@
 html[data-theme='light'] .btn-patient {
-  @apply bg-[#bd5940] hover:bg-[#914131] text-[#ffe1bd] font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 shadow-[0_8px_22px_rgba(145,65,49,0.2)] hover:shadow-[0_10px_26px_rgba(145,65,49,0.3)] active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply bg-[#b4533e] hover:bg-[#8f3f32] text-[#fff0dc] font-bold py-3.5 px-6 rounded-2xl transition-all duration-200 shadow-[0_8px_22px_rgba(143,63,50,0.2)] hover:shadow-[0_10px_26px_rgba(143,63,50,0.3)] active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   html[data-theme='light'] .btn-psych {
-  @apply bg-[#a85b3f] hover:bg-[#87442f] text-[#ffe1bd] font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 shadow-[0_8px_22px_rgba(135,68,47,0.18)] hover:shadow-[0_10px_26px_rgba(135,68,47,0.28)] active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply bg-[#9f6048] hover:bg-[#7d4434] text-[#fff0dc] font-semibold py-2.5 px-5 rounded-xl transition-all duration-200 shadow-[0_8px_22px_rgba(125,68,52,0.18)] hover:shadow-[0_10px_26px_rgba(125,68,52,0.28)] active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
   html[data-theme='light'] .btn-ghost {
@@ -11,65 +11,65 @@ html[data-theme='light'] .btn-patient {
   }
 
   html[data-theme='light'] .card {
-    @apply bg-[#f7e2ca] rounded-3xl p-5 sm:p-6 border border-[#e8b98f] shadow-[0_8px_28px_rgba(93,55,32,0.12)];
+    @apply bg-[#f1ddc6] rounded-3xl p-5 sm:p-6 border border-[#dbb692] shadow-[0_8px_28px_rgba(93,55,32,0.12)];
   }
 
   html[data-theme='light'] .card-pastel {
-    @apply bg-[#edc29f] rounded-3xl border border-[#d99a6c] p-5 sm:p-6 shadow-sm;
+    @apply bg-[#e9c19e] rounded-3xl border border-[#cf9368] p-5 sm:p-6 shadow-sm;
   }
 
   html[data-theme='light'] .card-psych {
-    @apply bg-[#f4d8bb] rounded-2xl border border-[#dfad82] shadow-[0_6px_22px_rgba(93,55,32,0.12)] p-4 sm:p-5 transition-colors duration-200;
+    @apply bg-[#edd2b4] rounded-2xl border border-[#d3a174] shadow-[0_6px_22px_rgba(93,55,32,0.12)] p-4 sm:p-5 transition-colors duration-200;
   }
 
   html[data-theme='light'] .input {
-    @apply w-full px-4 py-3.5 rounded-2xl border border-[#d99a6c] bg-[#f2d5b5] text-[#49342c] placeholder-[#896652] focus:outline-none focus:ring-2 focus:ring-[#bd5940] transition-all duration-200 text-base shadow-sm;
+    @apply w-full px-4 py-3.5 rounded-2xl border border-[#cf9368] bg-[#e8c9a8] text-[#432f2a] placeholder-[#795b4d] focus:outline-none focus:ring-2 focus:ring-[#b4533e] transition-all duration-200 text-base shadow-sm;
   }
 
   html[data-theme='light'] .input-psych {
-    @apply w-full px-4 py-2.5 rounded-lg border border-[#d99a6c] bg-[#f2d5b5] text-[#49342c] placeholder-[#896652] focus:outline-none focus:ring-2 focus:ring-[#a85b3f] transition-all duration-200 text-sm;
+    @apply w-full px-4 py-2.5 rounded-lg border border-[#cf9368] bg-[#e8c9a8] text-[#432f2a] placeholder-[#795b4d] focus:outline-none focus:ring-2 focus:ring-[#9f6048] transition-all duration-200 text-sm;
   }
 
   html[data-theme='light'] .tag {
-    @apply text-xs font-semibold px-2.5 py-1 rounded-full bg-[#edc29f] text-[#7f3829] border border-[#d99a6c];
+    @apply text-xs font-semibold px-2.5 py-1 rounded-full bg-[#e9c19e] text-[#71382d] border border-[#cf9368];
   }
 
   html[data-theme='light'] .label {
-    @apply block text-sm font-bold text-[#69483c] mb-1.5;
+    @apply block text-sm font-bold text-[#604238] mb-1.5;
   }
 
   html[data-theme='light'] .glass {
-    @apply bg-[#f2d5b5]/95 backdrop-blur-md border-b border-[#e8b98f];
+    @apply bg-[#ead0b2]/95 backdrop-blur-md border-b border-[#dbb692];
   }
 
   html[data-theme='light'] .bg-white,
   html[data-theme='light'] .bg-white\/90,
   html[data-theme='light'] .bg-white\/95 {
-    background-color: #f2d5b5 !important;
+    background-color: #ead0b2 !important;
   }
 
   html[data-theme='light'] .bg-gray-50,
   html[data-theme='light'] .bg-gray-100 {
-    background-color: #edc29f !important;
+    background-color: #e9c19e !important;
   }
 
   html[data-theme='light'] .text-white {
-    color: #ffe1bd !important;
+    color: #fff0dc !important;
   }
 
   html[data-theme='light'] .mood-slider::-webkit-slider-thumb,
   html[data-theme='light'] .mood-slider::-moz-range-thumb {
-    background: #edc29f;
+    background: #e9c19e;
     border-color: #df7952;
   }
 
   html[data-theme='light'] .react-resizable-handle::after {
-    background-color: #edc29f;
+    background-color: #e9c19e;
     border-color: #e3bda4;
   }
 
   html[data-theme='light'] .psych-panel .react-resizable-handle::after {
-    background-color: #f0c9a5;
+    background-color: #edc8a7;
     border-color: #d28b72;
   }
 
@@ -83,7 +83,7 @@ html[data-theme='light'] .react-grid-item.react-grid-placeholder {
 
 html[data-theme='light'] {
   color-scheme: light;
-  background: #f1dcc3;
+  background: #f3e0cd;
 }
 
 html[data-theme='light'] :focus-visible {
@@ -100,7 +100,7 @@ html[data-theme='light'] .mood-slider::-moz-range-thumb {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #edc29f;
+  background: #e9c19e;
   border: 3px solid #df7952;
   box-shadow: 0 2px 8px rgba(93, 55, 32, 0.15);
   cursor: grab;
@@ -111,25 +111,25 @@ html[data-theme='light'] .mood-slider::-webkit-slider-thumb:hover {
 }
 
 html[data-theme='light'] body {
-  background-color: #f1dcc3;
-  color: #3d2924;
-  --surface: #f7e2ca;
-  --surface-muted: #edc29f;
-  --border: #d99a6c;
-  --text-muted: #765342;
-  --track-bg: #d99a6c;
+  background-color: #f3e0cd;
+  color: #3d2b27;
+  --surface: #f1ddc6;
+  --surface-muted: #e9c19e;
+  --border: #cf9368;
+  --text-muted: #765548;
+  --track-bg: #cf9368;
 }
 
 html[data-theme='light'] .dark\:bg-gray-900,
 html[data-theme='light'] .dark\:bg-gray-800,
 html[data-theme='light'] .dark\:bg-gray-700 {
-  background-color: #edc29f !important;
+  background-color: #e9c19e !important;
 }
 
 html[data-theme='light'] .dark\:border-gray-800,
 html[data-theme='light'] .dark\:border-gray-700,
 html[data-theme='light'] .dark\:border-gray-600 {
-  border-color: #f0d8c2 !important;
+  border-color: #dbb692 !important;
 }
 
 html[data-theme='light'] .dark\:text-white,
@@ -137,37 +137,37 @@ html[data-theme='light'] .dark\:text-gray-100 {
   color: #69483c !important;
 }
 
-html[data-theme='light'] .bg-sage-50 { background-color: #fff5ec !important; }
-html[data-theme='light'] .bg-sage-100 { background-color: #ffe7d2 !important; }
-html[data-theme='light'] .bg-sage-400 { background-color: #df7952 !important; }
-html[data-theme='light'] .bg-sage-500 { background-color: #bd5940 !important; }
-html[data-theme='light'] .bg-sage-600 { background-color: #914131 !important; }
-html[data-theme='light'] .text-sage-400 { color: #df7952 !important; }
-html[data-theme='light'] .text-sage-500 { color: #bd5940 !important; }
-html[data-theme='light'] .text-sage-600 { color: #914131 !important; }
-html[data-theme='light'] .border-sage-100 { border-color: #ffe7d2 !important; }
-html[data-theme='light'] .border-sage-200 { border-color: #ffcba8 !important; }
-html[data-theme='light'] .border-sage-400 { border-color: #df7952 !important; }
+html[data-theme='light'] .bg-sage-50 { background-color: #f8e8d7 !important; }
+html[data-theme='light'] .bg-sage-100 { background-color: #f0d5bb !important; }
+html[data-theme='light'] .bg-sage-400 { background-color: #d87958 !important; }
+html[data-theme='light'] .bg-sage-500 { background-color: #b4533e !important; }
+html[data-theme='light'] .bg-sage-600 { background-color: #8f3f32 !important; }
+html[data-theme='light'] .text-sage-400 { color: #b4533e !important; }
+html[data-theme='light'] .text-sage-500 { color: #a34838 !important; }
+html[data-theme='light'] .text-sage-600 { color: #8f3f32 !important; }
+html[data-theme='light'] .border-sage-100 { border-color: #f0d5bb !important; }
+html[data-theme='light'] .border-sage-200 { border-color: #e2b38e !important; }
+html[data-theme='light'] .border-sage-400 { border-color: #d87958 !important; }
 
-html[data-theme='light'] .bg-indigo-50 { background-color: #edc29f !important; }
-html[data-theme='light'] .bg-indigo-100 { background-color: #ffebc7 !important; }
-html[data-theme='light'] .bg-indigo-600 { background-color: #a85b3f !important; }
-html[data-theme='light'] .bg-indigo-700 { background-color: #87442f !important; }
-html[data-theme='light'] .text-indigo-400 { color: #b66b4d !important; }
+html[data-theme='light'] .bg-indigo-50 { background-color: #e9c19e !important; }
+html[data-theme='light'] .bg-indigo-100 { background-color: #f0d5bb !important; }
+html[data-theme='light'] .bg-indigo-600 { background-color: #9f6048 !important; }
+html[data-theme='light'] .bg-indigo-700 { background-color: #7d4434 !important; }
+html[data-theme='light'] .text-indigo-400 { color: #a45d46 !important; }
 html[data-theme='light'] .text-indigo-500,
-html[data-theme='light'] .text-indigo-600 { color: #a85b3f !important; }
-html[data-theme='light'] .text-indigo-700 { color: #87442f !important; }
+html[data-theme='light'] .text-indigo-600 { color: #9f6048 !important; }
+html[data-theme='light'] .text-indigo-700 { color: #7d4434 !important; }
 html[data-theme='light'] .border-indigo-100,
-html[data-theme='light'] .border-indigo-200 { border-color: #ffd398 !important; }
+html[data-theme='light'] .border-indigo-200 { border-color: #e2b38e !important; }
 
-html[data-theme='light'] .bg-gray-200 { background-color: #f0d8c2 !important; }
-html[data-theme='light'] .bg-gray-300 { background-color: #e5c2aa !important; }
+html[data-theme='light'] .bg-gray-200 { background-color: #dfb995 !important; }
+html[data-theme='light'] .bg-gray-300 { background-color: #d3a174 !important; }
 html[data-theme='light'] .text-gray-400,
 html[data-theme='light'] .text-gray-500 { color: #806b60 !important; }
 html[data-theme='light'] .text-gray-600,
 html[data-theme='light'] .text-gray-700,
 html[data-theme='light'] .text-gray-800,
-html[data-theme='light'] .text-gray-900 { color: #49342c !important; }
+html[data-theme='light'] .text-gray-900 { color: #432f2a !important; }
 html[data-theme='light'] .border-gray-100,
 html[data-theme='light'] .border-gray-200,
-html[data-theme='light'] .border-gray-300 { border-color: #f0d8c2 !important; }
+html[data-theme='light'] .border-gray-300 { border-color: #dbb692 !important; }
