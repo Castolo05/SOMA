@@ -60,11 +60,17 @@ export default function PatientLayout() {
       clearTimeout(timeoutId)
       timeoutId = setTimeout(() => {
         const rawIdx = Math.round(el.scrollLeft / el.clientWidth)
-        const idx = Math.max(0, Math.min(rawIdx, baseRoutes.length - 1))
+        const currentIdx = baseRoutes.indexOf(location.pathname)
+        let idx = rawIdx
+        if (idx - currentIdx > 1) idx = currentIdx + 1
+        if (currentIdx - idx > 1) idx = currentIdx - 1
+        idx = Math.max(0, Math.min(idx, baseRoutes.length - 1))
         const targetPath = baseRoutes[idx]
         if (location.pathname !== targetPath) {
           navigate(targetPath, { replace: true })
         }
+        // Ensure exact snap to nearest panel
+        el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
       }, 100) // debounce to wait for finger lift
     }
     el.addEventListener('scroll', onScroll)
