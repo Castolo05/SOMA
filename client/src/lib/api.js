@@ -655,29 +655,152 @@ function normalizeGoal(g) {
   }
 }
 
-// ── Correlación hábito-ánimo (igual que localDb) ──────────
+// ── Correlación hábito-ánimo (análisis exhaustivo) ────────
 function computeCorrelation(habits, entries) {
   if (entries.length < 5) return []
-  const correlatable = habits.filter(h =>
-    !h.trackingType || h.trackingType === 'toggle' || h.trackingType === 'toggle+qty'
-  )
-  return correlatable.map(habit => {
-    const isDone = (e) => {
-      if (!habit.trackingType || habit.trackingType === 'toggle') {
-        return (e.completedHabits || []).includes(habit.id)
-      }
-      return e.habitData?.[habit.id]?.done === true
+
+  const avg = arr => arr.length
+    ? parseFloat((arr.reduce((s, e) => s + e.moodScore, 0) / arr.length).toFixed(2))
+    : null
+
+  // Pearson r entre dos arrays del mismo largo
+  function pearson(xs, ys) {
+    const n = xs.length
+    if (n < 3) return null
+    const mx = xs.reduce((s, v) => s + v, 0) / n
+    const my = ys.reduce((s, v) => s + v, 0) / n
+    let num = 0, dx2 = 0, dy2 = 0
+    for (let i = 0; i < n; i++) {
+      const dx = xs[i] - mx, dy = ys[i] - my
+      num += dx * dy; dx2 += dx * dx; dy2 += dy * dy
     }
-    const withH = entries.filter(e => isDone(e))
-    const withoutH = entries.filter(e => !isDone(e))
-    const avg = arr => arr.length ? parseFloat((arr.reduce((s, e) => s + e.moodScore, 0) / arr.length).toFixed(2)) : null
-    const avgWith = avg(withH)
-    const avgWithout = avg(withoutH)
-    const impact = avgWith !== null && avgWithout !== null
-      ? parseFloat((avgWith - avgWithout).toFixed(2))
-      : null
-    return { habitId: habit.id, text: habit.text, icon: habit.icon, avgWith, avgWithout, impact, countWith: withH.length, countWithout: withoutH.length }
-  }).filter(r => r.countWith >= 3)
+    const denom = Math.sqrt(dx2 * dy2)
+    return denom === 0 ? null : parseFloat((num / denom).toFixed(3))
+  }
+
+  // Línea de tendencia (least-squares) para el scatter chart
+  function trendLine(points) {
+    const n = points.length
+    if (n < 3) return null
+    const mx = points.reduce((s, p) => s + p.qty, 0) / n
+    const my = points.reduce((s, p) => s + p.mood, 0) / n
+    let num = 0, den = 0
+    for (const p of points) {
+      num += (p.qty - mx) * (p.mood - my)
+      den += (p.qty - mx) ** 2
+    }
+    if (den === 0) return null
+    const slope = num / den
+    const intercept = my - slope * mx
+    const xMin = Math.min(...points.map(p => p.qty))
+    const xMax = Math.max(...points.map(p => p.qty))
+    return [
+      { qty: xMin, mood: parseFloat((slope * xMin + intercept).toFixed(2)) },
+      { qty: xMax, mood: parseFloat((slope * xMax + intercept).toFixed(2)) },
+    ]
+  }
+
+  const result = habits.map(habit => {
+    const type = habit.trackingType || 'toggle'
+
+    if (type === 'toggle') {
+      // ── Hábito binario ──
+      const isDone = e => (e.completedHabits || []).includes(habit.id)
+      const withH = entries.filter(isDone)
+      const withoutH = entries.filter(e => !isDone(e))
+      const avgWith = avg(withH)
+      const avgWithout = avg(withoutH)
+      const impact = avgWith !== null && avgWithout !== null
+        ? parseFloat((avgWith - avgWithout).toFixed(2)) : null
+      const consistencyPct = entries.length
+        ? Math.round((withH.length / entries.length) * 100) : 0
+      return {
+        habitId: habit.id, text: habit.text, icon: habit.icon,
+        trackingType: 'toggle',
+        avgWith, avgWithout, impact,
+        countWith: withH.length, countWithout: withoutH.length,
+        consistencyPct,
+        scatterPoints: null, trend: null, pearsonR: null,
+      }
+    }
+
+    if (type === 'toggle+qty') {
+      // ── Hábito toggle + cantidad ──
+      const isDone = e => e.habitData?.[habit.id]?.done === true
+      const withH = entries.filter(isDone)
+      const withoutH = entries.filter(e => !isDone(e))
+      const avgWith = avg(withH)
+      const avgWithout = avg(withoutH)
+      const impact = avgWith !== null && avgWithout !== null
+        ? parseFloat((avgWith - avgWithout).toFixed(2)) : null
+      const consistencyPct = entries.length
+        ? Math.round((withH.length / entries.length) * 100) : 0
+
+      // Puntos scatter: cantidad vs ánimo
+      const scatterPoints = withH
+        .map(e => ({ qty: parseFloat(e.habitData?.[habit.id]?.qty), mood: e.moodScore }))
+        .filter(x => !isNaN(x.qty))
+
+      const pearsonR = scatterPoints.length >= 5
+        ? pearson(scatterPoints.map(x => x.qty), scatterPoints.map(x => x.mood))
+        : null
+
+      return {
+        habitId: habit.id, text: habit.text, icon: habit.icon,
+        trackingType: 'toggle+qty',
+        avgWith, avgWithout, impact,
+        countWith: withH.length, countWithout: withoutH.length,
+        consistencyPct,
+        scatterPoints: scatterPoints.length >= 3 ? scatterPoints : null,
+        trend: scatterPoints.length >= 3 ? trendLine(scatterPoints) : null,
+        pearsonR,
+        unit: habit.unit || '',
+      }
+    }
+
+    if (type === 'qty') {
+      // ── Hábito solo cantidad (sin toggle) ──
+      const withQty = entries
+        .map(e => ({ qty: parseFloat(e.habitData?.[habit.id]?.qty), mood: e.moodScore, ...e }))
+        .filter(x => !isNaN(x.qty) && x.qty !== null && x.qty !== undefined)
+      const withoutH = entries.filter(e => {
+        const q = e.habitData?.[habit.id]?.qty
+        return q === undefined || q === null || q === '' || isNaN(parseFloat(q))
+      })
+
+      if (withQty.length < 3) return null
+
+      const avgWith = avg(withQty)
+      const avgWithout = avg(withoutH)
+      const impact = avgWith !== null && avgWithout !== null
+        ? parseFloat((avgWith - avgWithout).toFixed(2)) : null
+      const consistencyPct = entries.length
+        ? Math.round((withQty.length / entries.length) * 100) : 0
+
+      // Puntos scatter: cantidad vs ánimo (raw, sin categorizar)
+      const scatterPoints = withQty.map(x => ({ qty: x.qty, mood: x.mood }))
+
+      const pearsonR = scatterPoints.length >= 5
+        ? pearson(scatterPoints.map(x => x.qty), scatterPoints.map(x => x.mood))
+        : null
+
+      return {
+        habitId: habit.id, text: habit.text, icon: habit.icon,
+        trackingType: 'qty',
+        avgWith, avgWithout, impact,
+        countWith: scatterPoints.length, countWithout: withoutH.length,
+        consistencyPct,
+        scatterPoints,
+        trend: scatterPoints.length >= 3 ? trendLine(scatterPoints) : null,
+        pearsonR,
+        unit: habit.unit || '',
+      }
+    }
+
+    return null
+  }).filter(r => r !== null && r.countWith >= 3)
+
+  return result
 }
 
 // ── Insights paciente (igual que localDb) ────────────────

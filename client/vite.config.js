@@ -5,6 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 5173,
+    host: true,
     proxy: {
       // Redirige /api/* al servidor Express en el puerto 3001
       '/api': {
