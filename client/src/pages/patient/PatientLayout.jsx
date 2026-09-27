@@ -58,20 +58,23 @@ export default function PatientLayout() {
     let timeoutId = null
     const onScroll = () => {
       clearTimeout(timeoutId)
+      // Clamp scroll position to at most one panel away from current
+      const width = el.clientWidth
+      const currentIdx = baseRoutes.indexOf(location.pathname)
+      const minLeft = Math.max(0, (currentIdx - 1) * width)
+      const maxLeft = Math.min((baseRoutes.length - 1) * width, (currentIdx + 1) * width)
+      if (el.scrollLeft < minLeft) el.scrollLeft = minLeft
+      if (el.scrollLeft > maxLeft) el.scrollLeft = maxLeft
+
       timeoutId = setTimeout(() => {
-        const rawIdx = Math.round(el.scrollLeft / el.clientWidth)
-        const currentIdx = baseRoutes.indexOf(location.pathname)
-        let idx = rawIdx
-        if (idx - currentIdx > 1) idx = currentIdx + 1
-        if (currentIdx - idx > 1) idx = currentIdx - 1
-        idx = Math.max(0, Math.min(idx, baseRoutes.length - 1))
-        const targetPath = baseRoutes[idx]
+        const rawIdx = Math.round(el.scrollLeft / width)
+        const targetPath = baseRoutes[rawIdx]
         if (location.pathname !== targetPath) {
           navigate(targetPath, { replace: true })
         }
-        // Ensure exact snap to nearest panel
-        el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
-      }, 100) // debounce to wait for finger lift
+        // Snap to the calculated panel
+        el.scrollTo({ left: rawIdx * width, behavior: 'smooth' })
+      }, 30) // reduced debounce for fast UI update
     }
     el.addEventListener('scroll', onScroll)
     return () => {
