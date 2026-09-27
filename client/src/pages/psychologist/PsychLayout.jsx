@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeLogo from '../../components/ThemeLogo'
+import { applyTheme } from '../../lib/theme'
 import { LayoutDashboard, Users, LogOut, ChevronRight, Moon, Sun, ChevronLeft, Menu, X } from 'lucide-react'
 
 export default function PsychLayout() {
@@ -11,16 +12,15 @@ export default function PsychLayout() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('nexo_dark_psych') === 'true')
   const [collapsed, setCollapsed] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-      document.documentElement.dataset.theme = 'dark'
-    } else {
-      document.documentElement.classList.remove('dark')
-      document.documentElement.dataset.theme = 'light'
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      applyTheme(darkMode, false, 'nexo_dark_psych')
+      return
     }
-    localStorage.setItem('nexo_dark_psych', darkMode)
+    applyTheme(darkMode, true, 'nexo_dark_psych')
   }, [darkMode])
 
   // Cerrar menú móvil al navegar
@@ -118,10 +118,15 @@ export default function PsychLayout() {
         {/* Modo oscuro */}
         <button
           onClick={() => setDarkMode(d => !d)}
-          className="w-full flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
+          className="w-full flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
           title={darkMode ? 'Modo claro' : 'Modo oscuro'}
+          aria-label={darkMode ? 'Modo claro' : 'Modo oscuro'}
         >
-          {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+          {darkMode ? (
+            <Sun size={16} className="text-amber-400 transition-transform duration-300 shrink-0" />
+          ) : (
+            <Moon size={16} className="transition-transform duration-300 shrink-0" />
+          )}
           {(!collapsed || isMobile) && (darkMode ? 'Modo claro' : 'Modo oscuro')}
         </button>
 
@@ -139,10 +144,10 @@ export default function PsychLayout() {
   )
 
   return (
-    <div className="min-h-screen bg-[#f2c6b6] dark:bg-[#2f5d62] flex transition-colors duration-300">
+    <div className="min-h-screen bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] flex transition-colors duration-300">
       {/* ── Sidebar desktop ── */}
       <aside
-        className={`bg-[#f9e2da] dark:bg-[#345f63] border-r border-sage-100 dark:border-[#b8c2c1] flex-col py-6 px-4 shrink-0 hidden lg:flex transition-all duration-300 sticky top-0 h-screen overflow-y-auto ${
+        className={`bg-[#f9e2da] dark:bg-[var(--theme-surface)] border-r border-sage-100 dark:border-[var(--theme-border)] flex-col py-6 px-4 shrink-0 hidden lg:flex transition-all duration-300 sticky top-0 h-screen overflow-y-auto ${
           collapsed ? 'w-[72px]' : 'w-64'
         }`}
       >
@@ -197,9 +202,14 @@ export default function PsychLayout() {
             ))}
             <button
               onClick={() => setDarkMode(d => !d)}
-              className="p-2 text-gray-400 dark:text-gray-500 min-w-11 min-h-11 flex items-center justify-center"
+              className="p-2 text-gray-400 dark:text-gray-500 hover:bg-sage-50 dark:hover:bg-gray-800 rounded-lg min-w-11 min-h-11 flex items-center justify-center transition-colors duration-300"
+              aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
             >
-              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+              {darkMode ? (
+                <Sun size={18} className="text-amber-400 transition-transform duration-300" />
+              ) : (
+                <Moon size={18} className="transition-transform duration-300" />
+              )}
             </button>
             <button
               onClick={handleLogout}

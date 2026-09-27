@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext'
 import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ThemeLogo from '../../components/ThemeLogo'
-import ThemeLogotype from '../../components/ThemeLogotype'
 
 export default function LoginPage() {
   usePageTitle('Iniciar sesión')
@@ -36,20 +35,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f2c6b6] dark:bg-[#2f5d62] p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] p-4 relative overflow-hidden">
       <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
       <div className="w-full max-w-md animate-fade-in">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-lg mb-4 overflow-hidden border border-gray-100">
-            <ThemeLogotype alt="SOMA Logo" className="w-full h-full object-contain" />
+            <ThemeLogo alt="SOMA Logo" className="w-full h-full object-contain" />
           </div>
           <h1 className="font-display text-3xl font-bold text-gray-800">SOMA</h1>
           <p className="text-gray-500 mt-1">Tu espacio seguro de bienestar mental</p>
         </div>
 
         {/* Card */}
-        <div className="relative bg-[#f9e2da] rounded-3xl shadow-[0_18px_60px_rgba(90,75,75,0.18)] border border-[#c8b3b0] p-6 sm:p-8">
+        <div className="relative bg-[#f9e2da] dark:bg-[var(--theme-surface)] rounded-3xl shadow-[0_18px_60px_rgba(90,75,75,0.18)] border border-[#c8b3b0] dark:border-[var(--theme-border)] p-6 sm:p-8">
           <h2 className="text-xl font-bold text-gray-800 mb-6">Iniciar sesión</h2>
 
           {error && (

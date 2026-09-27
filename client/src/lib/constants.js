@@ -104,12 +104,13 @@ export const entryDateToDate = (entryDate) => {
   return new Date(entryDate)
 }
 
-// La ventana de edición se define por día calendario: hoy o ayer.
+// La ventana de edición permite modificar anotaciones hasta con una semana (7 días) de retraso.
 export const isEditable = (entryDate) => {
+  if (!entryDate) return false
   const target = entryDateKey(entryDateToDate(entryDate))
   const today = entryDateKey()
-  const yesterday = entryDateKey(addDays(new Date(), -1))
-  return target === today || target === yesterday
+  const weekAgo = entryDateKey(addDays(new Date(), -7))
+  return target <= today && target >= weekAgo
 }
 
 export const MONTH_NAMES = [

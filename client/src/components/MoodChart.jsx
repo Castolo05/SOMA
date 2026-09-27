@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload }) => {
 }
 
 const CustomDot = (props) => {
-  const { cx, cy, payload } = props
+  const { cx, cy, payload, isDark } = props
   return (
     <circle
       key={`dot-${cx}-${cy}`}
@@ -43,10 +43,29 @@ const CustomDot = (props) => {
       cy={cy}
       r={5}
       fill={MOOD_CHART_COLOR(payload.mood)}
-      stroke="white"
+      stroke={isDark ? '#f3f6fa' : 'white'}
       strokeWidth={2}
     />
   )
+}
+
+function useIsDarkTheme() {
+  const [isDark, setIsDark] = useState(() =>
+    document.documentElement.dataset.theme === 'dark' ||
+    document.documentElement.classList.contains('dark')
+  )
+
+  useEffect(() => {
+    const el = document.documentElement
+    const apply = () => {
+      setIsDark(el.dataset.theme === 'dark' || el.classList.contains('dark'))
+    }
+    const observer = new MutationObserver(apply)
+    observer.observe(el, { attributes: true, attributeFilter: ['data-theme', 'class'] })
+    return () => observer.disconnect()
+  }, [])
+
+  return isDark
 }
 
 /**
@@ -69,7 +88,10 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
     if (onDaysChange) onDaysChange(d)
     else setInternalDays(d)
   }
-  const lineColor = mode === 'psych' ? '#267783' : '#2f876e'
+  const isDark = useIsDarkTheme()
+  const lineColor = isDark ? '#f3f6fa' : mode === 'psych' ? '#267783' : '#2f876e'
+  const gridColor = isDark ? 'rgba(230, 237, 245, 0.14)' : '#f0f0f0'
+  const axisColor = isDark ? '#9aa6b8' : '#9ca3af'
 
   // Filtrar entradas por período seleccionado
   const chartData = useMemo(() => {
@@ -132,30 +154,30 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
               }
             }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} vertical={false} />
             <XAxis
               dataKey="dateLabel"
-              tick={{ fontSize: 10, fill: '#9ca3af' }}
+              tick={{ fontSize: 10, fill: axisColor }}
               tickLine={false}
               axisLine={false}
             />
             <YAxis
               domain={[1, 10]}
               ticks={[1, 3, 5, 7, 10]}
-              tick={{ fontSize: 10, fill: '#9ca3af' }}
+              tick={{ fontSize: 10, fill: axisColor }}
               tickLine={false}
               axisLine={false}
             />
             <Tooltip content={<CustomTooltip />} />
             {/* Línea de alerta baja */}
-            <ReferenceLine y={3} stroke="#fca5a5" strokeDasharray="4 4" strokeWidth={1.5} />
+            <ReferenceLine y={3} stroke={isDark ? '#d4a3a8' : '#fca5a5'} strokeDasharray="4 4" strokeWidth={1.5} />
             <Line
               type="monotone"
               dataKey="mood"
               stroke={lineColor}
               strokeWidth={2.5}
-              dot={chartData.length <= 15 ? <CustomDot /> : false}
-              activeDot={{ r: 7, fill: lineColor, cursor: onDayClick ? 'pointer' : 'default' }}
+              dot={chartData.length <= 15 ? <CustomDot isDark={isDark} /> : false}
+              activeDot={{ r: 7, fill: lineColor, stroke: isDark ? '#161c26' : '#fff', strokeWidth: 2, cursor: onDayClick ? 'pointer' : 'default' }}
             />
           </LineChart>
         </ResponsiveContainer>

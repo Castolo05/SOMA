@@ -6,7 +6,7 @@ export function ProtectedRoute({ children, requiredRole }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
+      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA] dark:bg-[var(--theme-canvas)]">
         <div className="text-center">
           <div className="text-4xl mb-3 animate-bounce-soft">🧠</div>
           <p className="text-gray-500 font-medium">Cargando SOMA...</p>

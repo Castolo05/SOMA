@@ -3,6 +3,7 @@
 // Base de datos 100% local usando localStorage.
 // Simula todas las rutas del backend original.
 // ============================================================
+import { entryDateKey } from './constants.js'
 
 // ── IDs únicos simples ────────────────────────────────────
 let _idCounter = Date.now()
@@ -430,12 +431,12 @@ export function journalList(userId, role, patientId) {
   return entries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
 }
 
-export function journalCreate(userId, { moodScore, content, completedHabits, habitData }) {
+export function journalCreate(userId, { moodScore, content, completedHabits, habitData, entryDate }) {
   const all = read(KEYS.journal)
-  const todayStr = new Date().toDateString()
-  const todayExists = all.find(e => e.patientId === userId && new Date(e.createdAt).toDateString() === todayStr)
-  if (todayExists) {
-    const err = new Error('Ya existe una entrada hoy.')
+  const targetDateKey = entryDate || entryDateKey()
+  const exists = all.find(e => e.patientId === userId && (e.entryDate === targetDateKey || entryDateKey(new Date(e.createdAt)) === targetDateKey))
+  if (exists) {
+    const err = new Error(`Ya existe una entrada para esta fecha (${targetDateKey}).`)
     err.status = 409
     throw err
   }
@@ -454,7 +455,8 @@ export function journalCreate(userId, { moodScore, content, completedHabits, hab
     completedHabits: mergedCompleted,
     habitData: habitData || {},
     flaggedForSession: false,
-    createdAt: new Date().toISOString(),
+    entryDate: targetDateKey,
+    createdAt: `${targetDateKey}T12:00:00`,
     updatedAt: new Date().toISOString(),
   }
   all.push(entry)

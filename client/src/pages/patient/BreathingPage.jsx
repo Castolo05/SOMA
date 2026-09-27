@@ -66,11 +66,11 @@ export default function BreathingPage() {
         <div className="relative w-44 h-44">
           {/* Círculo de fondo */}
           <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
-            <circle cx="80" cy="80" r="70" fill="none" stroke="#e5e7eb" strokeWidth="8" />
+            <circle cx="80" cy="80" r="70" fill="none" stroke="var(--theme-border, #e5e7eb)" strokeWidth="8" />
             <circle
               cx="80" cy="80" r="70"
               fill="none"
-              stroke={running ? currentPhase.color : '#d1d5db'}
+              stroke={running ? currentPhase.color : 'var(--theme-mist, #d1d5db)'}
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}

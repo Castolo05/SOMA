@@ -68,7 +68,7 @@ export default function DayDetailModal({ date, entries = [], appointments = [], 
                 </p>
               )}
               {entries.map((entry) => {
-                const canDelete = !isPsych && isEditable(entry.createdAt)
+                const canDelete = !isPsych && isEditable(entry.entryDate || entry.createdAt)
                 return (
                   <div key={entry.id} className="card dark:bg-gray-800 border border-gray-100 dark:border-gray-700">
                     <div className="flex items-center justify-between mb-3">

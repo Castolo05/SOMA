@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { MOOD_ICONS, MONTH_NAMES, DAY_NAMES, isSameDay } from '../lib/constants'
+import { MOOD_ICONS, MONTH_NAMES, DAY_NAMES, isSameDay, entryDateToDate } from '../lib/constants'
 import { MoodDot } from './MoodIcon'
 
 /**
@@ -29,7 +29,7 @@ export default function MoodCalendar({ entries = [], onDayClick, selectedDate, m
   const entryMap = useMemo(() => {
     const map = {}
     entries.forEach((e) => {
-      const d = new Date(e.createdAt)
+      const d = entryDateToDate(e.entryDate || e.createdAt)
       const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
       if (!map[key]) map[key] = []
       map[key].push(e)

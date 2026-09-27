@@ -79,6 +79,32 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Transición de tema claro / oscuro sincronizada ───────────── */
+:root {
+  --theme-transition-duration: 300ms;
+  --theme-transition-timing: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Transición sincronizada durante el cambio de tema para TODOS los elementos de la interfaz */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow, outline-color, text-decoration-color !important;
+  transition-duration: var(--theme-transition-duration) !important;
+  transition-timing-function: var(--theme-transition-timing) !important;
+  transition-delay: 0s !important;
+}
+
+/* Transición base de color en la raíz y cuerpo */
+html,
+body,
+#root {
+  transition: background-color var(--theme-transition-duration) var(--theme-transition-timing),
+              color var(--theme-transition-duration) var(--theme-transition-timing),
+              border-color var(--theme-transition-duration) var(--theme-transition-timing);
+}
+
 /* ── Base ────────────────────────────────────────────────── */
 *,
 *::before,
@@ -204,7 +230,11 @@ button, a, input, textarea, select {
     scroll-behavior: auto;
   }
 
-  *, *::before, *::after {
+  *, *::before, *::after,
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

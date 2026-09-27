@@ -252,14 +252,14 @@ const api = {
     // ── POST /journal ─────────────────────────────────────
     if (url === '/journal') {
       const today = entryDateKey()
-      const yesterday = entryDateKey(addDays(new Date(), -1))
+      const minDate = entryDateKey(addDays(new Date(), -7))
       const requestedEntryDate = body.entryDate || today
 
-      if (requestedEntryDate !== today && requestedEntryDate !== yesterday) {
-        return fail('Solo podés crear anotaciones de hoy o de ayer.', 403)
+      if (requestedEntryDate > today || requestedEntryDate < minDate) {
+        return fail('Solo podés crear anotaciones de hoy o de hasta 1 semana de antigüedad (7 días).', 403)
       }
 
-      // Una entrada por día de registro, incluso cuando se completa ayer.
+      // Una entrada por día de registro.
       const { data: existing } = await supabase
         .from('journal_entries')
         .select('id')
@@ -267,9 +267,8 @@ const api = {
         .eq('entry_date', requestedEntryDate)
         .limit(1)
       if (existing?.length > 0) {
-        const dayLabel = requestedEntryDate === today ? 'hoy' : 'ayer'
-        const err = new Error(`Ya existe una entrada de ${dayLabel}.`)
-        err.response = { status: 409, data: { error: `Ya existe una entrada de ${dayLabel}.` } }
+        const err = new Error(`Ya existe una entrada para esta fecha (${requestedEntryDate}).`)
+        err.response = { status: 409, data: { error: `Ya existe una entrada para esta fecha (${requestedEntryDate}).` } }
         return Promise.reject(err)
       }
       // Mergear completedHabits con habitData

@@ -132,17 +132,17 @@ router.get('/:id', async (req, res) => {
 })
 
 // ── PUT /api/journal/:id ──────────────────────────────────
-// Editar entrada (solo paciente, solo dentro de 24h)
+// Editar entrada (solo paciente, solo dentro de 1 semana / 168h)
 router.put('/:id', requirePatient, async (req, res) => {
   try {
     const entry = await prisma.journalEntry.findUnique({ where: { id: req.params.id } })
     if (!entry) return res.status(404).json({ error: 'Entrada no encontrada.' })
     if (entry.patientId !== req.user.id) return res.status(403).json({ error: 'Acceso denegado.' })
 
-    // Regla de 24 horas
+    // Regla de 1 semana (168 horas)
     const horasTranscurridas = (Date.now() - new Date(entry.createdAt).getTime()) / 3600000
-    if (horasTranscurridas > 24) {
-      return res.status(403).json({ error: 'Solo puedes editar entradas dentro de las primeras 24 horas.' })
+    if (horasTranscurridas > 168) {
+      return res.status(403).json({ error: 'Solo puedes editar entradas dentro de los últimos 7 días (una semana).' })
     }
 
     const { moodScore, content, tags } = req.body
@@ -162,7 +162,7 @@ router.put('/:id', requirePatient, async (req, res) => {
 })
 
 // ── DELETE /api/journal/:id ───────────────────────────────
-// Eliminar entrada (solo paciente, solo dentro de 24h)
+// Eliminar entrada (solo paciente, solo dentro de 1 semana / 168h)
 router.delete('/:id', requirePatient, async (req, res) => {
   try {
     const entry = await prisma.journalEntry.findUnique({ where: { id: req.params.id } })
@@ -170,8 +170,8 @@ router.delete('/:id', requirePatient, async (req, res) => {
     if (entry.patientId !== req.user.id) return res.status(403).json({ error: 'Acceso denegado.' })
 
     const horasTranscurridas = (Date.now() - new Date(entry.createdAt).getTime()) / 3600000
-    if (horasTranscurridas > 24) {
-      return res.status(403).json({ error: 'Solo puedes eliminar entradas dentro de las primeras 24 horas.' })
+    if (horasTranscurridas > 168) {
+      return res.status(403).json({ error: 'Solo puedes eliminar entradas dentro de los últimos 7 días (una semana).' })
     }
 
     await prisma.journalEntry.delete({ where: { id: req.params.id } })

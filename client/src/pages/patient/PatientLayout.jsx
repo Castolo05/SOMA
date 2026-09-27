@@ -1,25 +1,25 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { Home, BookOpen, User, Moon, Sun, LogOut } from 'lucide-react'
 import { preloadPatientData } from '../../lib/patientCache'
 import ThemeLogo from '../../components/ThemeLogo'
+import { applyTheme } from '../../lib/theme'
 
 export default function PatientLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('nexo_dark') === 'true')
+  const isFirstRender = useRef(true)
 
   useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark')
-      document.documentElement.dataset.theme = 'dark'
-    } else {
-      document.documentElement.classList.remove('dark')
-      document.documentElement.dataset.theme = 'light'
+    if (isFirstRender.current) {
+      isFirstRender.current = false
+      applyTheme(darkMode, false, 'nexo_dark')
+      return
     }
-    localStorage.setItem('nexo_dark', darkMode)
+    applyTheme(darkMode, true, 'nexo_dark')
   }, [darkMode])
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export default function PatientLayout() {
   ]
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-[#f2c6b6] dark:bg-[#2f5d62] transition-colors duration-300 overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] transition-colors duration-300 overflow-hidden">
       {/* Header */}
       <header className="dark-surface-header shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
         <div className="flex items-center gap-2.5">
@@ -58,7 +58,11 @@ export default function PatientLayout() {
             className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-sage-50 dark:hover:bg-gray-800 transition-colors"
             aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
           >
-            {darkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {darkMode ? (
+              <Sun size={18} className="text-amber-400 transition-transform duration-300" />
+            ) : (
+              <Moon size={18} className="transition-transform duration-300" />
+            )}
           </button>
 
           <button
