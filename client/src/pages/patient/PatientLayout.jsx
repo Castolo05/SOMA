@@ -59,7 +59,8 @@ export default function PatientLayout() {
     const onScroll = () => {
       clearTimeout(timeoutId)
       timeoutId = setTimeout(() => {
-        const idx = Math.round(el.scrollLeft / el.clientWidth)
+        const rawIdx = Math.round(el.scrollLeft / el.clientWidth)
+        const idx = Math.max(0, Math.min(rawIdx, baseRoutes.length - 1))
         const targetPath = baseRoutes[idx]
         if (location.pathname !== targetPath) {
           navigate(targetPath, { replace: true })
@@ -127,16 +128,22 @@ export default function PatientLayout() {
             style={{ touchAction: 'pan-y' }}
           >
             {/* Dashboard panel */}
-            <section className="flex-none w-full snap-start overflow-y-auto">
-              <PatientDashboard />
+            <section className="flex-none w-full snap-start overflow-y-auto" style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
+              <div className="p-4 sm:p-6">
+                <PatientDashboard />
+              </div>
             </section>
             {/* History panel */}
-            <section className="flex-none w-full snap-start overflow-y-auto">
-              <HistoryPage />
+            <section className="flex-none w-full snap-start overflow-y-auto" style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
+              <div className="p-4 sm:p-6">
+                <HistoryPage />
+              </div>
             </section>
             {/* Profile panel */}
-            <section className="flex-none w-full snap-start overflow-y-auto">
-              <PatientProfile />
+            <section className="flex-none w-full snap-start overflow-y-auto" style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
+              <div className="p-4 sm:p-6">
+                <PatientProfile />
+              </div>
             </section>
           </div>
         ) : (
