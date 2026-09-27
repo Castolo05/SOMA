@@ -6,6 +6,11 @@ import { preloadPatientData } from '../../lib/patientCache'
 import ThemeLogo from '../../components/ThemeLogo'
 import { applyTheme } from '../../lib/theme'
 
+// Import the three primary patient pages for side‑by‑side rendering
+import PatientDashboard from './PatientDashboard'
+import HistoryPage from './HistoryPage'
+import PatientProfile from './PatientProfile'
+
 export default function PatientLayout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
@@ -13,6 +18,7 @@ export default function PatientLayout() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('nexo_dark') === 'true')
   const isFirstRender = useRef(true)
 
+  // Theme handling – unchanged from original implementation
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false
@@ -22,22 +28,60 @@ export default function PatientLayout() {
     applyTheme(darkMode, true, 'nexo_dark')
   }, [darkMode])
 
-  useEffect(() => {
-    const el = document.getElementById('scrollable-main')
-    if (el) el.scrollTo(0, 0)
-    else window.scrollTo(0, 0)
-  }, [location.pathname])
-
+  // Pre‑load patient data when the user logs in – unchanged
   useEffect(() => {
     if (user?.role === 'PATIENT') preloadPatientData()
   }, [user?.id, user?.role])
 
-  const handleLogout = () => { logout(); navigate('/login') }
+  // ------------------------------------------------------------
+  // Swipe navigation (horizontal) – only for the three base routes
+  // ------------------------------------------------------------
+  const baseRoutes = ['/patient', '/patient/history', '/patient/profile']
+  const isBaseRoute = baseRoutes.includes(location.pathname)
+  const scrollRef = useRef(null)
+
+  // When the URL switches to a base route, scroll to the associated panel
+  useEffect(() => {
+    if (!isBaseRoute) return
+    const idx = baseRoutes.indexOf(location.pathname)
+    const el = scrollRef.current
+    if (el) {
+      el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
+    }
+  }, [location.pathname, isBaseRoute])
+
+  // Detect user swipe and update the URL once scrolling settles
+  useEffect(() => {
+    if (!isBaseRoute) return
+    const el = scrollRef.current
+    if (!el) return
+    let timeoutId = null
+    const onScroll = () => {
+      clearTimeout(timeoutId)
+      timeoutId = setTimeout(() => {
+        const idx = Math.round(el.scrollLeft / el.clientWidth)
+        const targetPath = baseRoutes[idx]
+        if (location.pathname !== targetPath) {
+          navigate(targetPath, { replace: true })
+        }
+      }, 100) // debounce to wait for finger lift
+    }
+    el.addEventListener('scroll', onScroll)
+    return () => {
+      el.removeEventListener('scroll', onScroll)
+      clearTimeout(timeoutId)
+    }
+  }, [location.pathname, isBaseRoute, navigate])
+
+  const handleLogout = () => {
+    logout()
+    navigate('/login')
+  }
 
   const navItems = [
-    { to: '/patient',         icon: <Home size={22} />,     label: 'Inicio' },
+    { to: '/patient',         icon: <Home size={22} />, label: 'Inicio' },
     { to: '/patient/history', icon: <BookOpen size={22} />, label: 'Historial' },
-    { to: '/patient/profile', icon: <User size={22} />,     label: 'Perfil' },
+    { to: '/patient/profile', icon: <User size={22} />, label: 'Perfil' },
   ]
 
   return (
@@ -48,10 +92,9 @@ export default function PatientLayout() {
           <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
           <div className="flex flex-col leading-none">
             <span className="font-display font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
-            <span className="text-[10px] font-semibold tracking-[0.18em] text-sage-600 dark:text-sage-400 uppercase">tu espacio de bienestar</span>
+            <span className="text-[10px] font-semibold tracking-[0.18em] text-sage-600 dark:text-sage-400 uppercase">un espacio de bienestar</span>
           </div>
         </div>
-
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setDarkMode(d => !d)}
@@ -64,7 +107,6 @@ export default function PatientLayout() {
               <Moon size={18} className="transition-transform duration-300" />
             )}
           </button>
-
           <button
             onClick={handleLogout}
             className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors"
@@ -75,14 +117,37 @@ export default function PatientLayout() {
         </div>
       </header>
 
-      {/* Contenido principal */}
-      <main id="scrollable-main" className="flex-1 overflow-y-auto">
-        <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-5 sm:py-7 pb-8">
-          <Outlet />
-        </div>
+      {/* Main – swipeable container for the three core sections */}
+      <main className="flex-1 overflow-hidden">
+        {isBaseRoute ? (
+          <div
+            ref={scrollRef}
+            className="flex h-full overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide"
+            // Allow vertical scroll inside each panel while restricting horizontal gestures to the container
+            style={{ touchAction: 'pan-y' }}
+          >
+            {/* Dashboard panel */}
+            <section className="flex-none w-full snap-start overflow-y-auto">
+              <PatientDashboard />
+            </section>
+            {/* History panel */}
+            <section className="flex-none w-full snap-start overflow-y-auto">
+              <HistoryPage />
+            </section>
+            {/* Profile panel */}
+            <section className="flex-none w-full snap-start overflow-y-auto">
+              <PatientProfile />
+            </section>
+          </div>
+        ) : (
+          // Sub‑pages (new entry, breathing, emergency, etc.) render normally
+          <div className="w-full h-full overflow-y-auto">
+            <Outlet />
+          </div>
+        )}
       </main>
 
-      {/* Nav inferior mobile-first con soporte de safe-area (iPhone notch/home) */}
+      {/* Bottom navigation – mobile‑first with safe‑area inset */}
       <nav
         className="dark-surface-nav shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-sage-100 dark:border-gray-800 shadow-[0_-1px_18px_rgba(25,50,56,0.08)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
