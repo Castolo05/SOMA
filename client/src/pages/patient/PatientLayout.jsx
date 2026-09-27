@@ -34,54 +34,133 @@ export default function PatientLayout() {
   }, [user?.id, user?.role])
 
   // ------------------------------------------------------------
-  // Swipe navigation (horizontal) – only for the three base routes
+  // Touch-driven Tab Pager (transform-based, like native mobile apps)
   // ------------------------------------------------------------
   const baseRoutes = ['/patient', '/patient/history', '/patient/profile']
   const isBaseRoute = baseRoutes.includes(location.pathname)
-  const scrollRef = useRef(null)
+  const routeIdx = baseRoutes.indexOf(location.pathname)
+  const activeIdx = routeIdx >= 0 ? routeIdx : 0
 
-  // When the URL switches to a base route, scroll to the associated panel
+  const containerRef = useRef(null)
+  const sliderRef = useRef(null)
+  const activeIdxRef = useRef(activeIdx)
+  activeIdxRef.current = activeIdx
+
+  // Sync position smoothly whenever activeIdx changes (navigation or click)
+  useEffect(() => {
+    if (!isBaseRoute || !sliderRef.current) return
+    sliderRef.current.style.transition = 'transform 280ms cubic-bezier(0.25, 1, 0.5, 1)'
+    sliderRef.current.style.transform = `translate3d(-${activeIdx * 100}%, 0, 0)`
+  }, [activeIdx, isBaseRoute])
+
   useEffect(() => {
     if (!isBaseRoute) return
-    const idx = baseRoutes.indexOf(location.pathname)
-    const el = scrollRef.current
-    if (el) {
-      el.scrollTo({ left: idx * el.clientWidth, behavior: 'smooth' })
+    const container = containerRef.current
+    const slider = sliderRef.current
+    if (!container || !slider) return
+
+    let startX = 0
+    let startY = 0
+    let currentX = 0
+    let startTime = 0
+    let isHorizontal = null
+    let isDragging = false
+
+    const onTouchStart = (e) => {
+      if (e.touches.length !== 1) return
+      const touch = e.touches[0]
+      if (touch.target.closest('input[type="range"]')) return
+
+      startX = touch.clientX
+      startY = touch.clientY
+      currentX = touch.clientX
+      startTime = Date.now()
+      isHorizontal = null
+      isDragging = false
     }
-  }, [location.pathname, isBaseRoute])
 
-  // Detect user swipe and update the URL once scrolling settles
-  useEffect(() => {
-    if (!isBaseRoute) return
-    const el = scrollRef.current
-    if (!el) return
-    let timeoutId = null
-    const onScroll = () => {
-      clearTimeout(timeoutId)
-      // Clamp scroll position to at most one panel away from current
-      const width = el.clientWidth
-      const currentIdx = baseRoutes.indexOf(location.pathname)
-      const minLeft = Math.max(0, (currentIdx - 1) * width)
-      const maxLeft = Math.min((baseRoutes.length - 1) * width, (currentIdx + 1) * width)
-      if (el.scrollLeft < minLeft) el.scrollLeft = minLeft
-      if (el.scrollLeft > maxLeft) el.scrollLeft = maxLeft
+    const onTouchMove = (e) => {
+      if (e.touches.length !== 1) return
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - startX
+      const deltaY = touch.clientY - startY
 
-      timeoutId = setTimeout(() => {
-        const rawIdx = Math.round(el.scrollLeft / width)
-        const targetPath = baseRoutes[rawIdx]
-        if (location.pathname !== targetPath) {
-          navigate(targetPath, { replace: true })
+      if (isHorizontal === null) {
+        if (Math.abs(deltaX) > 7 || Math.abs(deltaY) > 7) {
+          if (Math.abs(deltaY) >= Math.abs(deltaX)) {
+            isHorizontal = false
+            return
+          } else {
+            isHorizontal = true
+            isDragging = true
+            slider.style.transition = 'none'
+          }
+        } else {
+          return
         }
-        // Snap to the calculated panel
-        el.scrollTo({ left: rawIdx * width, behavior: 'smooth' })
-      }, 30) // reduced debounce for fast UI update
+      }
+
+      if (isHorizontal) {
+        if (e.cancelable) e.preventDefault()
+        currentX = touch.clientX
+
+        const currentActive = activeIdxRef.current
+        let drag = deltaX
+
+        // Elastic resistance at boundaries
+        if ((currentActive === 0 && deltaX > 0) || (currentActive === baseRoutes.length - 1 && deltaX < 0)) {
+          drag = deltaX * 0.25
+        }
+
+        slider.style.transform = `translate3d(calc(-${currentActive * 100}% + ${drag}px), 0, 0)`
+      }
     }
-    el.addEventListener('scroll', onScroll)
+
+    const onTouchEnd = () => {
+      if (!isDragging || !isHorizontal) {
+        isHorizontal = null
+        isDragging = false
+        return
+      }
+
+      const deltaX = currentX - startX
+      const deltaTime = Date.now() - startTime
+      const velocity = deltaX / Math.max(deltaTime, 1) // px/ms
+      const width = container.clientWidth || window.innerWidth
+      const currentActive = activeIdxRef.current
+
+      let targetIdx = currentActive
+
+      // STRICTLY ±1 STEP: Impossible to overshoot to screen 3 from screen 1!
+      if ((velocity < -0.28 || deltaX < -width * 0.22) && currentActive < baseRoutes.length - 1) {
+        targetIdx = currentActive + 1
+      } else if ((velocity > 0.28 || deltaX > width * 0.22) && currentActive > 0) {
+        targetIdx = currentActive - 1
+      }
+
+      slider.style.transition = 'transform 260ms cubic-bezier(0.25, 1, 0.5, 1)'
+      slider.style.transform = `translate3d(-${targetIdx * 100}%, 0, 0)`
+
+      if (targetIdx !== currentActive) {
+        navigate(baseRoutes[targetIdx])
+      }
+
+      isHorizontal = null
+      isDragging = false
+    }
+
+    container.addEventListener('touchstart', onTouchStart, { passive: true })
+    container.addEventListener('touchmove', onTouchMove, { passive: false })
+    container.addEventListener('touchend', onTouchEnd, { passive: true })
+    container.addEventListener('touchcancel', onTouchEnd, { passive: true })
+
     return () => {
-      el.removeEventListener('scroll', onScroll)
-      clearTimeout(timeoutId)
+      container.removeEventListener('touchstart', onTouchStart)
+      container.removeEventListener('touchmove', onTouchMove)
+      container.removeEventListener('touchend', onTouchEnd)
+      container.removeEventListener('touchcancel', onTouchEnd)
     }
-  }, [location.pathname, isBaseRoute, navigate])
+  }, [isBaseRoute, navigate])
 
   const handleLogout = () => {
     logout()
@@ -131,29 +210,37 @@ export default function PatientLayout() {
       <main className="flex-1 overflow-hidden">
         {isBaseRoute ? (
           <div
-            ref={scrollRef}
-            className="flex h-full overflow-x-auto snap-x snap-mandatory scroll-smooth scrollbar-hide"
-            // Allow vertical scroll inside each panel while restricting horizontal gestures to the container
+            ref={containerRef}
+            className="w-full h-full overflow-hidden select-none"
             style={{ touchAction: 'pan-y' }}
           >
-            {/* Dashboard panel */}
-            <section className="flex-none w-full snap-start overflow-y-auto" style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
-              <div className="p-4 sm:p-6">
-                <PatientDashboard />
-              </div>
-            </section>
-            {/* History panel */}
-            <section className="flex-none w-full snap-start overflow-y-auto" style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
-              <div className="p-4 sm:p-6">
-                <HistoryPage />
-              </div>
-            </section>
-            {/* Profile panel */}
-            <section className="flex-none w-full snap-start overflow-y-auto" style={{ scrollSnapAlign: 'start', scrollSnapStop: 'always' }}>
-              <div className="p-4 sm:p-6">
-                <PatientProfile />
-              </div>
-            </section>
+            <div
+              ref={sliderRef}
+              className="flex h-full w-full"
+              style={{
+                transform: `translate3d(-${activeIdx * 100}%, 0, 0)`,
+                willChange: 'transform',
+              }}
+            >
+              {/* Dashboard panel */}
+              <section className="flex-none w-full h-full overflow-y-auto">
+                <div className="p-4 sm:p-6 pb-20">
+                  <PatientDashboard />
+                </div>
+              </section>
+              {/* History panel */}
+              <section className="flex-none w-full h-full overflow-y-auto">
+                <div className="p-4 sm:p-6 pb-20">
+                  <HistoryPage />
+                </div>
+              </section>
+              {/* Profile panel */}
+              <section className="flex-none w-full h-full overflow-y-auto">
+                <div className="p-4 sm:p-6 pb-20">
+                  <PatientProfile />
+                </div>
+              </section>
+            </div>
           </div>
         ) : (
           // Sub‑pages (new entry, breathing, emergency, etc.) render normally

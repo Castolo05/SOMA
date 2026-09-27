@@ -222,7 +222,7 @@ export default function PatientProfile() {
 
         {/* Formulario nuevo hábito */}
         {adding && (
-          <div className="bg-gray-50 dark:bg-gray-700/50 rounded-3xl p-4 space-y-3 animate-fade-in border border-gray-200 dark:border-gray-600">
+          <div className="bg-gray-50 dark:bg-gray-800/70 rounded-3xl p-4 space-y-3 animate-fade-in border border-gray-200 dark:border-gray-600 shadow-sm">
             <IconSelector value={newIcon} onChange={setNewIcon} />
             <input
               className="input"
@@ -279,7 +279,7 @@ export default function PatientProfile() {
             const typeLabel = type === 'toggle+qty' ? `Sí/No+${habit.unit||'cant.'}` : type === 'qty' ? `${habit.unit||'cant.'}` : null
 
             return (
-              <div key={habit.id} className="flex flex-col gap-2 bg-gray-50 dark:bg-gray-700/50 rounded-2xl px-4 py-3 border border-transparent hover:border-gray-200 transition-colors">
+              <div key={habit.id} className="flex flex-col gap-2 bg-gray-50 dark:bg-gray-800/70 rounded-2xl px-4 py-3 border border-gray-200 dark:border-gray-600 hover:border-sage-300 dark:hover:border-gray-400 transition-colors shadow-sm">
                 {editingId === habit.id ? (
                   <>
                     <IconSelector value={editIcon} onChange={setEditIcon} />
