@@ -16,6 +16,13 @@ let transitionTimeout = null
 export function applyTheme(isDark, animate = false, storageKey = null) {
   const root = document.documentElement
   const darkBool = Boolean(isDark)
+  const favicon = document.getElementById('favicon')
+
+  if (favicon) {
+    favicon.href = darkBool
+      ? '/logo-dark.png?theme=dark'
+      : '/logo-light.png?theme=light'
+  }
 
   if (storageKey) {
     try {
