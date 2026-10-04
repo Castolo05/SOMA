@@ -243,16 +243,31 @@ const api = {
       return ok({ goals: (data || []).map(normalizeGoal) })
     }
 
-    // ── GET /auth/psychologist ────────────────────────────
-    if (url === '/auth/psychologist') {
-      if (!user?.psychologistId) return ok({ psychologist: null })
-      const { data: psych, error } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .eq('id', user.psychologistId)
-        .single()
-      if (error) return fail(error.message)
-      return ok({ psychologist: psych })
+    // ── GET /auth/psychologists ────────────────────────────
+    if (url === '/auth/psychologists') {
+      const { data: links, error } = await supabase
+        .from('patient_psychologists')
+        .select('*')
+        .eq('patient_id', user.id)
+
+      if (error) {
+        if (error.code === '42P01') {
+          if (!user?.psychologistId) return ok({ psychologists: [] })
+          const { data: psych } = await supabase.from('profiles').select('id, name, avatar_url').eq('id', user.psychologistId).single()
+          return ok({ psychologists: psych ? [{ ...psych, status: user.psychologistStatus }] : [] })
+        }
+        return fail(error.message)
+      }
+
+      if (!links || !links.length) return ok({ psychologists: [] })
+      const psychIds = links.map(l => l.psychologist_id)
+      const { data: profiles } = await supabase.from('profiles').select('id, name, avatar_url').in('id', psychIds)
+      
+      const psychologists = (profiles || []).map(p => {
+        const link = links.find(l => l.psychologist_id === p.id)
+        return { ...p, status: link.status }
+      })
+      return ok({ psychologists })
     }
 
     return fail(`Ruta no encontrada: GET ${url}`, 404)
@@ -295,25 +310,24 @@ const api = {
         .single()
       if (error || !psych) return fail('Código de invitación inválido.')
 
-      const { data: currProfile } = await supabase
-        .from('profiles')
-        .select('psychologist_id, psychologist_status')
-        .eq('id', user?.id)
-        .single()
-      
-      if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'ACCEPTED') {
-        return fail('Ya estás vinculado con este psicólogo.')
-      }
-      if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'PENDING') {
-        return fail('Tu solicitud ya está pendiente de aprobación.')
-      }
+      const { error: insertErr } = await supabase
+        .from('patient_psychologists')
+        .insert({ patient_id: user.id, psychologist_id: psych.id, status: 'PENDING' })
 
-      const { error: updateErr } = await supabase
-        .from('profiles')
-        .update({ psychologist_id: psych.id, psychologist_status: 'PENDING' })
-        .eq('id', user?.id)
-      if (updateErr) return fail(updateErr.message)
-      return ok({ user: { ...user, psychologistId: psych.id, psychologistStatus: 'PENDING' }, message: `Solicitud enviada a ${psych.name}.` })
+      if (insertErr) {
+        if (insertErr.code === '42P01') {
+          const { data: currProfile } = await supabase.from('profiles').select('psychologist_id, psychologist_status').eq('id', user?.id).single()
+          if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'ACCEPTED') return fail('Ya estás vinculado con este psicólogo.')
+          if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'PENDING') return fail('Tu solicitud ya está pendiente de aprobación.')
+          const { error: updateErr } = await supabase.from('profiles').update({ psychologist_id: psych.id, psychologist_status: 'PENDING' }).eq('id', user?.id)
+          if (updateErr) return fail(updateErr.message)
+        } else if (insertErr.code === '23505') {
+          return fail('Ya existe una solicitud o vinculación con este psicólogo.')
+        } else {
+          return fail(insertErr.message)
+        }
+      }
+      return ok({ message: `Solicitud enviada a ${psych.name}.` })
     }
 
     // ── POST /journal ─────────────────────────────────────
@@ -580,6 +594,25 @@ const api = {
   // ──────────────────────────────────────────────────────────
   delete: async (url) => {
     const user = await currentUser()
+
+    // ── DELETE /auth/link/:id ─────────────────────────────
+    if (url.startsWith('/auth/link/')) {
+      const psychId = url.split('/auth/link/')[1]
+      const { error } = await supabase
+        .from('patient_psychologists')
+        .delete()
+        .eq('patient_id', user.id)
+        .eq('psychologist_id', psychId)
+
+      if (error) {
+        if (error.code === '42P01') {
+          await supabase.from('profiles').update({ psychologist_id: null, psychologist_status: null }).eq('id', user.id)
+          return ok({ ok: true })
+        }
+        return fail(error.message)
+      }
+      return ok({ ok: true })
+    }
 
     // ── DELETE /journal/:id ───────────────────────────────
     if (url.startsWith('/journal/')) {

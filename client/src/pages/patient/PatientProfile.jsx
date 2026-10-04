@@ -41,22 +41,7 @@ export default function PatientProfile() {
   const [previewPsych, setPreviewPsych] = useState(null)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [isViewingPsych, setIsViewingPsych] = useState(false)
-
-  const handleViewPsychologist = async () => {
-    setLinkLoading(true)
-    try {
-      const { data } = await api.get('/auth/psychologist')
-      if (data.psychologist) {
-        setPreviewPsych(data.psychologist)
-        setIsViewingPsych(true)
-        setShowPreviewModal(true)
-      }
-    } catch (err) {
-      alert('Error al cargar datos del psicólogo.')
-    } finally {
-      setLinkLoading(false)
-    }
-  }
+  const [psychologists, setPsychologists] = useState([])
 
   // Hábitos
   const initialCache = getPatientCache()
@@ -78,6 +63,7 @@ export default function PatientProfile() {
   useEffect(() => {
     if (!initialCache.habits) api.get('/habits').then(({ data }) => { setHabits(data.habits); updatePatientCache('habits', data.habits) }).catch(() => {})
     if (!initialCache.entries) api.get('/journal').then(({ data }) => { setEntries(data.entries); updatePatientCache('entries', data.entries) }).catch(() => {})
+    api.get('/auth/psychologists').then(({ data }) => setPsychologists(data.psychologists)).catch(() => {})
   }, [])
 
   const handlePreviewLink = async (e) => {
@@ -101,13 +87,25 @@ export default function PatientProfile() {
     setShowPreviewModal(false)
     setLinkLoading(true)
     try {
-      const result = await linkPsychologist(code)
-      setLinkMsg(result.message)
+      const { data } = await api.post('/auth/link', { inviteCode: code })
+      setLinkMsg(data.message)
       setCode('')
+      const res = await api.get('/auth/psychologists')
+      setPsychologists(res.data.psychologists)
     } catch (err) {
       setLinkError(err.response?.data?.error || err.message || 'Error al vincular.')
     } finally {
       setLinkLoading(false)
+    }
+  }
+
+  const handleUnlink = async (psychId) => {
+    if (!confirm('¿Estás seguro de que quieres desvincularte de este profesional?')) return
+    try {
+      await api.delete(`/auth/link/${psychId}`)
+      setPsychologists(prev => prev.filter(p => p.id !== psychId))
+    } catch (err) {
+      alert('Error al desvincular.')
     }
   }
 
@@ -244,6 +242,58 @@ export default function PatientProfile() {
               <div className="text-sm text-gray-400">{user?.email}</div>
               <div className="text-xs text-sage-500 font-semibold mt-0.5">Toca para editar perfil</div>
             </div>
+          </div>
+
+          {/* Vinculación con psicólogos (Movido a la izquierda para mejor experiencia en móviles) */}
+          <div className="card">
+            <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
+              <Link2 size={18} /> Profesionales vinculados
+            </h2>
+            
+            <div className="space-y-3 mb-4">
+              {psychologists.map(p => (
+                <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 rounded-2xl px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 shrink-0 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-sage-200 dark:border-sage-700">
+                      <AvatarDisplay avatar={p.avatar_url} size={24} className="text-sage-500" />
+                    </div>
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white text-sm">{p.name}</p>
+                      <p className="text-xs text-gray-500">
+                        {p.status === 'ACCEPTED' ? 'Vinculado' : 'Pendiente de aprobación'}
+                      </p>
+                    </div>
+                  </div>
+                  <button onClick={() => handleUnlink(p.id)} className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-100 dark:border-red-900/50 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors">
+                    Desvincular
+                  </button>
+                </div>
+              ))}
+              {psychologists.length === 0 && (
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+                  <AlertCircle size={18} className="shrink-0" /> No tienes psicólogos vinculados
+                </div>
+              )}
+            </div>
+
+            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+              Ingresa el código que te proporcionó tu psicólogo para vincularte con él.
+            </p>
+            <form onSubmit={handlePreviewLink} className="flex gap-2">
+              <input
+                type="text"
+                className="input flex-1 uppercase tracking-widest font-mono text-center text-sm"
+                placeholder="Ej: A1B2C3D4"
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                maxLength={8}
+              />
+              <button type="submit" className="btn-patient px-4 text-sm shrink-0" disabled={linkLoading || !code}>
+                {linkLoading ? '...' : 'Vincular'}
+              </button>
+            </form>
+            {linkMsg && <p className="text-green-600 dark:text-green-400 text-sm mt-2 font-medium">{linkMsg}</p>}
+            {linkError && <p className="text-red-500 text-sm mt-2 font-medium">{linkError}</p>}
           </div>
 
           {/* Gestión de hábitos */}
@@ -403,55 +453,6 @@ export default function PatientProfile() {
         <div className="space-y-5 md:w-72 lg:w-80 shrink-0">
 
           <ReminderSettings entries={entries} />
-
-          {/* Vinculación con psicólogo */}
-          <div className="card">
-            <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
-              <Link2 size={18} /> Vinculación con psicólogo
-            </h2>
-            {user?.psychologistId && user?.psychologistStatus === 'ACCEPTED' ? (
-              <div className="space-y-3">
-                <div className="bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
-                  <CheckCircle2 size={18} className="text-sage-500" /> Ya estás vinculado con tu psicólogo
-                </div>
-                <button
-                  onClick={handleViewPsychologist}
-                  disabled={linkLoading}
-                  className="w-full btn-patient text-sm py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800/50 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
-                >
-                  {linkLoading && isViewingPsych ? 'Cargando...' : 'Ver vinculación'}
-                </button>
-              </div>
-            ) : user?.psychologistId && user?.psychologistStatus === 'PENDING' ? (
-              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
-                <AlertCircle size={18} className="text-blue-500" /> Solicitud pendiente de aprobación
-              </div>
-            ) : (
-              <>
-                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2 mb-3">
-                  <AlertCircle size={18} className="shrink-0" /> No tienes psicólogo vinculado
-                </div>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-                  Ingresa el código que te proporcionó tu psicólogo para vincular tus cuentas.
-                </p>
-                <form onSubmit={handlePreviewLink} className="flex gap-2">
-                  <input
-                    type="text"
-                    className="input flex-1 uppercase tracking-widest font-mono text-center"
-                    placeholder="Ej: A1B2C3D4"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.toUpperCase())}
-                    maxLength={8}
-                  />
-                  <button type="submit" className="btn-patient px-5 shrink-0" disabled={linkLoading || !code}>
-                    {linkLoading ? '...' : 'Vincular'}
-                  </button>
-                </form>
-                {linkMsg && <p className="text-green-600 dark:text-green-400 text-sm mt-2">{linkMsg}</p>}
-                {linkError && <p className="text-red-500 text-sm mt-2">{linkError}</p>}
-              </>
-            )}
-          </div>
 
           {/* Cerrar sesión */}
           <button
