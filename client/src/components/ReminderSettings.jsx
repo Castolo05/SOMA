@@ -57,7 +57,7 @@ export default function ReminderSettings({ entries = [] }) {
           disabled={saving}
           className={`relative inline-flex shrink-0 w-12 h-7 rounded-full transition-colors disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400 focus-visible:ring-offset-2 ${enabled ? 'bg-sage-400' : 'bg-gray-300 dark:bg-gray-600'}`}
         >
-          <span className={`absolute left-1 top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${enabled ? 'translate-x-6' : 'translate-x-0'}`} />
+          <span className={`absolute left-1 top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
         </button>
       </div>
       {message && <p className="text-xs text-gray-500 dark:text-gray-400">{message}</p>}

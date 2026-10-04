@@ -356,14 +356,11 @@ function TherapyGoals({ patientId }) {
 // ── PatientEntries ─────────────────────────────────────────
 function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedEntry }) {
   const [expanded, setExpanded] = useState(null)
-  const [filter, setFilter]     = useState('all')
 
-  const filtered = useMemo(() => entries.filter(e => {
-    if (selectedEntryId) return e.id === selectedEntryId
-    if (filter === 'low')  return e.moodScore <= 3
-    if (filter === 'high') return e.moodScore >= 7
-    return true
-  }), [entries, filter, selectedEntryId])
+  const filtered = useMemo(
+    () => selectedEntryId ? entries.filter(e => e.id === selectedEntryId) : entries,
+    [entries, selectedEntryId]
+  )
 
   if (entries.length === 0) return (
     <div className="text-center py-10">
@@ -375,7 +372,7 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
 
   return (
     <div className="space-y-3">
-      {selectedEntryId ? (
+      {selectedEntryId && (
         <div className="flex items-center justify-between gap-2">
           <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Entrada seleccionada en el gráfico</p>
           <button
@@ -386,23 +383,10 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
             Ver todas las entradas
           </button>
         </div>
-      ) : (
-        <div className="flex gap-1 flex-wrap">
-          {[
-            { id: 'all',  label: `Todas (${entries.length})` },
-            { id: 'low',  label: '😟 Bajo' },
-            { id: 'high', label: '😊 Alto' },
-          ].map(({ id, label }) => (
-            <button key={id} onMouseDown={e => e.stopPropagation()} onClick={() => setFilter(id)}
-              className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${filter === id ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
-              {label}
-            </button>
-          ))}
-        </div>
       )}
 
       <div className="space-y-2">
-        {filtered.length === 0 && <p className="text-center text-sm text-gray-400 py-4">Sin entradas para este filtro.</p>}
+        {filtered.length === 0 && <p className="text-center text-sm text-gray-400 py-4">No hay entradas para mostrar.</p>}
         {filtered.map(entry => {
           const cfg  = MOOD_ICONS[entry.moodScore]
           const open = selectedEntryId ? true : expanded === entry.id
