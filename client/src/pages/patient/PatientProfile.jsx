@@ -88,7 +88,7 @@ export default function PatientProfile() {
       await api.delete(`/auth/link/${psychId}`)
       setPsychologists(prev => prev.filter(p => p.id !== psychId))
     } catch (err) {
-      alert('Error al desvincular.')
+      alert(err.response?.data?.error || err.message || 'Error al desvincular.')
     }
   }
 

@@ -138,11 +138,19 @@ const api = {
     // ── GET /patients ─────────────────────────────────────
     if (url === '/patients') {
       if (!user || user.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+      const { data: links, error: linksError } = await supabase
+        .from('patient_psychologists')
+        .select('patient_id')
+        .eq('psychologist_id', user.id)
+        .eq('status', 'ACCEPTED')
+      if (linksError) return fail(linksError.message)
+      const patientIds = [...new Set((links || []).map(link => link.patient_id))]
+      if (!patientIds.length) return ok({ patients: [] })
+
       const { data: patients, error } = await supabase
         .from('profiles')
-        .select('*')
-        .eq('psychologist_id', user.id)
-        .eq('psychologist_status', 'ACCEPTED')
+        .select('id, name, role, avatar_url')
+        .in('id', patientIds)
         .eq('role', 'PATIENT')
       if (error) return fail(error.message)
 
@@ -167,8 +175,7 @@ const api = {
           email: '', // protegido por RLS, no exponer
           role: p.role,
           avatarUrl: p.avatar_url,
-          inviteCode: p.invite_code,
-          psychologistId: p.psychologist_id,
+          psychologistId: user.id,
           totalEntries: (entries || []).length,
           lastMood: lastEntry?.mood_score ?? null,
           lastEntryDate: lastEntryDate ?? null,
@@ -183,15 +190,25 @@ const api = {
     // ── GET /patients/requests ────────────────────────────
     if (url === '/patients/requests') {
       if (!user || user.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+      const { data: links, error: linksError } = await supabase
+        .from('patient_psychologists')
+        .select('patient_id, created_at')
+        .eq('psychologist_id', user.id)
+        .eq('status', 'PENDING')
+      if (linksError) return fail(linksError.message)
+      const patientIds = [...new Set((links || []).map(link => link.patient_id))]
+      if (!patientIds.length) return ok({ requests: [] })
+      const requestDates = new Map(links.map(link => [link.patient_id, link.created_at]))
+
       const { data: requests, error } = await supabase
         .from('profiles')
-        .select('id, name, email, updated_at')
-        .eq('psychologist_id', user.id)
-        .eq('psychologist_status', 'PENDING')
+        .select('id, name, email')
+        .in('id', patientIds)
         .eq('role', 'PATIENT')
-        .order('updated_at', { ascending: false })
       if (error) return fail(error.message)
-      return ok({ requests: requests.map(r => ({ id: r.id, name: r.name, email: r.email, date: r.updated_at })) })
+      return ok({ requests: requests
+        .map(r => ({ id: r.id, name: r.name, email: r.email, date: requestDates.get(r.id) }))
+        .sort((a, b) => new Date(b.date) - new Date(a.date)) })
     }
 
     // ── GET /patients/:id/insights ────────────────────────
@@ -449,12 +466,16 @@ const api = {
     // ── POST /patients/requests/:id/accept ────────────────
     if (url.startsWith('/patients/requests/') && url.endsWith('/accept')) {
       const patientId = url.split('/patients/requests/')[1].replace('/accept', '')
-      const { error } = await supabase
-        .from('profiles')
-        .update({ psychologist_status: 'ACCEPTED' })
-        .eq('id', patientId)
+      const { data: acceptedLink, error } = await supabase
+        .from('patient_psychologists')
+        .update({ status: 'ACCEPTED', updated_at: new Date().toISOString() })
+        .eq('patient_id', patientId)
         .eq('psychologist_id', user?.id)
+        .eq('status', 'PENDING')
+        .select('id')
+        .maybeSingle()
       if (error) return fail(error.message)
+      if (!acceptedLink) return fail('La solicitud ya no está disponible.', 404)
       return ok({ success: true })
     }
 
@@ -462,10 +483,11 @@ const api = {
     if (url.startsWith('/patients/requests/') && url.endsWith('/reject')) {
       const patientId = url.split('/patients/requests/')[1].replace('/reject', '')
       const { error } = await supabase
-        .from('profiles')
-        .update({ psychologist_id: null, psychologist_status: null })
-        .eq('id', patientId)
+        .from('patient_psychologists')
+        .delete()
+        .eq('patient_id', patientId)
         .eq('psychologist_id', user?.id)
+        .eq('status', 'PENDING')
       if (error) return fail(error.message)
       return ok({ success: true })
     }
@@ -599,6 +621,7 @@ const api = {
     // ── DELETE /auth/link/:id ─────────────────────────────
     if (url.startsWith('/auth/link/')) {
       const psychId = url.split('/auth/link/')[1]
+      if (!user) return fail('No autorizado', 401)
       const { error } = await supabase
         .from('patient_psychologists')
         .delete()
@@ -607,11 +630,22 @@ const api = {
 
       if (error) {
         if (error.code === '42P01') {
-          await supabase.from('profiles').update({ psychologist_id: null, psychologist_status: null }).eq('id', user.id)
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({ psychologist_id: null, psychologist_status: null })
+            .eq('id', user.id)
+            .eq('psychologist_id', psychId)
+          if (profileError) return fail(profileError.message)
           return ok({ ok: true })
         }
         return fail(error.message)
       }
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ psychologist_id: null, psychologist_status: null })
+        .eq('id', user.id)
+        .eq('psychologist_id', psychId)
+      if (profileError) return fail(profileError.message)
       return ok({ ok: true })
     }
 
