@@ -202,13 +202,25 @@ const api = {
 
       const { data: requests, error } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, name, avatar_url')
         .in('id', patientIds)
         .eq('role', 'PATIENT')
       if (error) return fail(error.message)
       return ok({ requests: requests
-        .map(r => ({ id: r.id, name: r.name, email: r.email, date: requestDates.get(r.id) }))
+        .map(r => ({ id: r.id, name: r.name, avatarUrl: r.avatar_url, date: requestDates.get(r.id) }))
         .sort((a, b) => new Date(b.date) - new Date(a.date)) })
+    }
+
+    // ── GET /patients/requests/count ──────────────────────
+    if (url === '/patients/requests/count') {
+      if (!user || user.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+      const { count, error } = await supabase
+        .from('patient_psychologists')
+        .select('id', { count: 'exact', head: true })
+        .eq('psychologist_id', user.id)
+        .eq('status', 'PENDING')
+      if (error) return fail(error.message)
+      return ok({ count: count ?? 0 })
     }
 
     // ── GET /patients/:id/insights ────────────────────────
@@ -308,13 +320,12 @@ const api = {
 
     // ── POST /auth/link/preview ───────────────────────────
     if (url === '/auth/link/preview') {
-      const { data: psych, error } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .eq('invite_code', body.inviteCode?.toUpperCase())
-        .eq('role', 'PSYCHOLOGIST')
-        .single()
-      if (error || !psych) return fail('Código de invitación inválido.')
+      const { data, error } = await supabase.rpc('preview_psychologist_by_invite_code', {
+        p_invite_code: body.inviteCode?.trim().toUpperCase(),
+      })
+      if (error) return fail(error.message)
+      const psych = data?.[0]
+      if (!psych) return fail('Código de invitación inválido.')
       return ok({ psychologist: psych })
     }
 

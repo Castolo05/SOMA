@@ -3,10 +3,25 @@ import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeLogo from '../../components/ThemeLogo'
 import { applyTheme } from '../../lib/theme'
+import api from '../../lib/api'
 import {
   Users, LogOut, Settings, UserPlus,
   Menu, X, ChevronLeft, ChevronRight,
 } from 'lucide-react'
+
+function RequestCountBadge({ count, compact = false }) {
+  if (!count) return null
+  return (
+    <span
+      aria-hidden="true"
+      className={`inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold leading-5 text-white shadow-sm ${
+        compact ? 'absolute -right-1.5 -top-1.5 min-w-4 px-1 leading-4' : ''
+      }`}
+    >
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
 
 export default function PsychLayout() {
   const { user, logout } = useAuth()
@@ -15,7 +30,42 @@ export default function PsychLayout() {
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('nexo_dark_psych') === 'true')
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [pendingRequestCount, setPendingRequestCount] = useState(0)
   const isFirst = useRef(true)
+
+  useEffect(() => {
+    if (!user?.id || user.role !== 'PSYCHOLOGIST') {
+      setPendingRequestCount(0)
+      return
+    }
+
+    let active = true
+    const refreshCount = async () => {
+      try {
+        const { data } = await api.get('/patients/requests/count')
+        if (active) setPendingRequestCount(data.count)
+      } catch (err) {
+        console.error('Error actualizando el contador de solicitudes:', err)
+      }
+    }
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === 'visible') refreshCount()
+    }
+    const intervalId = window.setInterval(refreshWhenVisible, 15000)
+
+    refreshCount()
+    window.addEventListener('focus', refreshCount)
+    window.addEventListener('soma:patient-requests-updated', refreshCount)
+    document.addEventListener('visibilitychange', refreshWhenVisible)
+
+    return () => {
+      active = false
+      window.clearInterval(intervalId)
+      window.removeEventListener('focus', refreshCount)
+      window.removeEventListener('soma:patient-requests-updated', refreshCount)
+      document.removeEventListener('visibilitychange', refreshWhenVisible)
+    }
+  }, [user?.id, user?.role])
 
   useEffect(() => {
     if (isFirst.current) { isFirst.current = false; applyTheme(darkMode, false, 'nexo_dark_psych'); return }
@@ -54,10 +104,12 @@ export default function PsychLayout() {
       <nav className="flex-1 space-y-1">
         {navItems.map(({ to, icon: Icon, label }) => {
           const active = isActive(to)
+          const hasRequests = to === '/psych/requests' && pendingRequestCount > 0
           return (
             <Link
               key={to}
               to={to}
+              aria-label={hasRequests ? `${label}, ${pendingRequestCount} solicitudes pendientes` : label}
               className={`
                 flex items-center gap-3 rounded-xl transition-all duration-200 font-medium text-sm
                 px-3 py-2.5 min-h-11
@@ -68,6 +120,7 @@ export default function PsychLayout() {
             >
               <Icon size={18} className="shrink-0" />
               <span className="flex-1 truncate">{label}</span>
+              {to === '/psych/requests' && <RequestCountBadge count={pendingRequestCount} />}
             </Link>
           )
         })}
@@ -122,18 +175,23 @@ export default function PsychLayout() {
         {/* Nav icon buttons */}
         {navItems.map(({ to, icon: Icon, label }) => {
           const active = isActive(to)
+          const hasRequests = to === '/psych/requests' && pendingRequestCount > 0
           return (
             <Link
               key={to}
               to={to}
               title={label}
+              aria-label={hasRequests ? `${label}, ${pendingRequestCount} solicitudes pendientes` : label}
               className={`p-2.5 rounded-xl transition-all ${
                 active
                   ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
                   : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
               }`}
             >
-              <Icon size={18} />
+              <span className="relative block">
+                <Icon size={18} />
+                {to === '/psych/requests' && <RequestCountBadge count={pendingRequestCount} compact />}
+              </span>
             </Link>
           )
         })}
@@ -198,11 +256,22 @@ export default function PsychLayout() {
             <span className="font-bold text-gray-900 dark:text-white">SOMA</span>
           </div>
           <div className="flex gap-1">
-            {navItems.map(({ to, icon: Icon }) => (
-              <Link key={to} to={to} className={`p-2 rounded-lg min-w-10 min-h-10 flex items-center justify-center transition-colors ${isActive(to) ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-gray-400'}`}>
-                <Icon size={18} />
-              </Link>
-            ))}
+            {navItems.map(({ to, icon: Icon, label }) => {
+              const hasRequests = to === '/psych/requests' && pendingRequestCount > 0
+              return (
+                <Link
+                  key={to}
+                  to={to}
+                  aria-label={hasRequests ? `${label}, ${pendingRequestCount} solicitudes pendientes` : label}
+                  className={`p-2 rounded-lg min-w-10 min-h-10 flex items-center justify-center transition-colors ${isActive(to) ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-gray-400'}`}
+                >
+                  <span className="relative block">
+                    <Icon size={18} />
+                    {to === '/psych/requests' && <RequestCountBadge count={pendingRequestCount} compact />}
+                  </span>
+                </Link>
+              )
+            })}
             <Link to="/psych/settings" className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 min-w-10 min-h-10 flex items-center justify-center">
               <Settings size={18} />
             </Link>

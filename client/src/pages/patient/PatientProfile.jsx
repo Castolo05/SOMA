@@ -3,7 +3,7 @@ import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import {
   UserRound, Link2, LogOut, Plus, Pencil, Trash2, Check, X, CheckCircle2,
-  Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat, AlertCircle
+  Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat, AlertCircle, Mail
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { HABIT_ICONS } from '../../lib/constants'
@@ -56,7 +56,7 @@ export default function PatientProfile() {
     setLinkLoading(true)
     setIsViewingPsych(false)
     try {
-      const { data } = await api.post('/auth/link/preview', { inviteCode: code })
+      const { data } = await api.post('/auth/link/preview', { inviteCode: code.trim().toUpperCase() })
       setPreviewPsych(data.psychologist)
       setShowPreviewModal(true)
     } catch (err) {
@@ -452,8 +452,13 @@ export default function PatientProfile() {
       {/* Modal de previsualización de vínculo */}
       {showPreviewModal && previewPsych && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white dark:bg-[var(--theme-surface)] rounded-3xl p-6 max-w-sm w-full shadow-xl">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="psychologist-link-title"
+            className="bg-white dark:bg-[var(--theme-surface)] rounded-3xl p-6 max-w-sm w-full shadow-xl"
+          >
+            <h3 id="psychologist-link-title" className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
               {isViewingPsych ? 'Profesional Vinculado' : 'Confirmar vinculación'}
             </h3>
             
@@ -464,6 +469,10 @@ export default function PatientProfile() {
               <div className="text-center">
                 <p className="font-bold text-gray-900 dark:text-white text-lg">{previewPsych.name}</p>
                 <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-1">Psicólogo/a</p>
+                <p className="mt-2 flex items-center justify-center gap-1.5 break-all text-sm text-gray-600 dark:text-gray-300">
+                  <Mail size={14} className="shrink-0" />
+                  {previewPsych.email || 'Correo no disponible'}
+                </p>
               </div>
             </div>
 
@@ -476,7 +485,7 @@ export default function PatientProfile() {
             ) : (
               <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl mb-6 border border-amber-200 dark:border-amber-800">
                 <p className="text-sm text-amber-800 dark:text-amber-300 font-medium text-center">
-                  Al confirmar, autorizas a este profesional a ver tu estado de ánimo, tus hábitos y otra información clínica registrada en SOMA.
+                  Al confirmar, enviarás una solicitud. Este profesional solo podrá ver tu información de SOMA cuando la acepte.
                 </p>
               </div>
             )}
@@ -491,8 +500,8 @@ export default function PatientProfile() {
                   <button onClick={() => setShowPreviewModal(false)} className="btn-ghost flex-1">
                     Cancelar
                   </button>
-                  <button onClick={confirmLink} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
-                    Confirmar
+                  <button onClick={confirmLink} disabled={linkLoading} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 disabled:cursor-wait disabled:opacity-60">
+                    {linkLoading ? 'Enviando…' : 'Sí, vincularme'}
                   </button>
                 </>
               )}

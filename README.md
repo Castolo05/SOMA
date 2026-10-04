@@ -107,11 +107,15 @@ nexomente/
 
 En Supabase, ejecutar
 [`client/supabase_unlink_access_migration.sql`](client/supabase_unlink_access_migration.sql)
-después de `supabase_multiple_psychologists.sql`. Esta migración elimina permisos
-heredados basados en `profiles.psychologist_id` y restringe la lectura de
-perfiles y diarios a psicólogos con una vinculación aceptada vigente. Al
-desvincularse, los datos ya descargados previamente en otro dispositivo no se
-pueden borrar de forma remota, pero las nuevas consultas quedan bloqueadas.
+después de `supabase_multiple_psychologists.sql`. Para habilitar la vista previa
+de la identidad por código de invitación, ejecutar también
+[`client/supabase_link_preview_migration.sql`](client/supabase_link_preview_migration.sql)
+una vez. Esta función muestra el correo del psicólogo solo al buscar por su
+código, sin agregarlo a la tabla pública de perfiles. La migración de acceso
+elimina permisos heredados basados en `profiles.psychologist_id` y restringe la
+lectura de perfiles y diarios a psicólogos con una vinculación aceptada vigente.
+Al desvincularse, los datos ya descargados previamente en otro dispositivo no
+se pueden borrar de forma remota, pero las nuevas consultas quedan bloqueadas.
 
 ## 📱 App Android (APK de SOMA)
 
