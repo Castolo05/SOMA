@@ -1,5 +1,5 @@
 -- ============================================================
--- NexoMente / SOMA — FIX de autenticación y RLS (v2)
+-- SOMA — Ajustes de autenticación y RLS (v2)
 -- Ejecutar en: Supabase Dashboard → SQL Editor → New Query
 -- ============================================================
 

@@ -1,10 +1,10 @@
 // ============================================================
-// NexoMente — api.js (Supabase)
+// SOMA API adapter backed by Supabase.
 // Interfaz compatible con el api.js anterior para minimizar
 // cambios en los componentes existentes.
 // ============================================================
 import { supabase } from './supabase'
-import { addDays, entryDateKey, entryDateToDate } from './constants'
+import { addDays, entryDateKey } from './constants'
 
 // ── Obtener usuario autenticado actual ────────────────────
 // Usamos getSession() (caché local) en lugar de getUser() (llamada a red)
@@ -163,12 +163,7 @@ const api = {
           .order('entry_date', { ascending: false })
           .limit(10)
         const lastEntry = entries?.[0]
-        const last3 = (entries || []).slice(0, 3)
-        const hasAlert = last3.length >= 3 && last3.every(e => e.mood_score <= 3)
         const lastEntryDate = lastEntry?.entry_date || lastEntry?.created_at
-        const daysSinceLast = lastEntryDate
-          ? Math.floor((Date.now() - entryDateToDate(lastEntryDate)) / 86400000)
-          : null
         return {
           id: p.id,
           name: p.name,
@@ -179,9 +174,6 @@ const api = {
           totalEntries: (entries || []).length,
           lastMood: lastEntry?.mood_score ?? null,
           lastEntryDate: lastEntryDate ?? null,
-          hasAlert,
-          hasInactivityAlert: daysSinceLast !== null && daysSinceLast >= 5,
-          daysSinceLastEntry: daysSinceLast,
         }
       }))
       return ok({ patients: enriched })
@@ -988,7 +980,7 @@ function computeCorrelation(habits, entries) {
   return result
 }
 
-// ── Insights paciente (igual que localDb) ────────────────
+// ── Patient insights ────────────────────────────────────
 function computeInsights(entries) {
   const now = new Date()
   const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)

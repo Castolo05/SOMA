@@ -1,5 +1,5 @@
 -- ============================================================
--- NexoMente / SOMA — Supabase SQL Migration
+-- SOMA — Supabase SQL migration
 -- Ejecutar en: Supabase Dashboard → SQL Editor → New Query
 -- ============================================================
 

@@ -1,7 +1,7 @@
 {
-  "name": "nexomente",
+  "name": "soma",
   "version": "1.0.0",
-  "description": "NexoMente — Plataforma de bienestar mental para psicólogos y pacientes",
+  "description": "SOMA — Plataforma de bienestar emocional para pacientes y profesionales",
   "private": true,
   "scripts": {
     "dev": "concurrently --kill-others-on-fail -n SERVER,CLIENT -c blue,green \"npm run dev --prefix server\" \"npm run dev --prefix client\"",

@@ -1,7 +1,7 @@
 {
-  "name": "nexomente-server",
+  "name": "soma-server",
   "version": "1.0.0",
-  "description": "NexoMente - Backend API para plataforma de salud mental",
+  "description": "SOMA - API complementaria para la plataforma de bienestar emocional",
   "main": "src/index.js",
   "type": "module",
   "scripts": {

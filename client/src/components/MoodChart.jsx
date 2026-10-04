@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
-  Tooltip, ResponsiveContainer, ReferenceLine,
+  Tooltip, ResponsiveContainer,
 } from 'recharts'
 import { MOOD_ICONS, MOOD_CHART_COLOR, formatDateShort } from '../lib/constants'
 import MoodIcon from './MoodIcon'
@@ -169,8 +169,6 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
               axisLine={false}
             />
             <Tooltip content={<CustomTooltip />} />
-            {/* Línea de alerta baja */}
-            <ReferenceLine y={3} stroke={isDark ? '#d4a3a8' : '#fca5a5'} strokeDasharray="4 4" strokeWidth={1.5} />
             <Line
               type="monotone"
               dataKey="mood"

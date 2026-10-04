@@ -18,7 +18,7 @@ async function main() {
   const psicologo = await prisma.user.create({
     data: {
       name: 'Dra. Laura Gómez',
-      email: 'laura@nexomente.com',
+      email: 'laura@soma.app',
       passwordHash: psicologoPassword,
       role: 'PSYCHOLOGIST',
       inviteCode: nanoid(8).toUpperCase(),
@@ -30,7 +30,7 @@ async function main() {
   const paciente = await prisma.user.create({
     data: {
       name: 'Carlos Ruiz',
-      email: 'carlos@nexomente.com',
+      email: 'carlos@soma.app',
       passwordHash: pacientePassword,
       role: 'PATIENT',
       psychologistId: psicologo.id,
@@ -187,8 +187,8 @@ async function main() {
 
   console.log('\n🎉 Seed completado!')
   console.log('📋 Credenciales de prueba:')
-  console.log('   Psicólogo → laura@nexomente.com / psicologo123')
-  console.log('   Paciente  → carlos@nexomente.com / paciente123')
+  console.log('   Psicólogo → laura@soma.app / psicologo123')
+  console.log('   Paciente  → carlos@soma.app / paciente123')
 }
 
 main()

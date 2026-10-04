@@ -1,4 +1,4 @@
-// NexoMente - Prisma Schema (SQLite - Local)
+// SOMA Prisma schema.
 
 generator client {
   provider = "prisma-client-js"

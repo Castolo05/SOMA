@@ -23,7 +23,7 @@ app.use(express.json())
 app.use(cookieParser())
 
 // Rutas
-app.get('/api', (req, res) => res.json({ message: '🧠 NexoMente API v2.0 — Online' }))
+app.get('/api', (req, res) => res.json({ message: 'SOMA API — Online' }))
 app.use('/api/auth', authRoutes)
 app.use('/api/journal', journalRoutes)
 app.use('/api/session-notes', sessionNotesRoutes)
@@ -41,7 +41,7 @@ app.use((err, req, res, next) => {
 })
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 NexoMente Server corriendo en http://localhost:${PORT}`)
+  console.log(`\n🚀 SOMA API corriendo en http://localhost:${PORT}`)
   console.log(`📂 Base de datos: SQLite (local)`)
   console.log(`✅ Rutas: auth, journal, session-notes, patients, appointments, goals\n`)
 })

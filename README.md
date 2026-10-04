@@ -1,176 +1,39 @@
-# 🧠 NexoMente — MVP Local
+# SOMA
 
-Plataforma de bienestar mental bidireccional: conecta psicólogos con sus pacientes entre sesiones.
+SOMA es una plataforma de bienestar emocional en producción que permite a las personas llevar un registro de su ánimo y compartir su evolución con profesionales de salud mental. La experiencia ofrece herramientas de seguimiento entre sesiones y un espacio de análisis para psicólogos.
 
-**Stack:** React + Vite + TailwindCSS | Node.js + Express + Prisma + SQLite
+## Experiencia del paciente
 
----
+- Registro e inicio de sesión.
+- Diario personal con estado de ánimo, notas y hábitos.
+- Historial y visualización de la evolución emocional.
+- Vinculación con profesionales mediante código de invitación.
+- Perfil, preferencias y tema visual.
+- Recordatorios en el dispositivo Android.
 
-## 🚀 Cómo levantar el proyecto (3 comandos)
+## Experiencia del psicólogo
 
-```bash
-# 1. Instalar todas las dependencias + crear la base de datos SQLite + seed
-npm run setup
+- Gestión de solicitudes y pacientes vinculados.
+- Revisión del historial, ánimo y hábitos registrados por cada paciente.
+- Gráficos y filtros para explorar la evolución en distintos períodos.
+- Notas privadas de sesión y objetivos terapéuticos.
+- Calendario para organizar citas.
 
-# 2. Instalar concurrently en la raíz
-npm install
+## Plataforma
 
-# 3. Levantar servidor y cliente al mismo tiempo
-npm run dev
-```
+- **Cliente web:** React 18, Vite, Tailwind CSS y React Router.
+- **Datos y autenticación:** Supabase.
+- **Visualizaciones:** Recharts.
+- **Aplicación Android:** Capacitor y notificaciones en el dispositivo.
 
-Abre http://localhost:5173 en el navegador.
+La aplicación web utiliza Supabase para autenticación y acceso a los datos. El código fuente del cliente está en [`client/`](./client/).
 
-### Alternativa: dos terminales (si falla npm install en la raíz)
+## Datos y privacidad
 
-**Terminal 1 — Backend:**
-```bash
-cd server && npm run dev
-```
+Los datos del diario son personales. La lectura por parte de un profesional depende de que exista una vinculación autorizada entre las cuentas. Las notas de sesión del psicólogo son privadas y no se muestran al paciente.
 
-**Terminal 2 — Frontend:**
-```bash
-cd client && npm run dev
-```
+Los cambios de esquema y políticas de acceso de Supabase se mantienen en los archivos SQL de [`client/`](./client/). Las políticas de la base de datos deben conservar las restricciones de acceso por usuario y por vínculo.
 
----
+## Android
 
-## 🔐 Credenciales de prueba (cargadas automáticamente)
-
-| Rol | Email | Contraseña |
-|---|---|---|
-| 🩺 Psicólogo | laura@nexomente.com | psicologo123 |
-| 👤 Paciente | carlos@nexomente.com | paciente123 |
-
----
-
-## 📁 Estructura del proyecto
-
-```
-nexomente/
-├── package.json          ← raíz (dev + setup)
-├── server/               ← Backend Express + Prisma + SQLite
-│   ├── prisma/
-│   │   ├── schema.prisma
-│   │   ├── seed.js
-│   │   └── dev.db        ← (se crea automáticamente)
-│   ├── src/
-│   │   ├── index.js
-│   │   ├── lib/          ← prisma, tags
-│   │   ├── middleware/   ← JWT auth
-│   │   └── routes/       ← auth, journal, notes, patients
-│   └── .env
-└── client/               ← Frontend React + Vite + TailwindCSS
-    └── src/
-        ├── pages/
-        │   ├── auth/     ← Login, Register
-        │   ├── patient/  ← Dashboard, NewEntry, History, Profile, Emergency
-        │   └── psychologist/ ← Dashboard, PatientsList, PatientDetail
-        ├── context/      ← AuthContext
-        └── lib/          ← api.js, constants.js
-```
-
----
-
-## 🛠️ Scripts disponibles
-
-| Comando | Descripción |
-|---|---|
-| `npm run setup` | Instala todo + crea BD + seed (solo la primera vez) |
-| `npm run dev` | Levanta server (3001) + client (5173) simultáneamente |
-| `npm run db:studio` | Abre Prisma Studio (GUI de la base de datos) |
-
----
-
-## ⚡ Funcionalidades implementadas
-
-### 👤 Interfaz del Paciente
-- Login / Registro
-- Dashboard con saludo personalizado y resumen semanal
-- Crear entrada de diario (emoji de ánimo + texto + tags)
-- Historial con entradas colapsables (editar/eliminar solo 24h)
-- Vinculación con psicólogo mediante código
-- Modo oscuro
-- Página de emergencia con líneas de crisis
-
-### 🩺 Interfaz del Psicólogo
-- Dashboard con lista de pacientes y alertas de ánimo bajo
-- Código de invitación visible (con botón copiar)
-- Lista de pacientes con buscador
-- Vista de paciente: gráfico Recharts (7/14/30 días)
-- Filtros por tag y ánimo
-- Notas clínicas privadas (invisible para el paciente)
-
----
-
-## 🔐 Seguridad de las vinculaciones
-
-En Supabase, ejecutar primero
-[`client/supabase_multiple_psychologists.sql`](client/supabase_multiple_psychologists.sql)
-(se puede volver a ejecutar si las políticas ya existen). Luego ejecutar
-[`client/supabase_unlink_access_migration.sql`](client/supabase_unlink_access_migration.sql)
-y finalmente, para habilitar la vista previa de identidad por código de invitación:
-[`client/supabase_link_preview_migration.sql`](client/supabase_link_preview_migration.sql)
-una vez. Esta función muestra el correo del psicólogo solo al buscar por su
-código, sin agregarlo a la tabla pública de perfiles. La migración de acceso
-elimina permisos heredados basados en `profiles.psychologist_id` y restringe la
-lectura de perfiles y diarios a psicólogos con una vinculación aceptada vigente.
-Al desvincularse, los datos ya descargados previamente en otro dispositivo no
-se pueden borrar de forma remota, pero las nuevas consultas quedan bloqueadas.
-
-Si la ejecución de `supabase_multiple_psychologists.sql` se interrumpió por una
-política ya existente, volver a ejecutar la versión actual del archivo: ahora
-elimina y recrea sus políticas de forma segura. La app instalada no recibe
-cambios al ejecutar SQL; después de actualizar el cliente hay que reconstruir y
-desplegar la web o compilar e instalar una APK nueva.
-
-## 📱 App Android (APK de SOMA)
-
-El cliente también puede compilarse como una aplicación Android nativa mediante
-Capacitor. Conserva el nombre **SOMA**, el icono de `client/public/logo.png` y
-todas las pantallas web, con recordatorios locales que funcionan aun cuando la
-app está cerrada.
-
-### Antes de compilar
-
-1. En Supabase, ejecutar una vez
-   [`client/supabase_mobile_migration.sql`](client/supabase_mobile_migration.sql).
-   La migración agrega `entry_date`, deja una sola anotación por paciente/día y
-   hace cumplir en base de datos que solo se puede crear, editar o borrar una
-   nota de hoy o de ayer.
-2. Instalar Android Studio con Android SDK Platform 34 y JDK 17. Configurar
-   `JAVA_HOME` para que apunte al JDK y `ANDROID_HOME` al SDK de Android.
-
-### Generar e instalar un APK de prueba
-
-```bash
-cd client
-npm install
-npm run android:apk
-```
-
-El APK de prueba queda en
-`client/android/app/build/outputs/apk/debug/app-debug.apk`. También podés abrir
-el proyecto nativo con `npm run android:open` y ejecutar en un emulador o un
-teléfono desde Android Studio.
-
-### Recordatorios
-
-- A las **23:00**, SOMA invita de manera amable a anotar el día si todavía no
-  existe una nota.
-- A las **12:00** del día siguiente, si falta la nota de ayer, recuerda que aún
-  se puede completar o editarla.
-- En **Perfil → Recordatorios diarios** se pueden desactivar en cualquier
-  momento. Android pide autorización al abrir el dashboard por primera vez.
-
-Los avisos se planifican en la hora local del teléfono y se reprograman al
-guardar o modificar una anotación, de modo que el aviso puntual se cancela.
-
----
-
-## ❌ No necesitas instalar
-
-- PostgreSQL ✅ (usa SQLite en archivo local)
-- Docker ✅
-- Redis ✅
-- Ningún servicio cloud ✅
+El cliente incluye una versión Android basada en Capacitor. Además de las funciones disponibles en la aplicación web, puede programar recordatorios en el dispositivo para completar el diario.

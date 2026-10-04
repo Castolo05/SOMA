@@ -1,4 +1,4 @@
-// NexoMente — Constantes globales (escala 1-10 con iconos Lucide)
+// SOMA global constants (1-10 mood scale with Lucide icons).
 
 // MOOD_ICONS: mapa de puntaje 1-10 → configuración visual
 // Los iconos son nombres de componentes de lucide-react

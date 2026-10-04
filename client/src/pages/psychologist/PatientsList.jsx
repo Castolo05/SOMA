@@ -4,7 +4,7 @@ import api from '../../lib/api'
 import { formatDateShort } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
 import AvatarDisplay from '../../components/AvatarDisplay'
-import { ChevronRight, AlertTriangle, Search, Wifi, SlidersHorizontal } from 'lucide-react'
+import { ChevronRight, Search, SlidersHorizontal } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { useAuth } from '../../context/AuthContext'
 
@@ -74,11 +74,7 @@ export default function PatientsList() {
                 className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
               >
                 {/* Avatar */}
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden font-bold text-base shrink-0 ${
-                  p.hasAlert
-                    ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
-                    : 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-                }`}>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden font-bold text-base shrink-0 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400">
                   {p.avatarUrl ? (
                     <AvatarDisplay avatar={p.avatarUrl} size={28} className="text-current" />
                   ) : (
@@ -90,16 +86,6 @@ export default function PatientsList() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
                     <span className="font-semibold text-gray-900 dark:text-white">{p.name}</span>
-                    {p.hasAlert && (
-                      <span className="text-[10px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                        <AlertTriangle size={9} /> Alerta
-                      </span>
-                    )}
-                    {p.hasInactivityAlert && !p.hasAlert && (
-                      <span className="text-[10px] bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-2 py-0.5 rounded-full font-bold flex items-center gap-1">
-                        <Wifi size={9} /> {p.daysSinceLastEntry}d sin registrar
-                      </span>
-                    )}
                   </div>
                   <div className="text-xs text-gray-400 mt-0.5 flex items-center gap-3">
                     <span>{p.totalEntries} entradas</span>

@@ -14,34 +14,19 @@ router.get('/', async (req, res) => {
       orderBy: { name: 'asc' },
     })
 
-    const now = new Date()
-    const INACTIVITY_DAYS = 5 // días sin registrar → alerta de abandono
-
     const patientsWithStats = await Promise.all(
       patients.map(async (p) => {
         const recentEntries = await prisma.journalEntry.findMany({
           where: { patientId: p.id },
           orderBy: { createdAt: 'desc' },
-          take: 5,
+          take: 1,
         })
 
-        const last3 = recentEntries.slice(0, 3)
-        const hasMoodAlert = last3.length >= 2 && last3.every((e) => e.moodScore <= 3)
-
-        // Alerta de inactividad: sin entradas hace N días
         const lastEntry = recentEntries[0] || null
-        const daysSinceLastEntry = lastEntry
-          ? (now - new Date(lastEntry.createdAt)) / 86400000
-          : Infinity
-        const hasInactivityAlert = daysSinceLastEntry >= INACTIVITY_DAYS
-
         const totalEntries = await prisma.journalEntry.count({ where: { patientId: p.id } })
 
         return {
           ...p,
-          hasAlert: hasMoodAlert,
-          hasInactivityAlert,
-          daysSinceLastEntry: Math.floor(daysSinceLastEntry === Infinity ? -1 : daysSinceLastEntry),
           lastMood: lastEntry?.moodScore ?? null,
           lastEntryDate: lastEntry?.createdAt ?? null,
           totalEntries,

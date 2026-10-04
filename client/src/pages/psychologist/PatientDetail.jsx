@@ -9,9 +9,9 @@ import MoodIcon from '../../components/MoodIcon'
 import MoodChart from '../../components/MoodChart'
 import {
   ArrowLeft, TrendingUp, TrendingDown, Minus, Plus,
-  Wifi, Target, CheckCircle2, Circle, Trash2,
+  Target, CheckCircle2, Circle, Trash2,
   ChevronDown, ChevronUp, Pencil, Calendar,
-  AlertTriangle, BookOpen, User, FileText,
+  BookOpen, User, FileText,
   Activity, BarChart2, MessageSquare, Eye, EyeOff,
   LayoutGrid, RotateCcw, GripHorizontal,
 } from 'lucide-react'
@@ -133,18 +133,6 @@ function PreSessionCard({ insights, patient }) {
         ))}
       </div>
 
-      {patient?.hasAlert && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 flex gap-2 shrink-0">
-          <AlertTriangle size={16} className="text-red-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-red-600 dark:text-red-400 leading-relaxed">Ánimo bajo en las últimas 3 sesiones. Se recomienda atención prioritaria.</p>
-        </div>
-      )}
-      {patient?.hasInactivityAlert && (
-        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex gap-2 shrink-0">
-          <Wifi size={16} className="text-amber-500 mt-0.5 shrink-0" />
-          <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">{patient.daysSinceLastEntry} días sin registrar. Considerar seguimiento.</p>
-        </div>
-      )}
     </div>
   )
 }
@@ -414,7 +402,6 @@ function PatientEntries({ entries, habitsList }) {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="text-sm font-bold" style={{ color: cfg?.color }}>{cfg?.label}</span>
-                    {entry.moodScore <= 3 && <AlertTriangle size={12} className="text-red-500 shrink-0" />}
                   </div>
                   <p className="text-xs text-gray-400">{formatDateShort(entry.createdAt)}</p>
                 </div>
@@ -583,9 +570,7 @@ export default function PatientDetail() {
           <Link to="/psych/patients" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0">
             <ArrowLeft size={18} className="text-gray-500 dark:text-gray-400" />
           </Link>
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden font-black text-base shrink-0 ${
-            patient.hasAlert ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-          }`}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden font-black text-base shrink-0 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400">
             {patient.avatarUrl ? (
               <AvatarDisplay avatar={patient.avatarUrl} size={28} className="text-current" />
             ) : (
@@ -595,16 +580,6 @@ export default function PatientDetail() {
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">{patient.name}</h1>
-              {patient.hasAlert && (
-                <span className="text-[11px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                  <AlertTriangle size={10} /> Ánimo bajo
-                </span>
-              )}
-              {patient.hasInactivityAlert && (
-                <span className="text-[11px] bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                  <Wifi size={10} /> {patient.daysSinceLastEntry}d sin registro
-                </span>
-              )}
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               <span className="flex items-center gap-1"><Activity size={11} /> {patient.totalEntries} entradas</span>
