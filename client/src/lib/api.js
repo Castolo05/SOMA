@@ -331,30 +331,31 @@ const api = {
 
     // ── POST /auth/link ───────────────────────────────────
     if (url === '/auth/link') {
+      if (!user || user.role !== 'PATIENT') return fail('Inicia sesión como paciente para enviar una solicitud.', 401)
+      const inviteCode = body.inviteCode?.trim().toUpperCase()
+      if (!inviteCode) return fail('Ingresa el código de invitación.')
+
       const { data: psych, error } = await supabase
         .from('profiles')
         .select('id, name')
-        .eq('invite_code', body.inviteCode?.toUpperCase())
+        .eq('invite_code', inviteCode)
         .eq('role', 'PSYCHOLOGIST')
         .single()
-      if (error || !psych) return fail('Código de invitación inválido.')
+      if (error || !psych) return fail(error?.message || 'Código de invitación inválido.')
+      if (psych.id === user.id) return fail('No puedes vincularte con tu propia cuenta.')
 
       const { error: insertErr } = await supabase
         .from('patient_psychologists')
         .insert({ patient_id: user.id, psychologist_id: psych.id, status: 'PENDING' })
 
       if (insertErr) {
-        if (insertErr.code === '42P01') {
-          const { data: currProfile } = await supabase.from('profiles').select('psychologist_id, psychologist_status').eq('id', user?.id).single()
-          if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'ACCEPTED') return fail('Ya estás vinculado con este psicólogo.')
-          if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'PENDING') return fail('Tu solicitud ya está pendiente de aprobación.')
-          const { error: updateErr } = await supabase.from('profiles').update({ psychologist_id: psych.id, psychologist_status: 'PENDING' }).eq('id', user?.id)
-          if (updateErr) return fail(updateErr.message)
-        } else if (insertErr.code === '23505') {
+        if (insertErr.code === '23505') {
           return fail('Ya existe una solicitud o vinculación con este psicólogo.')
-        } else {
-          return fail(insertErr.message)
         }
+        if (insertErr.code === '42P01') {
+          return fail('Falta configurar la tabla de vinculaciones en Supabase. Ejecuta supabase_multiple_psychologists.sql.')
+        }
+        return fail(insertErr.message)
       }
       return ok({ message: `Solicitud enviada a ${psych.name}.` })
     }

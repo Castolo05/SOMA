@@ -24,34 +24,55 @@ ON CONFLICT DO NOTHING;
 ALTER TABLE public.patient_psychologists ENABLE ROW LEVEL SECURITY;
 
 -- Un paciente puede ver sus propias vinculaciones
+DROP POLICY IF EXISTS "Patients can view their own links" ON public.patient_psychologists;
 CREATE POLICY "Patients can view their own links"
   ON public.patient_psychologists FOR SELECT
   USING (auth.uid() = patient_id);
 
 -- Un psicólogo puede ver las vinculaciones hacia él
+DROP POLICY IF EXISTS "Psychologists can view links to them" ON public.patient_psychologists;
 CREATE POLICY "Psychologists can view links to them"
   ON public.patient_psychologists FOR SELECT
   USING (auth.uid() = psychologist_id);
 
 -- Un paciente puede crear una vinculación (solicitud)
+DROP POLICY IF EXISTS "Patients can create links" ON public.patient_psychologists;
 CREATE POLICY "Patients can create links"
   ON public.patient_psychologists FOR INSERT
   WITH CHECK (auth.uid() = patient_id);
 
 -- Un psicólogo puede actualizar (aceptar) una vinculación dirigida a él
+DROP POLICY IF EXISTS "Psychologists can update their links" ON public.patient_psychologists;
 CREATE POLICY "Psychologists can update their links"
   ON public.patient_psychologists FOR UPDATE
   USING (auth.uid() = psychologist_id);
 
 -- Un paciente puede eliminar sus vinculaciones (desvincularse)
+DROP POLICY IF EXISTS "Patients can delete their links" ON public.patient_psychologists;
 CREATE POLICY "Patients can delete their links"
   ON public.patient_psychologists FOR DELETE
   USING (auth.uid() = patient_id);
 
 -- Un psicólogo puede eliminar vinculaciones hacia él (rechazar/eliminar)
+DROP POLICY IF EXISTS "Psychologists can delete links to them" ON public.patient_psychologists;
 CREATE POLICY "Psychologists can delete links to them"
   ON public.patient_psychologists FOR DELETE
   USING (auth.uid() = psychologist_id);
+
+-- Permitir al psicólogo ver el nombre y avatar de quien todavía espera
+-- aprobación, sin habilitar acceso a sus datos clínicos.
+DROP POLICY IF EXISTS "profiles: psychologist views pending patients" ON public.profiles;
+CREATE POLICY "profiles: psychologist views pending patients"
+  ON public.profiles FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1
+      FROM public.patient_psychologists pp
+      WHERE pp.patient_id = profiles.id
+        AND pp.psychologist_id = auth.uid()
+        AND pp.status = 'PENDING'
+    )
+  );
 
 -- 4. Modificar políticas antiguas en otras tablas si es necesario.
 -- Por ejemplo, journal_entries: ahora un psicólogo puede ver las entradas de cualquier paciente

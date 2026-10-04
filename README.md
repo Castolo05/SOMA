@@ -105,10 +105,11 @@ nexomente/
 
 ## 🔐 Seguridad de las vinculaciones
 
-En Supabase, ejecutar
+En Supabase, ejecutar primero
+[`client/supabase_multiple_psychologists.sql`](client/supabase_multiple_psychologists.sql)
+(se puede volver a ejecutar si las políticas ya existen). Luego ejecutar
 [`client/supabase_unlink_access_migration.sql`](client/supabase_unlink_access_migration.sql)
-después de `supabase_multiple_psychologists.sql`. Para habilitar la vista previa
-de la identidad por código de invitación, ejecutar también
+y finalmente, para habilitar la vista previa de identidad por código de invitación:
 [`client/supabase_link_preview_migration.sql`](client/supabase_link_preview_migration.sql)
 una vez. Esta función muestra el correo del psicólogo solo al buscar por su
 código, sin agregarlo a la tabla pública de perfiles. La migración de acceso
@@ -116,6 +117,12 @@ elimina permisos heredados basados en `profiles.psychologist_id` y restringe la
 lectura de perfiles y diarios a psicólogos con una vinculación aceptada vigente.
 Al desvincularse, los datos ya descargados previamente en otro dispositivo no
 se pueden borrar de forma remota, pero las nuevas consultas quedan bloqueadas.
+
+Si la ejecución de `supabase_multiple_psychologists.sql` se interrumpió por una
+política ya existente, volver a ejecutar la versión actual del archivo: ahora
+elimina y recrea sus políticas de forma segura. La app instalada no recibe
+cambios al ejecutar SQL; después de actualizar el cliente hay que reconstruir y
+desplegar la web o compilar e instalar una APK nueva.
 
 ## 📱 App Android (APK de SOMA)
 

@@ -67,14 +67,19 @@ export default function PatientProfile() {
   }
 
   const confirmLink = async () => {
-    setShowPreviewModal(false)
+    setLinkError('')
     setLinkLoading(true)
     try {
       const { data } = await api.post('/auth/link', { inviteCode: code })
       setLinkMsg(data.message)
       setCode('')
-      const res = await api.get('/auth/psychologists')
-      setPsychologists(res.data.psychologists)
+      setShowPreviewModal(false)
+      try {
+        const res = await api.get('/auth/psychologists')
+        setPsychologists(res.data.psychologists)
+      } catch (refreshError) {
+        console.error('La solicitud se envió, pero no se pudo actualizar la lista de profesionales:', refreshError)
+      }
     } catch (err) {
       setLinkError(err.response?.data?.error || err.message || 'Error al vincular.')
     } finally {
@@ -490,6 +495,12 @@ export default function PatientProfile() {
               </div>
             )}
 
+            {!isViewingPsych && linkError && (
+              <p role="alert" className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 dark:border-red-900 dark:bg-red-900/20 dark:text-red-300">
+                {linkError}
+              </p>
+            )}
+
             <div className="flex gap-3">
               {isViewingPsych ? (
                 <button onClick={() => setShowPreviewModal(false)} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
@@ -497,7 +508,7 @@ export default function PatientProfile() {
                 </button>
               ) : (
                 <>
-                  <button onClick={() => setShowPreviewModal(false)} className="btn-ghost flex-1">
+                  <button onClick={() => { setShowPreviewModal(false); setLinkError('') }} className="btn-ghost flex-1" disabled={linkLoading}>
                     Cancelar
                   </button>
                   <button onClick={confirmLink} disabled={linkLoading} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 disabled:cursor-wait disabled:opacity-60">
