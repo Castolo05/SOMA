@@ -92,9 +92,10 @@ html[data-theme='dark'] .react-resizable-handle:active::after {
 }
 
 .psych-panel {
-  height: 100%;
-  min-height: 0;
-  overflow: hidden;
+  /* Allow panels to size based on their content */
+  height: auto;
+  min-height: auto;
+  overflow: visible;
 }
 
 .psych-panel .react-resizable-handle::after {

@@ -6,24 +6,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
-// Mapeo de animalitos para el avatar
-const ANIMAL_ICONS = {
-  Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat
-}
-
-// Componente para renderizar el avatar
-export function AvatarDisplay({ avatar, size = 28, className = "" }) {
-  if (!avatar) return <UserRound size={size} className={className} />
-  if (avatar.startsWith('data:image')) {
-    return <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
-  }
-  if (avatar.startsWith('icon:')) {
-    const iconName = avatar.split(':')[1]
-    const IconComp = ANIMAL_ICONS[iconName] || UserRound
-    return <IconComp size={size} className={className} />
-  }
-  return <UserRound size={size} className={className} />
-}
+import AvatarDisplay, { ANIMAL_ICONS } from '../../components/AvatarDisplay'
 
 export default function EditProfilePage() {
   usePageTitle('Editar Perfil')

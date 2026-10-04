@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { Home, BookOpen, User, Moon, Sun, LogOut } from 'lucide-react'
+import { Home, BookOpen, User, Moon, Sun } from 'lucide-react'
 import { preloadPatientData } from '../../lib/patientCache'
 import ThemeLogo from '../../components/ThemeLogo'
 import { applyTheme } from '../../lib/theme'
@@ -12,7 +12,7 @@ import HistoryPage from './HistoryPage'
 import PatientProfile from './PatientProfile'
 
 export default function PatientLayout() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('nexo_dark') === 'true')
@@ -155,11 +155,6 @@ export default function PatientLayout() {
     }
   }, [isBaseRoute, navigate])
 
-  const handleLogout = () => {
-    logout()
-    navigate('/login')
-  }
-
   const navItems = [
     { to: '/patient',         icon: <Home size={22} />,     label: 'Inicio' },
     { to: '/patient/history', icon: <BookOpen size={22} />, label: 'Historial' },
@@ -189,13 +184,6 @@ export default function PatientLayout() {
             ) : (
               <Moon size={18} className="transition-transform duration-300" />
             )}
-          </button>
-          <button
-            onClick={handleLogout}
-            className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-500 transition-colors"
-            aria-label="Cerrar sesión"
-          >
-            <LogOut size={18} />
           </button>
         </div>
       </header>

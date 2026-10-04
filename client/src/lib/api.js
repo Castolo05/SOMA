@@ -166,6 +166,7 @@ const api = {
           name: p.name,
           email: '', // protegido por RLS, no exponer
           role: p.role,
+          avatarUrl: p.avatar_url,
           inviteCode: p.invite_code,
           psychologistId: p.psychologist_id,
           totalEntries: (entries || []).length,

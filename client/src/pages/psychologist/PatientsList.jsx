@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api from '../../lib/api'
 import { formatDateShort } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
+import AvatarDisplay from '../../components/AvatarDisplay'
 import { ChevronRight, AlertTriangle, Search, Users, Wifi, SlidersHorizontal } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
@@ -101,12 +102,16 @@ export default function PatientsList() {
                 className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
               >
                 {/* Avatar */}
-                <div className={`w-11 h-11 rounded-xl flex items-center justify-center font-bold text-base shrink-0 ${
+                <div className={`w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden font-bold text-base shrink-0 ${
                   p.hasAlert
                     ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400'
                     : 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
                 }`}>
-                  {p.name.charAt(0).toUpperCase()}
+                  {p.avatarUrl ? (
+                    <AvatarDisplay avatar={p.avatarUrl} size={28} className="text-current" />
+                  ) : (
+                    p.name.charAt(0).toUpperCase()
+                  )}
                 </div>
 
                 {/* Info */}
