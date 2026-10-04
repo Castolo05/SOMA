@@ -37,7 +37,17 @@ export function AuthProvider({ children }) {
 
       const { data: created, error: insertError } = await supabase
         .from('profiles')
-        .insert({ id: authUser.id, name, role, invite_code: inviteCode })
+        .insert({
+          id: authUser.id,
+          name,
+          role,
+          invite_code: inviteCode,
+          first_name: meta.firstName || null,
+          last_name: meta.lastName || null,
+          birth_date: meta.birthDate || null,
+          phone: meta.phone || null,
+          specialization: meta.specialization || null,
+        })
         .select()
         .single()
 
@@ -57,6 +67,11 @@ export function AuthProvider({ children }) {
         name: profile.name,
         email: authUser.email,
         role: profile.role,
+        firstName: profile.first_name || null,
+        lastName: profile.last_name || null,
+        birthDate: profile.birth_date || null,
+        phone: profile.phone || null,
+        specialization: profile.specialization || null,
         inviteCode: profile.invite_code,
         psychologistId: profile.psychologist_id,
         psychologistStatus: profile.psychologist_status,
@@ -154,19 +169,33 @@ export function AuthProvider({ children }) {
   }
 
 
-  const register = async (name, email, password, role) => {
-    const normalizedRole = role === 'PSYCHOLOGIST' ? 'PATIENT' : role || 'PATIENT'
+  const register = async ({ name, email, password, role, firstName, lastName, birthDate, phone, specialization }) => {
+    const normalizedRole = role || 'PATIENT'
 
-    if (normalizedRole !== 'PATIENT') {
-      const err = new Error('La creación de cuentas de psicólogo aún no está disponible.')
+    if (!['PATIENT', 'PSYCHOLOGIST'].includes(normalizedRole)) {
+      const err = new Error('El tipo de cuenta seleccionado no es válido.')
       err.response = { data: { error: err.message } }
       throw err
+    }
+
+    if (
+      normalizedRole === 'PSYCHOLOGIST' &&
+      (!firstName?.trim() || !lastName?.trim() || !birthDate || !phone?.trim() || !specialization)
+    ) {
+      const err = new Error('Completá todos los datos profesionales requeridos.')
+      err.response = { data: { error: err.message } }
+      throw err
+    }
+
+    const metadata = { name, role: normalizedRole }
+    if (normalizedRole === 'PSYCHOLOGIST') {
+      Object.assign(metadata, { firstName, lastName, birthDate, phone, specialization })
     }
 
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name, role: normalizedRole } },
+      options: { data: metadata },
     })
     if (error) {
       const err = new Error(error.message)
@@ -190,7 +219,12 @@ export function AuthProvider({ children }) {
           id: data.user.id,
           name,
           email,
-          role,
+          role: normalizedRole,
+          firstName: firstName || null,
+          lastName: lastName || null,
+          birthDate: birthDate || null,
+          phone: phone || null,
+          specialization: specialization || null,
           inviteCode: null,
           psychologistId: null,
           avatar: null,
@@ -248,6 +282,7 @@ export function AuthProvider({ children }) {
     if (newData.name) updates.name = newData.name
     const avatarValue = newData.avatar ?? newData.avatar_url
     if (avatarValue !== undefined) updates.avatar_url = avatarValue
+    if (newData.phone !== undefined) updates.phone = newData.phone || null
     if (Object.keys(updates).length > 0) {
       const { error } = await supabase.from('profiles').update(updates).eq('id', user.id)
       if (error) throw error
@@ -258,6 +293,7 @@ export function AuthProvider({ children }) {
       ...(newData.name ? { name: newData.name } : {}),
       ...(newData.email ? { email: newData.email } : {}),
       ...(avatarValue !== undefined ? { avatar: avatarValue } : {}),
+      ...(newData.phone !== undefined ? { phone: newData.phone || null } : {}),
     }))
   }
 

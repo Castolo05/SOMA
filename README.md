@@ -34,6 +34,8 @@ Los datos del diario son personales. La lectura por parte de un profesional depe
 
 Los cambios de esquema y políticas de acceso de Supabase se mantienen en los archivos SQL de [`client/`](./client/). Las políticas de la base de datos deben conservar las restricciones de acceso por usuario y por vínculo.
 
+Para habilitar el registro de profesionales y guardar sus datos de perfil, ejecutá [`client/supabase_psychologist_registration_migration.sql`](./client/supabase_psychologist_registration_migration.sql) en el editor SQL de Supabase después de las migraciones existentes.
+
 ## Android
 
 El cliente incluye una versión Android basada en Capacitor. Además de las funciones disponibles en la aplicación web, puede programar recordatorios en el dispositivo para completar el diario.

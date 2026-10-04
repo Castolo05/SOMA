@@ -18,6 +18,7 @@ export default function PsychSettings() {
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(user?.name || '')
   const [editEmail, setEditEmail] = useState(user?.email || '')
+  const [editPhone, setEditPhone] = useState(user?.phone || '')
   const [editPassword, setEditPassword] = useState('')
   const [editAvatar, setEditAvatar] = useState(user?.avatar || '')
   const [profileSaving, setProfileSaving] = useState(false)
@@ -29,6 +30,7 @@ export default function PsychSettings() {
       await updateUser({
         name: editName,
         email: editEmail !== user?.email ? editEmail : undefined,
+        phone: editPhone,
         password: editPassword || undefined,
         avatar: editAvatar || null,
       })
@@ -52,6 +54,7 @@ export default function PsychSettings() {
   const cancelEdit = () => {
     setEditName(user?.name || '')
     setEditEmail(user?.email || '')
+    setEditPhone(user?.phone || '')
     setEditPassword('')
     setEditAvatar(user?.avatar || '')
     setIsEditing(false)
@@ -150,6 +153,17 @@ export default function PsychSettings() {
                     />
                   </div>
                   <div>
+                    <label htmlFor="psychologist-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de teléfono</label>
+                    <input
+                      id="psychologist-phone"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                      type="tel"
+                      autoComplete="tel"
+                      value={editPhone}
+                      onChange={e => setEditPhone(e.target.value)}
+                    />
+                  </div>
+                  <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nueva Contraseña (opcional)</label>
                     <input 
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white" 
@@ -185,6 +199,7 @@ export default function PsychSettings() {
                 <div>
                   <h3 className="font-medium text-gray-900 dark:text-white text-lg">{user?.name}</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">{user?.email}</p>
+                  {user?.phone && <p className="text-sm text-gray-500 dark:text-gray-400">{user.phone}</p>}
                 </div>
               </div>
             )}
