@@ -513,6 +513,15 @@ export default function PatientDetail() {
     load()
   }, [id])
 
+  useEffect(() => {
+    if (!loading) {
+      // Disparamos un resize después de que la carga finalice y las animaciones empiecen,
+      // para forzar a react-grid-layout a recalcular el ancho correcto de los paneles.
+      const timer = setTimeout(() => window.dispatchEvent(new Event('resize')), 150)
+      return () => clearTimeout(timer)
+    }
+  }, [loading])
+
   if (loading) return (
     <div className="animate-pulse space-y-4">
       <div className="h-24 bg-gray-100 dark:bg-gray-800 rounded-2xl" />
@@ -645,6 +654,7 @@ export default function PatientDetail() {
           cols={{ lg: 12, md: 8, sm: 1 }}
           compactType="vertical"
           useCSSTransforms={true}
+          measureBeforeMount={true}
           resizeHandles={['se', 'sw']}
         >
           {visible.includes('pre') && (
