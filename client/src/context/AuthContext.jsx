@@ -59,6 +59,7 @@ export function AuthProvider({ children }) {
         role: profile.role,
         inviteCode: profile.invite_code,
         psychologistId: profile.psychologist_id,
+        psychologistStatus: profile.psychologist_status,
         avatar: profile.avatar_url || null,
       }
       setUser(userData)
@@ -275,15 +276,34 @@ export function AuthProvider({ children }) {
       throw err
     }
 
+    // Verificar estado actual
+    const { data: currProfile } = await supabase
+      .from('profiles')
+      .select('psychologist_id, psychologist_status')
+      .eq('id', user.id)
+      .single()
+
+    if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'ACCEPTED') {
+      const err = new Error('Ya estás vinculado con este psicólogo.')
+      err.response = { data: { error: 'Ya estás vinculado con este psicólogo.' } }
+      throw err
+    }
+
+    if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'PENDING') {
+      const err = new Error('Tu solicitud ya está pendiente de aprobación.')
+      err.response = { data: { error: 'Tu solicitud ya está pendiente de aprobación.' } }
+      throw err
+    }
+
     const { error: updateErr } = await supabase
       .from('profiles')
-      .update({ psychologist_id: psych.id })
+      .update({ psychologist_id: psych.id, psychologist_status: 'PENDING' })
       .eq('id', user.id)
 
     if (updateErr) throw updateErr
 
-    setUser(prev => ({ ...prev, psychologistId: psych.id }))
-    return { message: `¡Vinculado con ${psych.name}!` }
+    setUser(prev => ({ ...prev, psychologistId: psych.id, psychologistStatus: 'PENDING' }))
+    return { message: `Solicitud enviada a ${psych.name}. Espera su aprobación.` }
   }
 
   if (loading) return <InitialLoadingScreen />

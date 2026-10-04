@@ -3,7 +3,10 @@ import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeLogo from '../../components/ThemeLogo'
 import { applyTheme } from '../../lib/theme'
-import { LayoutDashboard, Users, LogOut, ChevronRight, Moon, Sun, ChevronLeft, Menu, X } from 'lucide-react'
+import {
+  LayoutDashboard, Users, LogOut, Moon, Sun, Settings, UserPlus,
+  Menu, X, ChevronLeft, ChevronRight,
+} from 'lucide-react'
 
 export default function PsychLayout() {
   const { user, logout } = useAuth()
@@ -11,217 +14,171 @@ export default function PsychLayout() {
   const location = useLocation()
   const [darkMode, setDarkMode] = useState(() => localStorage.getItem('nexo_dark_psych') === 'true')
   const [collapsed, setCollapsed] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const isFirstRender = useRef(true)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const isFirst = useRef(true)
 
   useEffect(() => {
-    if (isFirstRender.current) {
-      isFirstRender.current = false
-      applyTheme(darkMode, false, 'nexo_dark_psych')
-      return
-    }
+    if (isFirst.current) { isFirst.current = false; applyTheme(darkMode, false, 'nexo_dark_psych'); return }
     applyTheme(darkMode, true, 'nexo_dark_psych')
   }, [darkMode])
 
-  // Cerrar menú móvil al navegar
-  useEffect(() => { setMobileMenuOpen(false) }, [location.pathname])
+  useEffect(() => { setMobileOpen(false) }, [location.pathname])
 
   const navItems = [
-    { to: '/psych', icon: <LayoutDashboard size={18} />, label: 'Dashboard' },
-    { to: '/psych/patients', icon: <Users size={18} />, label: 'Mis Pacientes' },
+    { to: '/psych/patients', icon: Users,           label: 'Pacientes'  },
+    { to: '/psych/requests', icon: UserPlus,        label: 'Solicitudes' },
   ]
 
-  const handleLogout = () => { logout(); navigate('/login') }
+  const isActive = (to) =>
+    to === '/psych'
+      ? location.pathname === to
+      : location.pathname === to || location.pathname.startsWith(`${to}/`)
 
-  const SidebarContent = ({ isMobile = false }) => (
-    <>
-      {/* Logo + toggle */}
-      <div className="flex items-center gap-2 px-2 mb-8">
-        <ThemeLogo alt="SOMA" className="w-9 h-9 rounded-xl shadow-sm shrink-0" />
-        {(!collapsed || isMobile) && (
-          <span className="font-bold text-gray-900 dark:text-white text-lg">SOMA</span>
+  const NavLink = ({ to, icon: Icon, label, mobile = false }) => {
+    const active = isActive(to)
+    return (
+      <Link
+        to={to}
+        title={collapsed && !mobile ? label : undefined}
+        className={`
+          flex items-center gap-3 rounded-xl transition-all duration-200 font-medium text-sm
+          ${collapsed && !mobile ? 'px-0 py-3 justify-center' : 'px-3 py-2.5 min-h-11'}
+          ${active
+            ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}
+        `}
+      >
+        <Icon size={18} className="shrink-0" />
+        {(!collapsed || mobile) && <span className="flex-1 truncate">{label}</span>}
+      </Link>
+    )
+  }
+
+  const SidebarInner = ({ mobile = false }) => (
+    <div className="flex flex-col h-full">
+      {/* Logo */}
+      <div className={`flex items-center mb-8 ${collapsed && !mobile ? 'justify-center px-0' : 'gap-3 px-1'}`}>
+        {(!collapsed || mobile) && (
+          <>
+            <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-lg shrink-0" />
+            <span className="font-bold text-gray-900 dark:text-white text-lg">SOMA</span>
+          </>
         )}
-        {!isMobile && (
+        {!mobile && (
           <button
             onClick={() => setCollapsed(c => !c)}
-            className="ml-auto min-h-11 min-w-11 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-sage-50 dark:hover:bg-gray-800 transition-colors"
-            title={collapsed ? 'Expandir sidebar' : 'Colapsar sidebar'}
+            className={`p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ${collapsed ? '' : 'ml-auto'}`}
           >
             {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
           </button>
         )}
-        {isMobile && (
-          <button
-            onClick={() => setMobileMenuOpen(false)}
-            className="ml-auto min-h-11 min-w-11 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600"
-          >
+        {mobile && (
+          <button onClick={() => setMobileOpen(false)} className="ml-auto p-2 rounded-lg text-gray-400 hover:text-gray-600">
             <X size={18} />
           </button>
         )}
       </div>
 
-      {/* Nav */}
+      {/* Nav items */}
       <nav className="flex-1 space-y-1">
-        {navItems.map(({ to, icon, label }) => {
-          const active = to === '/psych'
-            ? location.pathname === to
-            : location.pathname === to || location.pathname.startsWith(`${to}/`)
-          return (
-            <Link
-              key={to}
-              to={to}
-              title={collapsed && !isMobile ? label : undefined}
-              className={`flex items-center gap-3 px-3 py-2.5 min-h-11 rounded-xl transition-all duration-200 text-sm font-medium focus-visible:ring-2 focus-visible:ring-indigo-400 ${
-                active
-                  ? 'bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400'
-                  : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200'
-              }`}
-            >
-              <span className="shrink-0">{icon}</span>
-              {(!collapsed || isMobile) && (
-                <>
-                  <span className="flex-1">{label}</span>
-                  {active && <ChevronRight size={14} className="text-indigo-400" />}
-                </>
-              )}
-            </Link>
-          )
-        })}
+        {navItems.map(({ to, icon, label }) => (
+          <NavLink key={to} to={to} icon={icon} label={label} mobile={mobile} />
+        ))}
       </nav>
 
-      {/* Footer sidebar */}
-      <div className="border-t border-gray-100 dark:border-gray-800 pt-4 space-y-2">
-        {/* Código de invitación */}
-        {user?.inviteCode && (!collapsed || isMobile) && (
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl px-3 py-2.5">
-            <div className="text-xs text-indigo-400 font-medium">Código de invitación</div>
-            <div className="font-mono font-bold text-indigo-700 dark:text-indigo-300 tracking-widest">{user.inviteCode}</div>
-          </div>
-        )}
-        {user?.inviteCode && collapsed && !isMobile && (
-          <div
-            title={`Código: ${user.inviteCode}`}
-            className="bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-2 text-center font-mono text-xs font-bold text-indigo-700 dark:text-indigo-400"
-          >
-            ID
+      {/* Footer */}
+      <div className={`border-t border-gray-200 dark:border-gray-700 pt-4 space-y-1 ${collapsed && !mobile ? 'items-center' : ''}`}>
+        {/* Invite code */}
+        {user?.inviteCode && (!collapsed || mobile) && (
+          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl px-3 py-2.5 mb-3">
+            <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-0.5">Código de invitación</div>
+            <div className="font-mono font-bold text-indigo-700 dark:text-indigo-300 tracking-widest text-sm">{user.inviteCode}</div>
           </div>
         )}
 
-        {/* Usuario */}
-        {(!collapsed || isMobile) && (
-          <div className="px-1">
+        {/* User info */}
+        {(!collapsed || mobile) && (
+          <div className="px-1 py-1 mb-1">
             <div className="text-sm font-semibold text-gray-800 dark:text-gray-200 truncate">{user?.name}</div>
             <div className="text-xs text-gray-400 truncate">{user?.email}</div>
           </div>
         )}
 
-        {/* Modo oscuro */}
-        <button
-          onClick={() => setDarkMode(d => !d)}
-          className="w-full flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-300"
-          title={darkMode ? 'Modo claro' : 'Modo oscuro'}
-          aria-label={darkMode ? 'Modo claro' : 'Modo oscuro'}
+        <Link
+          to="/psych/settings"
+          title={collapsed && !mobile ? 'Configuración' : undefined}
+          className={`w-full flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-400 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200
+            ${collapsed && !mobile ? 'justify-center py-3 px-0' : 'px-3 py-2'}
+          `}
         >
-          {darkMode ? (
-            <Sun size={16} className="text-amber-400 transition-transform duration-300 shrink-0" />
-          ) : (
-            <Moon size={16} className="transition-transform duration-300 shrink-0" />
-          )}
-          {(!collapsed || isMobile) && (darkMode ? 'Modo claro' : 'Modo oscuro')}
-        </button>
+          <Settings size={16} className="shrink-0" />
+          {(!collapsed || mobile) && 'Configuración'}
+        </Link>
 
-        {/* Cerrar sesión */}
         <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500 px-3 py-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-          title="Cerrar sesión"
+          onClick={() => { logout(); navigate('/login') }}
+          className={`w-full flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors
+            ${collapsed && !mobile ? 'justify-center py-3 px-0' : 'px-3 py-2'}
+          `}
         >
-          <LogOut size={16} />
-          {(!collapsed || isMobile) && 'Cerrar sesión'}
+          <LogOut size={16} className="shrink-0" />
+          {(!collapsed || mobile) && 'Cerrar sesión'}
         </button>
       </div>
-    </>
+    </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] flex transition-colors duration-300">
-      {/* ── Sidebar desktop ── */}
-      <aside
-        className={`bg-[#f9e2da] dark:bg-[var(--theme-surface)] border-r border-sage-100 dark:border-[var(--theme-border)] flex-col py-6 px-4 shrink-0 hidden lg:flex transition-all duration-300 sticky top-0 h-screen overflow-y-auto ${
-          collapsed ? 'w-[72px]' : 'w-64'
-        }`}
-      >
-        <SidebarContent />
+    <div className="min-h-screen bg-gray-50 dark:bg-[var(--theme-canvas)] flex transition-colors duration-300">
+      {/* Desktop sidebar */}
+      <aside className={`
+        hidden lg:flex flex-col bg-white dark:bg-[var(--theme-surface)]
+        border-r border-gray-200 dark:border-[var(--theme-border)]
+        py-6 px-4 shrink-0 sticky top-0 h-screen overflow-y-auto transition-all duration-300
+        ${collapsed ? 'w-[72px]' : 'w-64'}
+      `}>
+        <SidebarInner />
       </aside>
 
-      {/* ── Drawer móvil (overlay) ── */}
-      {mobileMenuOpen && (
+      {/* Mobile drawer */}
+      {mobileOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
-          {/* Backdrop */}
-          <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => setMobileMenuOpen(false)}
-          />
-          {/* Panel */}
-          <aside className="relative w-[min(19rem,88vw)] bg-white dark:bg-gray-900 h-full flex flex-col py-6 px-4 shadow-2xl animate-slide-up">
-            <SidebarContent isMobile />
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileOpen(false)} />
+          <aside className="relative w-72 bg-white dark:bg-gray-900 h-full flex flex-col py-6 px-4 shadow-2xl animate-slide-up">
+            <SidebarInner mobile />
           </aside>
         </div>
       )}
 
-      {/* Contenido principal */}
-      <main className="flex-1 overflow-auto">
-        {/* Top bar móvil */}
-        <header className="lg:hidden bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-3 sm:px-4 py-3 flex items-center justify-between sticky top-0 z-40">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setMobileMenuOpen(true)}
-              className="min-h-11 min-w-11 flex items-center justify-center rounded-lg text-gray-500 hover:bg-sage-50 dark:hover:bg-gray-800 transition-colors mr-1"
-              aria-label="Abrir menú"
-              aria-expanded={mobileMenuOpen}
-            >
+      {/* Main content */}
+      <main className="flex-1 min-w-0">
+        {/* Mobile topbar */}
+        <header className="lg:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+          <div className="flex items-center gap-3">
+            <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
               <Menu size={20} />
             </button>
-            <ThemeLogo alt="SOMA" className="w-7 h-7 rounded-lg shadow-sm" />
-            <span className="font-bold text-gray-800 dark:text-white">SOMA</span>
+            <ThemeLogo alt="SOMA" className="w-7 h-7 rounded-lg" />
+            <span className="font-bold text-gray-900 dark:text-white">SOMA</span>
           </div>
-          <div className="flex gap-1 items-center">
-            {navItems.map(({ to, icon }) => (
-              <Link
-                key={to}
-                to={to}
-                aria-current={location.pathname === to ? 'page' : undefined}
-                className={`p-2 rounded-lg transition-colors min-w-11 min-h-11 flex items-center justify-center ${
-                  location.pathname === to
-                    ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30'
-                    : 'text-gray-400 dark:text-gray-500'
-                }`}
-              >
-                {icon}
+          <div className="flex gap-1">
+            {navItems.map(({ to, icon: Icon }) => (
+              <Link key={to} to={to} className={`p-2 rounded-lg min-w-10 min-h-10 flex items-center justify-center transition-colors ${isActive(to) ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-gray-400'}`}>
+                <Icon size={18} />
               </Link>
             ))}
-            <button
-              onClick={() => setDarkMode(d => !d)}
-              className="p-2 text-gray-400 dark:text-gray-500 hover:bg-sage-50 dark:hover:bg-gray-800 rounded-lg min-w-11 min-h-11 flex items-center justify-center transition-colors duration-300"
-              aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
-            >
-              {darkMode ? (
-                <Sun size={18} className="text-amber-400 transition-transform duration-300" />
-              ) : (
-                <Moon size={18} className="transition-transform duration-300" />
-              )}
-            </button>
-            <button
-              onClick={handleLogout}
-              className="p-2 text-gray-400 hover:text-red-500 min-w-11 min-h-11 flex items-center justify-center"
-            >
+            <Link to="/psych/settings" className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 min-w-10 min-h-10 flex items-center justify-center">
+              <Settings size={18} />
+            </Link>
+            <button onClick={() => { logout(); navigate('/login') }} className="p-2 rounded-lg text-gray-400 hover:text-red-500 min-w-10 min-h-10 flex items-center justify-center">
               <LogOut size={18} />
             </button>
           </div>
         </header>
 
+        {/* Page content */}
         <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
-          <Outlet />
+          <Outlet context={{ darkMode, setDarkMode }} />
         </div>
       </main>
     </div>

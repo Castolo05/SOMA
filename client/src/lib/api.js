@@ -128,6 +128,7 @@ const api = {
         .from('profiles')
         .select('*')
         .eq('psychologist_id', user.id)
+        .eq('psychologist_status', 'ACCEPTED')
         .eq('role', 'PATIENT')
       if (error) return fail(error.message)
 
@@ -162,6 +163,20 @@ const api = {
         }
       }))
       return ok({ patients: enriched })
+    }
+
+    // ── GET /patients/requests ────────────────────────────
+    if (url === '/patients/requests') {
+      if (!user || user.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+      const { data: requests, error } = await supabase
+        .from('profiles')
+        .select('id, name, email, updated_at')
+        .eq('psychologist_id', user.id)
+        .eq('psychologist_status', 'PENDING')
+        .eq('role', 'PATIENT')
+        .order('updated_at', { ascending: false })
+      if (error) return fail(error.message)
+      return ok({ requests: requests.map(r => ({ id: r.id, name: r.name, email: r.email, date: r.updated_at })) })
     }
 
     // ── GET /patients/:id/insights ────────────────────────
@@ -232,6 +247,18 @@ const api = {
       return fail('Use AuthContext para registro')
     }
 
+    // ── POST /auth/link/preview ───────────────────────────
+    if (url === '/auth/link/preview') {
+      const { data: psych, error } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .eq('invite_code', body.inviteCode?.toUpperCase())
+        .eq('role', 'PSYCHOLOGIST')
+        .single()
+      if (error || !psych) return fail('Código de invitación inválido.')
+      return ok({ psychologist: psych })
+    }
+
     // ── POST /auth/link ───────────────────────────────────
     if (url === '/auth/link') {
       const { data: psych, error } = await supabase
@@ -241,12 +268,26 @@ const api = {
         .eq('role', 'PSYCHOLOGIST')
         .single()
       if (error || !psych) return fail('Código de invitación inválido.')
+
+      const { data: currProfile } = await supabase
+        .from('profiles')
+        .select('psychologist_id, psychologist_status')
+        .eq('id', user?.id)
+        .single()
+      
+      if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'ACCEPTED') {
+        return fail('Ya estás vinculado con este psicólogo.')
+      }
+      if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'PENDING') {
+        return fail('Tu solicitud ya está pendiente de aprobación.')
+      }
+
       const { error: updateErr } = await supabase
         .from('profiles')
-        .update({ psychologist_id: psych.id })
+        .update({ psychologist_id: psych.id, psychologist_status: 'PENDING' })
         .eq('id', user?.id)
       if (updateErr) return fail(updateErr.message)
-      return ok({ user: { ...user, psychologistId: psych.id }, message: `¡Vinculado con ${psych.name}!` })
+      return ok({ user: { ...user, psychologistId: psych.id, psychologistStatus: 'PENDING' }, message: `Solicitud enviada a ${psych.name}.` })
     }
 
     // ── POST /journal ─────────────────────────────────────
@@ -362,6 +403,30 @@ const api = {
         .single()
       if (error) return fail(error.message)
       return ok({ goal: normalizeGoal(data) })
+    }
+
+    // ── POST /patients/requests/:id/accept ────────────────
+    if (url.startsWith('/patients/requests/') && url.endsWith('/accept')) {
+      const patientId = url.split('/patients/requests/')[1].replace('/accept', '')
+      const { error } = await supabase
+        .from('profiles')
+        .update({ psychologist_status: 'ACCEPTED' })
+        .eq('id', patientId)
+        .eq('psychologist_id', user?.id)
+      if (error) return fail(error.message)
+      return ok({ success: true })
+    }
+
+    // ── POST /patients/requests/:id/reject ────────────────
+    if (url.startsWith('/patients/requests/') && url.endsWith('/reject')) {
+      const patientId = url.split('/patients/requests/')[1].replace('/reject', '')
+      const { error } = await supabase
+        .from('profiles')
+        .update({ psychologist_id: null, psychologist_status: null })
+        .eq('id', patientId)
+        .eq('psychologist_id', user?.id)
+      if (error) return fail(error.message)
+      return ok({ success: true })
     }
 
     return fail(`Ruta no encontrada: POST ${url}`, 404)
@@ -818,5 +883,21 @@ function computeInsights(entries) {
   const habitCount = {}
   last14.forEach(e => (e.completedHabits || []).forEach(h => { habitCount[h] = (habitCount[h] || 0) + 1 }))
   const topHabits = Object.entries(habitCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([habitId, count]) => ({ habitId, count }))
-  return { avgThisWeek, avgLastWeek, trend, topHabits, entriesThisWeek: thisWeek.length }
+  // Racha de días consecutivos
+  let streakDays = 0
+  if (entries.length > 0) {
+    const sorted = [...entries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    const todayKey = sorted[0]?.entryDate
+    let prevKey = todayKey
+    for (const e of sorted) {
+      if (e.entryDate === prevKey) { streakDays++; continue }
+      const diff = (new Date(prevKey) - new Date(e.entryDate)) / 86400000
+      if (diff <= 1) { streakDays++; prevKey = e.entryDate }
+      else break
+    }
+  }
+  const totalEntries = entries.length
+  const bestMood = entries.length ? Math.max(...entries.map(e => e.moodScore)) : null
+  const worstMood = entries.length ? Math.min(...entries.map(e => e.moodScore)) : null
+  return { avgThisWeek, avgLastWeek, trend, topHabits, entriesThisWeek: thisWeek.length, streakDays, totalEntries, bestMood, worstMood }
 }

@@ -87,6 +87,25 @@ router.get('/me', authenticate, async (req, res) => {
   res.json({ user: req.user })
 })
 
+// ── POST /api/auth/link/preview ───────────────────────────────
+router.post('/link/preview', authenticate, async (req, res) => {
+  try {
+    const { inviteCode } = req.body
+    if (!inviteCode) return res.status(400).json({ error: 'Código requerido.' })
+
+    const psychologist = await prisma.user.findFirst({
+      where: { inviteCode: inviteCode.trim().toUpperCase(), role: 'PSYCHOLOGIST' },
+      select: { id: true, name: true, email: true }
+    })
+
+    if (!psychologist) return res.status(404).json({ error: 'Código de invitación no encontrado.' })
+    res.json({ psychologist })
+  } catch (err) {
+    console.error('Error en link/preview:', err)
+    res.status(500).json({ error: 'Error al verificar código.' })
+  }
+})
+
 // ── POST /api/auth/link ───────────────────────────────────
 // Paciente ingresa un código para vincularse con su psicólogo
 router.post('/link', authenticate, async (req, res) => {
@@ -108,17 +127,21 @@ router.post('/link', authenticate, async (req, res) => {
       return res.status(404).json({ error: 'Código de invitación no encontrado.' })
     }
 
-    if (req.user.psychologistId === psychologist.id) {
+    if (req.user.psychologistId === psychologist.id && req.user.psychologistStatus === 'ACCEPTED') {
       return res.status(409).json({ error: 'Ya estás vinculado con este psicólogo.' })
+    }
+
+    if (req.user.psychologistId === psychologist.id && req.user.psychologistStatus === 'PENDING') {
+      return res.status(409).json({ error: 'Tu solicitud ya está pendiente de aprobación.' })
     }
 
     const updatedUser = await prisma.user.update({
       where: { id: req.user.id },
-      data: { psychologistId: psychologist.id },
-      select: { id: true, name: true, email: true, role: true, psychologistId: true },
+      data: { psychologistId: psychologist.id, psychologistStatus: 'PENDING' },
+      select: { id: true, name: true, email: true, role: true, psychologistId: true, psychologistStatus: true },
     })
 
-    res.json({ message: `Vinculado exitosamente con ${psychologist.name}`, user: updatedUser })
+    res.json({ message: `Solicitud enviada a ${psychologist.name}`, user: updatedUser })
   } catch (err) {
     console.error('Error en link:', err)
     res.status(500).json({ error: 'Error al vincular.' })

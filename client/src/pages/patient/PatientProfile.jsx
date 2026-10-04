@@ -38,6 +38,8 @@ export default function PatientProfile() {
   const [linkLoading, setLinkLoading] = useState(false)
   const [linkMsg, setLinkMsg] = useState('')
   const [linkError, setLinkError] = useState('')
+  const [previewPsych, setPreviewPsych] = useState(null)
+  const [showPreviewModal, setShowPreviewModal] = useState(false)
 
   // Hábitos
   const initialCache = getPatientCache()
@@ -61,10 +63,24 @@ export default function PatientProfile() {
     if (!initialCache.entries) api.get('/journal').then(({ data }) => { setEntries(data.entries); updatePatientCache('entries', data.entries) }).catch(() => {})
   }, [])
 
-  const handleLink = async (e) => {
+  const handlePreviewLink = async (e) => {
     e.preventDefault()
     setLinkMsg('')
     setLinkError('')
+    setLinkLoading(true)
+    try {
+      const { data } = await api.post('/auth/link/preview', { inviteCode: code })
+      setPreviewPsych(data.psychologist)
+      setShowPreviewModal(true)
+    } catch (err) {
+      setLinkError(err.response?.data?.error || err.message || 'Error al buscar psicólogo.')
+    } finally {
+      setLinkLoading(false)
+    }
+  }
+
+  const confirmLink = async () => {
+    setShowPreviewModal(false)
     setLinkLoading(true)
     try {
       const result = await linkPsychologist(code)
@@ -191,25 +207,29 @@ export default function PatientProfile() {
         <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Mi Perfil</h1>
       </div>
 
-      {/* Info del usuario o Edición */}
-      <div 
-        onClick={openProfileEditor}
-        className="card flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-sage-300 dark:hover:border-sage-700 transition-all group"
-      >
-        <div className="w-16 h-16 bg-sage-100 dark:bg-sage-900/30 rounded-full flex items-center justify-center overflow-hidden border border-sage-200 dark:border-sage-800">
-          <AvatarDisplay avatar={user?.avatar} size={32} className="text-sage-500" />
-        </div>
-        <div className="flex-1">
-          <div className="font-bold text-gray-800 dark:text-white text-lg group-hover:text-sage-600 transition-colors">{user?.name}</div>
-          <div className="text-sm text-gray-400">{user?.email}</div>
-          <div className="text-xs text-sage-500 font-semibold mt-0.5">Toca para editar perfil</div>
-        </div>
-      </div>
+      {/* Grid responsivo: izquierda = usuario + hábitos | derecha = configuraciones */}
+      <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-5 items-start">
 
-      <ReminderSettings entries={entries} />
+        {/* ── Columna izquierda: usuario + hábitos ── */}
+        <div className="space-y-5 min-w-0">
 
-      {/* Gestión de hábitos */}
-      <div className="card space-y-3">
+          {/* Info del usuario */}
+          <div 
+            onClick={openProfileEditor}
+            className="card flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-sage-300 dark:hover:border-sage-700 transition-all group"
+          >
+            <div className="w-16 h-16 bg-sage-100 dark:bg-sage-900/30 rounded-full flex items-center justify-center overflow-hidden border border-sage-200 dark:border-sage-800">
+              <AvatarDisplay avatar={user?.avatar} size={32} className="text-sage-500" />
+            </div>
+            <div className="flex-1">
+              <div className="font-bold text-gray-800 dark:text-white text-lg group-hover:text-sage-600 transition-colors">{user?.name}</div>
+              <div className="text-sm text-gray-400">{user?.email}</div>
+              <div className="text-xs text-sage-500 font-semibold mt-0.5">Toca para editar perfil</div>
+            </div>
+          </div>
+
+          {/* Gestión de hábitos */}
+          <div className="card space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold text-gray-700 dark:text-gray-200">Mis hábitos diarios</h2>
           <button
@@ -359,50 +379,98 @@ export default function PatientProfile() {
         </div>
       </div>
 
-      {/* Vinculación con psicólogo */}
-      <div className="card">
-        <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
-          <Link2 size={18} /> Vinculación con psicólogo
-        </h2>
-        {user?.psychologistId ? (
-          <div className="bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
-            <CheckCircle2 size={18} className="text-sage-500" /> Ya estás vinculado con tu psicólogo
-          </div>
-        ) : (
-          <>
-            <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2 mb-3">
-              <AlertCircle size={18} className="shrink-0" /> No tienes psicólogo vinculado
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-              Ingresa el código que te proporcionó tu psicólogo para vincular tus cuentas.
-            </p>
-            <form onSubmit={handleLink} className="flex gap-2">
-              <input
-                type="text"
-                className="input flex-1 uppercase tracking-widest font-mono text-center"
-                placeholder="Ej: A1B2C3D4"
-                value={code}
-                onChange={(e) => setCode(e.target.value.toUpperCase())}
-                maxLength={8}
-              />
-              <button type="submit" className="btn-patient px-5 shrink-0" disabled={linkLoading || !code}>
-                {linkLoading ? '...' : 'Vincular'}
-              </button>
-            </form>
-            {linkMsg && <p className="text-green-600 dark:text-green-400 text-sm mt-2">{linkMsg}</p>}
-            {linkError && <p className="text-red-500 text-sm mt-2">{linkError}</p>}
-          </>
-        )}
-      </div>
+      </div>{/* ── Fin columna izquierda ── */}
 
-      {/* Cerrar sesión */}
-      <button
-        onClick={() => { logout(); navigate('/login') }}
-        className="w-full flex items-center justify-center gap-2 text-red-500 hover:text-red-700 font-bold py-3.5 rounded-[20px] border-2 border-red-100 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
-      >
-        <LogOut size={18} />
-        Cerrar sesión
-      </button>
+        {/* ── Columna derecha: recordatorios + vinculación + logout ── */}
+        <div className="space-y-5 md:w-72 lg:w-80 shrink-0">
+
+          <ReminderSettings entries={entries} />
+
+          {/* Vinculación con psicólogo */}
+          <div className="card">
+            <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
+              <Link2 size={18} /> Vinculación con psicólogo
+            </h2>
+            {user?.psychologistId && user?.psychologistStatus === 'ACCEPTED' ? (
+              <div className="bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+                <CheckCircle2 size={18} className="text-sage-500" /> Ya estás vinculado con tu psicólogo
+              </div>
+            ) : user?.psychologistId && user?.psychologistStatus === 'PENDING' ? (
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+                <AlertCircle size={18} className="text-blue-500" /> Solicitud pendiente de aprobación
+              </div>
+            ) : (
+              <>
+                <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2 mb-3">
+                  <AlertCircle size={18} className="shrink-0" /> No tienes psicólogo vinculado
+                </div>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
+                  Ingresa el código que te proporcionó tu psicólogo para vincular tus cuentas.
+                </p>
+                <form onSubmit={handlePreviewLink} className="flex gap-2">
+                  <input
+                    type="text"
+                    className="input flex-1 uppercase tracking-widest font-mono text-center"
+                    placeholder="Ej: A1B2C3D4"
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.toUpperCase())}
+                    maxLength={8}
+                  />
+                  <button type="submit" className="btn-patient px-5 shrink-0" disabled={linkLoading || !code}>
+                    {linkLoading ? '...' : 'Vincular'}
+                  </button>
+                </form>
+                {linkMsg && <p className="text-green-600 dark:text-green-400 text-sm mt-2">{linkMsg}</p>}
+                {linkError && <p className="text-red-500 text-sm mt-2">{linkError}</p>}
+              </>
+            )}
+          </div>
+
+          {/* Cerrar sesión */}
+          <button
+            onClick={() => { logout(); navigate('/login') }}
+            className="w-full flex items-center justify-center gap-2 text-red-500 hover:text-red-700 font-bold py-3.5 rounded-[20px] border-2 border-red-100 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
+          >
+            <LogOut size={18} />
+            Cerrar sesión
+          </button>
+        </div>{/* ── Fin columna derecha ── */}
+
+      </div>{/* ── Fin grid ── */}
+
+      {/* Modal de previsualización de vínculo */}
+      {showPreviewModal && previewPsych && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white dark:bg-[var(--theme-surface)] rounded-3xl p-6 max-w-sm w-full shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">Confirmar vinculación</h3>
+            
+            <div className="flex flex-col items-center gap-3 mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
+              <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center border border-indigo-200 dark:border-indigo-800 overflow-hidden">
+                <AvatarDisplay avatar={previewPsych.avatar_url} size={40} className="text-indigo-500" />
+              </div>
+              <div className="text-center">
+                <p className="font-bold text-gray-900 dark:text-white text-lg">{previewPsych.name}</p>
+                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-1">Psicólogo/a</p>
+              </div>
+            </div>
+
+            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl mb-6 border border-amber-200 dark:border-amber-800">
+              <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
+                Al confirmar, autorizas a este profesional a ver tu estado de ánimo, tus hábitos y otra información clínica registrada en SOMA.
+              </p>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setShowPreviewModal(false)} className="btn-ghost flex-1">
+                Cancelar
+              </button>
+              <button onClick={confirmLink} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                Confirmar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

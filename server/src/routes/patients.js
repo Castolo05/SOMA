@@ -9,7 +9,7 @@ router.use(authenticate, requirePsychologist)
 router.get('/', async (req, res) => {
   try {
     const patients = await prisma.user.findMany({
-      where: { psychologistId: req.user.id, role: 'PATIENT' },
+      where: { psychologistId: req.user.id, psychologistStatus: 'ACCEPTED', role: 'PATIENT' },
       select: { id: true, name: true, email: true, createdAt: true },
       orderBy: { name: 'asc' },
     })
@@ -56,12 +56,55 @@ router.get('/', async (req, res) => {
   }
 })
 
+// ── GET /api/patients/requests ────────────────────────────
+router.get('/requests', async (req, res) => {
+  try {
+    const requests = await prisma.user.findMany({
+      where: { psychologistId: req.user.id, psychologistStatus: 'PENDING', role: 'PATIENT' },
+      select: { id: true, name: true, email: true, updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
+    })
+    res.json({ requests })
+  } catch (err) {
+    console.error('Error GET /patients/requests:', err)
+    res.status(500).json({ error: 'Error al obtener solicitudes.' })
+  }
+})
+
+// ── POST /api/patients/requests/:id/accept ────────────────
+router.post('/requests/:id/accept', async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.params.id, psychologistId: req.user.id, psychologistStatus: 'PENDING' },
+      data: { psychologistStatus: 'ACCEPTED' },
+    })
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Error POST /requests/:id/accept:', err)
+    res.status(500).json({ error: 'Error al aceptar solicitud.' })
+  }
+})
+
+// ── POST /api/patients/requests/:id/reject ────────────────
+router.post('/requests/:id/reject', async (req, res) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.params.id, psychologistId: req.user.id, psychologistStatus: 'PENDING' },
+      data: { psychologistId: null, psychologistStatus: null },
+    })
+    res.json({ success: true })
+  } catch (err) {
+    console.error('Error POST /requests/:id/reject:', err)
+    res.status(500).json({ error: 'Error al rechazar solicitud.' })
+  }
+})
+
 // ── GET /api/patients/:id/insights ───────────────────────
 // Resumen clínico express para la ficha pre-sesión
 router.get('/:id/insights', async (req, res) => {
   try {
     const patient = await prisma.user.findFirst({
-      where: { id: req.params.id, psychologistId: req.user.id, role: 'PATIENT' },
+      where: { id: req.params.id, psychologistId: req.user.id, psychologistStatus: 'ACCEPTED', role: 'PATIENT' },
     })
     if (!patient) return res.status(403).json({ error: 'Paciente no encontrado.' })
 

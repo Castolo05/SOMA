@@ -16,9 +16,10 @@ model User {
   passwordHash String
   role         String  // "PATIENT" | "PSYCHOLOGIST"
 
-  inviteCode     String? @unique
-  psychologistId String?
-  psychologist   User?   @relation("PatientPsychologist", fields: [psychologistId], references: [id])
+  inviteCode         String? @unique
+  psychologistId     String?
+  psychologistStatus String? // "PENDING", "ACCEPTED"
+  psychologist       User?   @relation("PatientPsychologist", fields: [psychologistId], references: [id])
   patients       User[]  @relation("PatientPsychologist")
 
   journalEntries JournalEntry[]

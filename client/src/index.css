@@ -7,6 +7,7 @@
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
   background-image: none !important;
+  cursor: se-resize;
 }
 
 .react-grid-item:hover .react-resizable-handle {
@@ -23,7 +24,42 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  background-color: #e5e7eb;
+  border: 2px solid #d1d5db;
+  transition: all 0.2s ease;
+}
+
+.react-resizable-handle:hover::after,
+.react-resizable-handle:active::after {
+  background-color: #6366f1; /* indigo-500 */
+  border-color: #4f46e5; /* indigo-600 */
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.react-grid-item.react-draggable-dragging {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  z-index: 100 !important;
+  opacity: 0.95 !important;
+  transition: none !important; /* Elimina la latencia de seguimiento del mouse */
+}
+
+.react-grid-item.react-grid-placeholder {
+  opacity: 0.2 !important;
+  border-radius: 1rem;
+  background: #6366f1 !important; /* Indigo 500 */
+  transition-duration: 100ms;
+}
+
+html[data-theme='dark'] .react-resizable-handle::after {
+  background-color: #374151;
+  border-color: #4b5563;
+}
+
+html[data-theme='dark'] .react-resizable-handle:hover::after,
+html[data-theme='dark'] .react-resizable-handle:active::after {
+  background-color: #818cf8; /* indigo-400 */
+  border-color: #6366f1;
 }
 
 .react-resizable-handle-se {
