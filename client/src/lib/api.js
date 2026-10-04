@@ -908,9 +908,14 @@ function computeCorrelation(habits, entries) {
         ? Math.round((withH.length / entries.length) * 100) : 0
 
       // Puntos scatter: cantidad vs ánimo
-      const scatterPoints = withH
-        .map(e => ({ qty: parseFloat(e.habitData?.[habit.id]?.qty), mood: e.moodScore }))
-        .filter(x => !isNaN(x.qty))
+      const scatterPoints = entries
+        .map(e => {
+          if (!isDone(e)) return { qty: 0, mood: e.moodScore }
+
+          const qty = parseFloat(e.habitData?.[habit.id]?.qty)
+          return Number.isFinite(qty) ? { qty, mood: e.moodScore } : null
+        })
+        .filter(Boolean)
 
       const pearsonR = scatterPoints.length >= 5
         ? pearson(scatterPoints.map(x => x.qty), scatterPoints.map(x => x.mood))
@@ -939,8 +944,6 @@ function computeCorrelation(habits, entries) {
         return q === undefined || q === null || q === '' || isNaN(parseFloat(q))
       })
 
-      if (withQty.length < 3) return null
-
       const avgWith = avg(withQty)
       const avgWithout = avg(withoutH)
       const impact = avgWith !== null && avgWithout !== null
@@ -949,7 +952,14 @@ function computeCorrelation(habits, entries) {
         ? Math.round((withQty.length / entries.length) * 100) : 0
 
       // Puntos scatter: cantidad vs ánimo (raw, sin categorizar)
-      const scatterPoints = withQty.map(x => ({ qty: x.qty, mood: x.mood }))
+      const scatterPoints = entries.map(e => {
+        const qty = e.habitData?.[habit.id]?.qty
+        const parsedQty = parseFloat(qty)
+        return {
+          qty: qty === undefined || qty === null || qty === '' || !Number.isFinite(parsedQty) ? 0 : parsedQty,
+          mood: e.moodScore,
+        }
+      })
 
       const pearsonR = scatterPoints.length >= 5
         ? pearson(scatterPoints.map(x => x.qty), scatterPoints.map(x => x.mood))
@@ -961,7 +971,7 @@ function computeCorrelation(habits, entries) {
         avgWith, avgWithout, impact,
         countWith: scatterPoints.length, countWithout: withoutH.length,
         consistencyPct,
-        scatterPoints,
+        scatterPoints: scatterPoints.length >= 3 ? scatterPoints : null,
         trend: scatterPoints.length >= 3 ? trendLine(scatterPoints) : null,
         pearsonR,
         unit: habit.unit || '',
@@ -969,7 +979,11 @@ function computeCorrelation(habits, entries) {
     }
 
     return null
-  }).filter(r => r !== null && r.countWith >= 3)
+  }).filter(r => r !== null && (
+    r.trackingType === 'toggle+qty'
+      ? r.scatterPoints?.length >= 3
+      : r.countWith >= 3
+  ))
 
   return result
 }

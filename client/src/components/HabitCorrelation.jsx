@@ -199,7 +199,7 @@ export default function HabitCorrelationCard({ data }) {
           </h2>
         </div>
         <p className="text-xs text-gray-400">
-          Cómo cada hábito se relaciona con el ánimo. Los hábitos con cantidad muestran cada registro como un punto: eje X = cantidad, eje Y = ánimo de ese día.
+          Cómo cada hábito se relaciona con el ánimo. Los hábitos con cantidad muestran cada registro como un punto: eje X = cantidad, eje Y = ánimo de ese día. En los hábitos cuantificables, los días no cumplidos o sin cantidad registrada cuentan como 0.
         </p>
       </div>
 
