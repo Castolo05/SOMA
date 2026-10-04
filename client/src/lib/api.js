@@ -96,26 +96,40 @@ const api = {
     }
 
     // ── GET /habits/correlation ───────────────────────────
-    if (url === '/habits/correlation') {
+    if (url.startsWith('/habits/correlation')) {
+      const patientId = url.includes('patientId=') ? url.split('patientId=')[1] : null
+      const targetId = patientId || user?.id
+
+      if (patientId && user?.role !== 'PSYCHOLOGIST') {
+        return fail('No autorizado', 403)
+      }
+
       const { data: habits } = await supabase
         .from('habits')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', targetId)
       const { data: entries } = await supabase
         .from('journal_entries')
         .select('completed_habits, habit_data, mood_score')
-        .eq('patient_id', user?.id)
+        .eq('patient_id', targetId)
       if (!habits || !entries || entries.length < 5) return ok([])
       const result = computeCorrelation(habits.map(normalizeHabit), entries.map(normalizeEntry))
       return ok(result)
     }
 
     // ── GET /habits ───────────────────────────────────────
-    if (url === '/habits') {
+    if (url.startsWith('/habits') && !url.includes('/correlation')) {
+      const patientId = url.includes('patientId=') ? url.split('patientId=')[1] : null
+      const targetId = patientId || user?.id
+
+      if (patientId && user?.role !== 'PSYCHOLOGIST') {
+        return fail('No autorizado', 403)
+      }
+
       const { data, error } = await supabase
         .from('habits')
         .select('*')
-        .eq('user_id', user?.id)
+        .eq('user_id', targetId)
         .order('order', { ascending: true })
       if (error) return fail(error.message)
       return ok({ habits: (data || []).map(normalizeHabit) })
@@ -227,6 +241,18 @@ const api = {
         .order('created_at', { ascending: true })
       if (error) return fail(error.message)
       return ok({ goals: (data || []).map(normalizeGoal) })
+    }
+
+    // ── GET /auth/psychologist ────────────────────────────
+    if (url === '/auth/psychologist') {
+      if (!user?.psychologistId) return ok({ psychologist: null })
+      const { data: psych, error } = await supabase
+        .from('profiles')
+        .select('id, name, avatar_url')
+        .eq('id', user.psychologistId)
+        .single()
+      if (error) return fail(error.message)
+      return ok({ psychologist: psych })
     }
 
     return fail(`Ruta no encontrada: GET ${url}`, 404)

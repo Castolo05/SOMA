@@ -40,6 +40,23 @@ export default function PatientProfile() {
   const [linkError, setLinkError] = useState('')
   const [previewPsych, setPreviewPsych] = useState(null)
   const [showPreviewModal, setShowPreviewModal] = useState(false)
+  const [isViewingPsych, setIsViewingPsych] = useState(false)
+
+  const handleViewPsychologist = async () => {
+    setLinkLoading(true)
+    try {
+      const { data } = await api.get('/auth/psychologist')
+      if (data.psychologist) {
+        setPreviewPsych(data.psychologist)
+        setIsViewingPsych(true)
+        setShowPreviewModal(true)
+      }
+    } catch (err) {
+      alert('Error al cargar datos del psicólogo.')
+    } finally {
+      setLinkLoading(false)
+    }
+  }
 
   // Hábitos
   const initialCache = getPatientCache()
@@ -68,6 +85,7 @@ export default function PatientProfile() {
     setLinkMsg('')
     setLinkError('')
     setLinkLoading(true)
+    setIsViewingPsych(false)
     try {
       const { data } = await api.post('/auth/link/preview', { inviteCode: code })
       setPreviewPsych(data.psychologist)
@@ -392,8 +410,17 @@ export default function PatientProfile() {
               <Link2 size={18} /> Vinculación con psicólogo
             </h2>
             {user?.psychologistId && user?.psychologistStatus === 'ACCEPTED' ? (
-              <div className="bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
-                <CheckCircle2 size={18} className="text-sage-500" /> Ya estás vinculado con tu psicólogo
+              <div className="space-y-3">
+                <div className="bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
+                  <CheckCircle2 size={18} className="text-sage-500" /> Ya estás vinculado con tu psicólogo
+                </div>
+                <button
+                  onClick={handleViewPsychologist}
+                  disabled={linkLoading}
+                  className="w-full btn-patient text-sm py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 dark:bg-indigo-900/20 dark:border-indigo-800/50 dark:text-indigo-400 dark:hover:bg-indigo-900/40"
+                >
+                  {linkLoading && isViewingPsych ? 'Cargando...' : 'Ver vinculación'}
+                </button>
               </div>
             ) : user?.psychologistId && user?.psychologistStatus === 'PENDING' ? (
               <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 text-blue-700 dark:text-blue-300 rounded-2xl px-4 py-3 text-sm font-medium flex items-center gap-2">
@@ -442,7 +469,9 @@ export default function PatientProfile() {
       {showPreviewModal && previewPsych && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
           <div className="bg-white dark:bg-[var(--theme-surface)] rounded-3xl p-6 max-w-sm w-full shadow-xl">
-            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">Confirmar vinculación</h3>
+            <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
+              {isViewingPsych ? 'Profesional Vinculado' : 'Confirmar vinculación'}
+            </h3>
             
             <div className="flex flex-col items-center gap-3 mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
               <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center border border-indigo-200 dark:border-indigo-800 overflow-hidden">
@@ -454,19 +483,35 @@ export default function PatientProfile() {
               </div>
             </div>
 
-            <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl mb-6 border border-amber-200 dark:border-amber-800">
-              <p className="text-sm text-amber-800 dark:text-amber-300 font-medium">
-                Al confirmar, autorizas a este profesional a ver tu estado de ánimo, tus hábitos y otra información clínica registrada en SOMA.
-              </p>
-            </div>
+            {isViewingPsych ? (
+              <div className="bg-sage-50 dark:bg-sage-900/20 p-4 rounded-2xl mb-6 border border-sage-200 dark:border-sage-800">
+                <p className="text-sm text-sage-800 dark:text-sage-300 font-medium text-center">
+                  Este profesional tiene acceso a tu estado de ánimo, tus hábitos y otra información clínica registrada en SOMA.
+                </p>
+              </div>
+            ) : (
+              <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl mb-6 border border-amber-200 dark:border-amber-800">
+                <p className="text-sm text-amber-800 dark:text-amber-300 font-medium text-center">
+                  Al confirmar, autorizas a este profesional a ver tu estado de ánimo, tus hábitos y otra información clínica registrada en SOMA.
+                </p>
+              </div>
+            )}
 
             <div className="flex gap-3">
-              <button onClick={() => setShowPreviewModal(false)} className="btn-ghost flex-1">
-                Cancelar
-              </button>
-              <button onClick={confirmLink} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
-                Confirmar
-              </button>
+              {isViewingPsych ? (
+                <button onClick={() => setShowPreviewModal(false)} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                  Cerrar
+                </button>
+              ) : (
+                <>
+                  <button onClick={() => setShowPreviewModal(false)} className="btn-ghost flex-1">
+                    Cancelar
+                  </button>
+                  <button onClick={confirmLink} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                    Confirmar
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>

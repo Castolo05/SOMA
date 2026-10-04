@@ -15,6 +15,7 @@ import {
   Activity, BarChart2, MessageSquare, Eye, EyeOff,
   LayoutGrid, RotateCcw, GripHorizontal,
 } from 'lucide-react'
+import HabitCorrelationCard from '../../components/HabitCorrelation'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
 const RGL = WidthProvider(Responsive)
@@ -26,14 +27,16 @@ const PANELS = [
   { i: 'entries',  label: 'Historial del Paciente', icon: BookOpen   },
   { i: 'goals',    label: 'Objetivos',              icon: Target     },
   { i: 'notes',    label: 'Notas de Sesión',        icon: FileText   },
+  { i: 'habits',   label: 'Análisis de Hábitos',    icon: Activity   },
 ]
 
 const DEFAULT_LG = [
   { i: 'pre',     x: 0, y: 0,  w: 4,  h: 6,  minW: 3, minH: 4 },
   { i: 'chart',   x: 4, y: 0,  w: 8,  h: 8,  minW: 5, minH: 5 },
+  { i: 'habits',  x: 4, y: 8,  w: 8,  h: 14, minW: 5, minH: 6 },
   { i: 'entries', x: 0, y: 6,  w: 7,  h: 11, minW: 4, minH: 6 },
-  { i: 'goals',   x: 7, y: 8,  w: 5,  h: 7,  minW: 3, minH: 4 },
-  { i: 'notes',   x: 7, y: 15, w: 5,  h: 7,  minW: 3, minH: 4 },
+  { i: 'goals',   x: 7, y: 22, w: 5,  h: 7,  minW: 3, minH: 4 },
+  { i: 'notes',   x: 7, y: 29, w: 5,  h: 7,  minW: 3, minH: 4 },
 ]
 
 const lsLayout  = (id) => `psych_layout_v3_${id}`
@@ -341,7 +344,7 @@ function TherapyGoals({ patientId }) {
 }
 
 // ── PatientEntries ─────────────────────────────────────────
-function PatientEntries({ entries }) {
+function PatientEntries({ entries, habitsList }) {
   const [expanded, setExpanded] = useState(null)
   const [filter, setFilter]     = useState('all')
 
@@ -401,12 +404,27 @@ function PatientEntries({ entries }) {
                   {entry.content
                     ? <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">{entry.content}</p>
                     : <p className="text-sm text-gray-400 italic">Sin nota escrita.</p>}
-                  {entry.completedHabits?.length > 0 && (
-                    <div className="mt-3 flex flex-wrap gap-1.5">
-                      <span className="text-xs text-gray-400 w-full mb-0.5">Hábitos:</span>
-                      {entry.completedHabits.map(h => (
-                        <span key={h} className="text-xs bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-md font-medium">✓ {h}</span>
-                      ))}
+                  {(entry.completedHabits?.length > 0 || Object.keys(entry.habitData || {}).length > 0) && (
+                    <div className="mt-3 flex flex-col gap-1">
+                      <span className="text-xs text-gray-400 font-medium">Hábitos registrados:</span>
+                      <div className="flex flex-wrap gap-1.5 mt-0.5">
+                        {habitsList?.filter(h => entry.completedHabits?.includes(h.id) || entry.habitData?.[h.id]?.done || entry.habitData?.[h.id]?.qty !== undefined).map(h => {
+                          const hData = entry.habitData?.[h.id] || {}
+                          const qtyText = hData.qty !== undefined ? `: ${hData.qty} ${h.unit || ''}` : ''
+                          const noteText = hData.note ? ` (${hData.note})` : ''
+                          return (
+                            <span key={h.id} className="text-[11px] bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 px-2 py-1 rounded-md font-medium border border-emerald-100 dark:border-emerald-800/30">
+                              ✓ {h.text}{qtyText}{noteText}
+                            </span>
+                          )
+                        })}
+                        {/* Fallback for orphaned habit IDs not in current habitsList */}
+                        {entry.completedHabits?.filter(hId => !habitsList?.find(x => x.id === hId)).map(hId => (
+                          <span key={hId} className="text-[11px] bg-gray-50 text-gray-500 px-2 py-1 rounded-md font-medium">
+                            ✓ Hábito eliminado
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -425,6 +443,8 @@ export default function PatientDetail() {
   const [patient,  setPatient]  = useState(null)
   const [entries,  setEntries]  = useState([])
   const [insights, setInsights] = useState(null)
+  const [habitsCorr, setHabitsCorr] = useState([])
+  const [habitsList, setHabitsList] = useState([])
   const [loading,  setLoading]  = useState(true)
   usePageTitle(patient ? patient.name : 'Paciente')
 
@@ -473,16 +493,20 @@ export default function PatientDetail() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [pRes, jRes, iRes] = await Promise.allSettled([
+        const [pRes, jRes, iRes, hRes, lRes] = await Promise.allSettled([
           api.get('/patients'),
           api.get(`/journal?patientId=${id}`),
           api.get(`/patients/${id}/insights`),
+          api.get(`/habits/correlation?patientId=${id}`),
+          api.get(`/habits?patientId=${id}`),
         ])
         if (pRes.status === 'fulfilled') {
           setPatient(pRes.value.data.patients?.find(p => p.id === id) ?? null)
         }
         if (jRes.status === 'fulfilled') setEntries(jRes.value.data.entries ?? [])
         if (iRes.status === 'fulfilled') setInsights(iRes.value.data)
+        if (hRes.status === 'fulfilled') setHabitsCorr(hRes.value.data)
+        if (lRes.status === 'fulfilled') setHabitsList(lRes.value.data.habits ?? [])
       } catch {}
       finally { setLoading(false) }
     }
@@ -640,7 +664,62 @@ export default function PatientDetail() {
           {visible.includes('entries') && (
             <div key="entries">
               <PanelWrapper title="Historial del Paciente" icon={BookOpen} onHide={() => togglePanel('entries')}>
-                <PatientEntries entries={entries} />
+                <PatientEntries entries={entries} habitsList={habitsList} />
+              </PanelWrapper>
+            </div>
+          )}
+          {visible.includes('habits') && (
+            <div key="habits">
+              <PanelWrapper title="Hábitos del Paciente" icon={Activity} onHide={() => togglePanel('habits')}>
+                <div className="space-y-6 animate-fade-in pb-4">
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
+                      Hábitos configurados
+                    </h3>
+                    {habitsList.length === 0 ? (
+                      <p className="text-sm text-gray-400 px-1">El paciente no tiene hábitos configurados actualmente.</p>
+                    ) : (
+                      <div className="grid gap-2">
+                        {habitsList.map(h => {
+                          const habitEntries = entries.filter(e => e.completedHabits?.includes(h.id) || (e.habitData && e.habitData[h.id] !== undefined))
+                          const totalTimes = habitEntries.length
+                          
+                          let totalQty = null
+                          if (h.trackingType === 'qty' || h.trackingType === 'toggle+qty') {
+                            totalQty = habitEntries.reduce((sum, e) => sum + (e.habitData?.[h.id]?.qty || 0), 0)
+                          }
+
+                          return (
+                            <div key={h.id} className="bg-gray-50 dark:bg-gray-700/40 rounded-xl px-4 py-3 flex items-center justify-between border border-gray-100 dark:border-gray-700">
+                              <div>
+                                <p className="text-sm font-bold text-gray-800 dark:text-white">{h.text}</p>
+                                <p className="text-xs text-gray-500 font-medium capitalize">{h.trackingType === 'toggle' ? 'Sí/No' : h.trackingType === 'qty' ? 'Cantidad' : 'Sí/No + Cantidad'}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">Registrado</p>
+                                <p className="text-sm font-black text-indigo-600 dark:text-indigo-400">
+                                  {totalTimes} {totalTimes === 1 ? 'día' : 'días'}
+                                </p>
+                                {totalQty !== null && totalQty > 0 && (
+                                  <p className="text-[10px] font-bold text-gray-500 mt-0.5">
+                                    Suma cant: {totalQty} {h.unit ? h.unit : ''}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div>
+                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
+                      Análisis de Correlación
+                    </h3>
+                    <HabitCorrelationCard data={habitsCorr} />
+                  </div>
+                </div>
               </PanelWrapper>
             </div>
           )}
