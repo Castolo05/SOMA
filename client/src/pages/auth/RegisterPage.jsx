@@ -19,7 +19,7 @@ export default function RegisterPage() {
     setLoading(true)
     try {
       const user = await register(form.name, form.email, form.password, form.role)
-      navigate(user.role === 'PATIENT' ? '/patient' : '/psych', { replace: true })
+      navigate(user.role === 'PATIENT' ? '/patient' : '/psych/patients', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear la cuenta.')
     } finally {

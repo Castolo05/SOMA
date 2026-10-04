@@ -17,7 +17,7 @@ export function ProtectedRoute({ children, requiredRole }) {
 
   if (!user) return <Navigate to="/login" replace />
   if (requiredRole && user.role !== requiredRole) {
-    return <Navigate to={user.role === 'PATIENT' ? '/patient' : '/psych'} replace />
+    return <Navigate to={user.role === 'PATIENT' ? '/patient' : '/psych/patients'} replace />
   }
 
   return children

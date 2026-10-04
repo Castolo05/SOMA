@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../lib/api'
 import {
@@ -456,12 +457,14 @@ export default function PatientProfile() {
 
       {/* Modal de previsualización de vínculo */}
       {showPreviewModal && previewPsych && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fade-in">
+        createPortal(
+        <div className="fixed inset-0 z-[100] overflow-y-auto overscroll-contain bg-black/50 backdrop-blur-sm animate-fade-in">
+          <div className="flex min-h-full items-end justify-center p-2 sm:items-center sm:p-4">
           <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="psychologist-link-title"
-            className="bg-white dark:bg-[var(--theme-surface)] rounded-3xl p-6 max-w-sm w-full shadow-xl"
+            className="max-h-[calc(100vh-1rem)] max-h-[calc(100dvh-1rem)] w-full max-w-sm overflow-y-auto overscroll-contain rounded-t-3xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-xl dark:bg-[var(--theme-surface)] sm:rounded-3xl sm:p-6"
           >
             <h3 id="psychologist-link-title" className="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">
               {isViewingPsych ? 'Profesional Vinculado' : 'Confirmar vinculación'}
@@ -518,7 +521,10 @@ export default function PatientProfile() {
               )}
             </div>
           </div>
-        </div>
+          </div>
+        </div>,
+        document.body
+        )
       )}
     </div>
   )

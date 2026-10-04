@@ -16,7 +16,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      navigate(user.role === 'PATIENT' ? '/patient' : '/psych', { replace: true })
+      navigate(user.role === 'PATIENT' ? '/patient' : '/psych/patients', { replace: true })
     }
   }, [authLoading, navigate, user])
 
@@ -26,7 +26,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const user = await login(form.email, form.password)
-      navigate(user?.role === 'PATIENT' ? '/patient' : '/psych', { replace: true })
+      navigate(user?.role === 'PATIENT' ? '/patient' : '/psych/patients', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión.')
     } finally {

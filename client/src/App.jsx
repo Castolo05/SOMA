@@ -30,7 +30,6 @@ import BreathingPage from './pages/patient/BreathingPage'
 
 // Psicólogo
 import PsychLayout from './pages/psychologist/PsychLayout'
-import PsychDashboard from './pages/psychologist/PsychDashboard'
 import PatientsList from './pages/psychologist/PatientsList'
 import PatientDetail from './pages/psychologist/PatientDetail'
 import PsychSettings from './pages/psychologist/PsychSettings'
@@ -250,7 +249,7 @@ export default function App() {
               </ProtectedRoute>
             }
           >
-            <Route index element={<PsychDashboard />} />
+            <Route index element={<Navigate to="/psych/patients" replace />} />
             <Route path="patients" element={<PatientsList />} />
             <Route path="patients/:id" element={<PatientDetail />} />
             <Route path="requests" element={<PatientRequests />} />
