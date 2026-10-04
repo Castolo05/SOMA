@@ -424,10 +424,10 @@ function PatientEntries({ entries, habitsList }) {
                             </span>
                           )
                         })}
-                        {/* Fallback for orphaned habit IDs not in current habitsList */}
+                        {/* Keep unknown historical IDs neutral; missing from this list does not prove deletion. */}
                         {entry.completedHabits?.filter(hId => !habitsList?.find(x => x.id === hId)).map(hId => (
                           <span key={hId} className="text-[11px] bg-gray-50 text-gray-500 px-2 py-1 rounded-md font-medium">
-                            ✓ Hábito eliminado
+                            ✓ Hábito sin información disponible
                           </span>
                         ))}
                       </div>

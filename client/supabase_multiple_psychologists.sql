@@ -93,6 +93,20 @@ CREATE POLICY "Psychologists can view their patients' entries"
     )
   );
 
+-- Psicólogos vinculados pueden consultar los nombres y detalles de los hábitos
+-- necesarios para interpretar las entradas de sus pacientes.
+DROP POLICY IF EXISTS "habits: psychologist views accepted patients" ON public.habits;
+CREATE POLICY "habits: psychologist views accepted patients"
+  ON public.habits FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.patient_psychologists pp
+      WHERE pp.patient_id = habits.user_id
+        AND pp.psychologist_id = auth.uid()
+        AND pp.status = 'ACCEPTED'
+    )
+  );
+
 -- Actualizar therapy_goals y session_notes para que no dependan solo de psychologist_id = user.id
 -- therapy_goals y session_notes ya tienen psychologist_id y patient_id, por lo que el dueño es el psicólogo, lo cual está bien.
 -- Sin embargo, el paciente necesita ver sus therapy_goals que hizo CUALQUIER psicólogo vinculado.
