@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import HabitCorrelationCard from '../../components/HabitCorrelation'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import AvatarDisplay from '../../components/AvatarDisplay'
 
 const RGL = WidthProvider(Responsive)
 
@@ -31,28 +32,33 @@ const PANELS = [
 ]
 
 const DEFAULT_LG = [
-  { i: 'pre',     x: 0, y: 0,  w: 4,  h: 6,  minW: 3, minH: 4 },
+  // Fila 1: Resumen rápido y gráfico principal
+  { i: 'pre',     x: 0, y: 0,  w: 4,  h: 8,  minW: 3, minH: 4 },
   { i: 'chart',   x: 4, y: 0,  w: 8,  h: 8,  minW: 5, minH: 5 },
-  { i: 'habits',  x: 4, y: 8,  w: 8,  h: 14, minW: 5, minH: 6 },
-  { i: 'entries', x: 0, y: 6,  w: 7,  h: 11, minW: 4, minH: 6 },
-  { i: 'goals',   x: 7, y: 22, w: 5,  h: 7,  minW: 3, minH: 4 },
-  { i: 'notes',   x: 7, y: 29, w: 5,  h: 7,  minW: 3, minH: 4 },
+  
+  // Fila 2: Entradas del paciente y correlación de hábitos
+  { i: 'entries', x: 0, y: 8,  w: 5,  h: 14, minW: 2, minH: 6 },
+  { i: 'habits',  x: 5, y: 8,  w: 7,  h: 14, minW: 4, minH: 6 },
+  
+  // Fila 3: Objetivos y Notas clínicas
+  { i: 'goals',   x: 0, y: 22, w: 6,  h: 8,  minW: 3, minH: 4 },
+  { i: 'notes',   x: 6, y: 22, w: 6,  h: 8,  minW: 3, minH: 4 },
 ]
 
-const lsLayout  = (id) => `psych_layout_v3_${id}`
-const lsVisible = (id) => `psych_vis_v3_${id}`
+const lsLayout  = () => `psych_layout_global_v1`
+const lsVisible = () => `psych_vis_global_v1`
 
-const readLayout = (id) => {
-  try { const s = JSON.parse(localStorage.getItem(lsLayout(id))); return Array.isArray(s) && s.length ? s : DEFAULT_LG.map(l => ({...l})) }
+const readLayout = () => {
+  try { const s = JSON.parse(localStorage.getItem(lsLayout())); return Array.isArray(s) && s.length ? s : DEFAULT_LG.map(l => ({...l})) }
   catch { return DEFAULT_LG.map(l => ({...l})) }
 }
-const readVisible = (id) => {
-  try { const s = JSON.parse(localStorage.getItem(lsVisible(id))); return Array.isArray(s) ? s : PANELS.map(p => p.i) }
+const readVisible = () => {
+  try { const s = JSON.parse(localStorage.getItem(lsVisible())); return Array.isArray(s) ? s : PANELS.map(p => p.i) }
   catch { return PANELS.map(p => p.i) }
 }
 
 // ── PanelWrapper ───────────────────────────────────────────
-function PanelWrapper({ title, icon: Icon, onHide, children }) {
+function PanelWrapper({ title, icon: Icon, onHide, scrollable = false, children }) {
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm group">
       {/* Drag handle */}
@@ -72,7 +78,7 @@ function PanelWrapper({ title, icon: Icon, onHide, children }) {
         </button>
       </div>
       {/* Scrollable body */}
-      <div className="flex-1 overflow-y-auto min-h-0 p-4" style={{ scrollbarWidth: 'thin' }}>
+      <div className={`flex-1 min-h-0 p-4 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden flex flex-col'}`} style={{ scrollbarWidth: 'thin' }}>
         {children}
       </div>
     </div>
@@ -112,10 +118,10 @@ function PreSessionCard({ insights, patient }) {
   ]
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
+    <div className="h-full flex flex-col gap-2">
+      <div className="flex-1 grid grid-cols-2 grid-rows-2 gap-2">
         {stats.map(s => (
-          <div key={s.label} className="bg-gray-50 dark:bg-gray-700/40 rounded-xl p-3 text-center">
+          <div key={s.label} className="bg-gray-50 dark:bg-gray-700/40 rounded-xl p-3 flex flex-col items-center justify-center text-center">
             <p className="text-xs text-gray-400 font-medium mb-1">{s.label}</p>
             <div className={`flex items-center justify-center gap-1 ${s.cls ?? ''}`}>
               {s.icon}
@@ -127,13 +133,13 @@ function PreSessionCard({ insights, patient }) {
       </div>
 
       {patient?.hasAlert && (
-        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 flex gap-2">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-3 flex gap-2 shrink-0">
           <AlertTriangle size={16} className="text-red-500 mt-0.5 shrink-0" />
           <p className="text-xs text-red-600 dark:text-red-400 leading-relaxed">Ánimo bajo en las últimas 3 sesiones. Se recomienda atención prioritaria.</p>
         </div>
       )}
       {patient?.hasInactivityAlert && (
-        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex gap-2">
+        <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800 rounded-xl p-3 flex gap-2 shrink-0">
           <Wifi size={16} className="text-amber-500 mt-0.5 shrink-0" />
           <p className="text-xs text-amber-600 dark:text-amber-400 leading-relaxed">{patient.daysSinceLastEntry} días sin registrar. Considerar seguimiento.</p>
         </div>
@@ -449,25 +455,33 @@ export default function PatientDetail() {
   usePageTitle(patient ? patient.name : 'Paciente')
 
   // Grid state
-  const [layout,  setLayout]  = useState(() => readLayout(id))
-  const [visible, setVisible] = useState(() => readVisible(id))
+  const [layout,  setLayout]  = useState(() => readLayout())
+  const [visible, setVisible] = useState(() => readVisible())
   const [panelMenu, setPanelMenu] = useState(false)
 
   const togglePanel = (panelId) => {
     setVisible(prev => {
       const next = prev.includes(panelId) ? prev.filter(p => p !== panelId) : [...prev, panelId]
-      localStorage.setItem(lsVisible(id), JSON.stringify(next))
+      localStorage.setItem(lsVisible(), JSON.stringify(next))
       return next
     })
   }
 
-  const handleLayoutChange = (newLayout) => {
+  const handleLayoutChange = (currentLayout, allLayouts) => {
+    // Only persist the layout if we have the lg layout available.
+    // This prevents narrow breakpoint clamps from permanently corrupting the desktop layout.
+    if (!allLayouts || !allLayouts.lg) return;
+
     setLayout(prev => {
       const merged = prev.map(item => {
-        const upd = newLayout.find(n => n.i === item.i)
+        const upd = allLayouts.lg.find(n => n.i === item.i)
         return upd ? { ...item, ...upd } : item
       })
-      localStorage.setItem(lsLayout(id), JSON.stringify(merged))
+      // Prevent infinite render loop by checking if state actually changed
+      if (JSON.stringify(prev) === JSON.stringify(merged)) {
+        return prev;
+      }
+      localStorage.setItem(lsLayout(), JSON.stringify(merged))
       return merged
     })
   }
@@ -477,8 +491,8 @@ export default function PatientDetail() {
     const allPanels = PANELS.map(p => p.i)
     setLayout(fresh)
     setVisible(allPanels)
-    localStorage.setItem(lsLayout(id),  JSON.stringify(fresh))
-    localStorage.setItem(lsVisible(id), JSON.stringify(allPanels))
+    localStorage.setItem(lsLayout(),  JSON.stringify(fresh))
+    localStorage.setItem(lsVisible(), JSON.stringify(allPanels))
   }
 
   const activeLayout = useMemo(
@@ -547,44 +561,45 @@ export default function PatientDetail() {
 
   return (
     <div className="animate-fade-in pb-16">
-      {/* ── Patient card ───────────────────────────── */}
-      <div className="flex items-start gap-3 mb-6">
-        <Link to="/psych/patients" className="p-2.5 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors shrink-0 mt-1">
-          <ArrowLeft size={18} className="text-gray-500 dark:text-gray-400" />
-        </Link>
-
-        <div className="flex-1 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 px-5 py-4">
-          <div className="flex items-start gap-4">
-            <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg shrink-0 ${
-              patient.hasAlert ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
-            }`}>
-              {patient.name.charAt(0).toUpperCase()}
+      {/* ── Patient card (sticky) ─────────────────── */}
+      <div className="sticky top-[60px] lg:top-0 z-30 mb-6 -mx-4 sm:-mx-6 lg:-mx-8 -mt-4 sm:-mt-6 lg:-mt-8">
+        <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3 shadow-sm">
+          <Link to="/psych/patients" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0">
+            <ArrowLeft size={18} className="text-gray-500 dark:text-gray-400" />
+          </Link>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden font-black text-base shrink-0 ${
+            patient.hasAlert ? 'bg-red-100 dark:bg-red-900/20 text-red-700 dark:text-red-400' : 'bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400'
+          }`}>
+            {patient.avatarUrl ? (
+              <AvatarDisplay avatar={patient.avatarUrl} size={28} className="text-current" />
+            ) : (
+              patient.name.charAt(0).toUpperCase()
+            )}
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">{patient.name}</h1>
+              {patient.hasAlert && (
+                <span className="text-[11px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <AlertTriangle size={10} /> Ánimo bajo
+                </span>
+              )}
+              {patient.hasInactivityAlert && (
+                <span className="text-[11px] bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <Wifi size={10} /> {patient.daysSinceLastEntry}d sin registro
+                </span>
+              )}
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <h1 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">{patient.name}</h1>
-                {patient.hasAlert && (
-                  <span className="text-[11px] bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                    <AlertTriangle size={10} /> Ánimo bajo
-                  </span>
-                )}
-                {patient.hasInactivityAlert && (
-                  <span className="text-[11px] bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                    <Wifi size={10} /> {patient.daysSinceLastEntry}d sin registro
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-wrap gap-x-5 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-                <span className="flex items-center gap-1"><Activity size={11} /> {patient.totalEntries} entradas</span>
-                {lastEntry && <span className="flex items-center gap-1"><Calendar size={11} /> Último: {formatDateShort(lastEntry)}</span>}
-                {patient.lastMood && (
-                  <span className="flex items-center gap-1">
-                    Ánimo actual: <MoodIcon score={patient.lastMood} size={13} />
-                    <span style={{ color: MOOD_ICONS[patient.lastMood]?.color }}>{MOOD_ICONS[patient.lastMood]?.label}</span>
-                  </span>
-                )}
-                {avgMood && <span className="flex items-center gap-1"><TrendingUp size={11} /> Prom. 7d: <strong>{avgMood}</strong></span>}
-              </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <span className="flex items-center gap-1"><Activity size={11} /> {patient.totalEntries} entradas</span>
+              {lastEntry && <span className="flex items-center gap-1"><Calendar size={11} /> Último: {formatDateShort(lastEntry)}</span>}
+              {patient.lastMood && (
+                <span className="flex items-center gap-1">
+                  Ánimo: <MoodIcon score={patient.lastMood} size={13} />
+                  <span style={{ color: MOOD_ICONS[patient.lastMood]?.color }}>{MOOD_ICONS[patient.lastMood]?.label}</span>
+                </span>
+              )}
+              {avgMood && <span className="flex items-center gap-1"><TrendingUp size={11} /> Prom. 7d: <strong>{avgMood}</strong></span>}
             </div>
           </div>
         </div>
@@ -641,7 +656,7 @@ export default function PatientDetail() {
         </div>
       ) : (
         <RGL
-          className="psych-dashboard-grid"
+          className="psych-dashboard-grid w-full"
           layouts={{ lg: responsiveLg, md: responsiveMd, sm: responsiveSm }}
           rowHeight={40}
           margin={[14, 14]}
@@ -649,13 +664,12 @@ export default function PatientDetail() {
           isDraggable
           isResizable
           draggableHandle=".psych-panel-handle"
-          onLayoutChange={handleLayoutChange}
           breakpoints={{ lg: 1200, md: 768, sm: 0 }}
           cols={{ lg: 12, md: 8, sm: 1 }}
           compactType="vertical"
           useCSSTransforms={true}
-          measureBeforeMount={true}
           resizeHandles={['se', 'sw']}
+          onLayoutChange={(currentLayout, allLayouts) => handleLayoutChange(currentLayout, allLayouts)}
         >
           {visible.includes('pre') && (
             <div key="pre">
@@ -667,13 +681,13 @@ export default function PatientDetail() {
           {visible.includes('chart') && (
             <div key="chart">
               <PanelWrapper title="Evolución del Ánimo" icon={Activity} onHide={() => togglePanel('chart')}>
-                <MoodChart entries={entries} mode="psych" height={220} defaultDays={14} />
+                <MoodChart entries={entries} mode="psych" height="100%" defaultDays={14} />
               </PanelWrapper>
             </div>
           )}
           {visible.includes('entries') && (
             <div key="entries">
-              <PanelWrapper title="Historial del Paciente" icon={BookOpen} onHide={() => togglePanel('entries')}>
+              <PanelWrapper title="Historial del Paciente" icon={BookOpen} onHide={() => togglePanel('entries')} scrollable={true}>
                 <PatientEntries entries={entries} habitsList={habitsList} />
               </PanelWrapper>
             </div>
