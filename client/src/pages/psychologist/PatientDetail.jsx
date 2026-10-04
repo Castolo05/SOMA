@@ -18,6 +18,7 @@ import {
 import HabitCorrelationCard from '../../components/HabitCorrelation'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import AvatarDisplay from '../../components/AvatarDisplay'
+import ConfirmActionModal from '../../components/ConfirmActionModal'
 
 const RGL = WidthProvider(Responsive)
 
@@ -160,6 +161,7 @@ function SessionNotes({ patientId }) {
   const [newTitle, setNewTitle]       = useState('')
   const [newContent, setNewContent]   = useState('')
   const [saving, setSaving] = useState(false)
+  const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
 
   useEffect(() => {
     api.get(`/session-notes/${patientId}`)
@@ -193,10 +195,15 @@ function SessionNotes({ patientId }) {
     finally { setSaving(false) }
   }
 
-  const del = async (id) => {
-    if (!confirm('¿Eliminar nota?')) return
-    try { await api.delete(`/session-notes/note/${id}`); setNotes(p => p.filter(n => n.id !== id)) }
-    catch { alert('Error.') }
+  const confirmDel = async () => {
+    if (!confirmDeleteNote) return
+    try {
+      await api.delete(`/session-notes/note/${confirmDeleteNote}`)
+      setNotes(p => p.filter(n => n.id !== confirmDeleteNote))
+      setConfirmDeleteNote(null)
+    } catch {
+      alert('Error.')
+    }
   }
 
   return (
@@ -228,6 +235,15 @@ function SessionNotes({ patientId }) {
         <div className="text-center py-8"><FileText size={24} className="text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-400">Sin notas de sesión</p></div>
       )}
 
+      <ConfirmActionModal
+        isOpen={!!confirmDeleteNote}
+        onClose={() => setConfirmDeleteNote(null)}
+        onConfirm={confirmDel}
+        title="¿Eliminar nota?"
+        description="Esta nota se borrará del historial del paciente."
+        confirmLabel="Eliminar"
+      />
+
       <div className="space-y-2">
         {notes.map(note => {
           const open = expanded === note.id
@@ -243,7 +259,7 @@ function SessionNotes({ patientId }) {
                 <div className="flex items-center gap-2 shrink-0">
                   <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); setEditing(note.id); setEditTitle(note.title); setEditContent(note.content); setExpanded(note.id) }}
                     className="p-1.5 text-gray-400 hover:text-indigo-500 rounded"><Pencil size={14} /></button>
-                  <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); del(note.id) }}
+                  <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); setConfirmDeleteNote(note.id) }}
                     className="p-1.5 text-gray-400 hover:text-red-500 rounded"><Trash2 size={14} /></button>
                   {open ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
                 </div>

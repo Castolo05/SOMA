@@ -13,6 +13,8 @@ import ReminderSettings from '../../components/ReminderSettings'
 import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 
 import AvatarDisplay from '../../components/AvatarDisplay'
+import ConfirmLogoutModal from '../../components/ConfirmLogoutModal'
+import ConfirmActionModal from '../../components/ConfirmActionModal'
 
 export default function PatientProfile() {
   usePageTitle('Mi Perfil')
@@ -26,6 +28,9 @@ export default function PatientProfile() {
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [isViewingPsych, setIsViewingPsych] = useState(false)
   const [psychologists, setPsychologists] = useState([])
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [confirmUnlinkPsych, setConfirmUnlinkPsych] = useState(null)
+  const [confirmDeleteHabit, setConfirmDeleteHabit] = useState(null)
 
   // Hábitos
   const initialCache = getPatientCache()
@@ -89,13 +94,19 @@ export default function PatientProfile() {
   }
 
   const handleUnlink = async (psychId) => {
-    if (!confirm('¿Estás seguro de que quieres desvincularte de este profesional?')) return
     try {
       await api.delete(`/auth/link/${psychId}`)
       setPsychologists(prev => prev.filter(p => p.id !== psychId))
+      setConfirmUnlinkPsych(null)
     } catch (err) {
       alert(err.response?.data?.error || err.message || 'Error al desvincular.')
     }
+  }
+
+  const handleLogout = async () => {
+    setShowLogoutModal(false)
+    await logout()
+    navigate('/login')
   }
 
   const openProfileEditor = () => {
@@ -145,7 +156,6 @@ export default function PatientProfile() {
   }
 
   const handleDeleteHabit = async (id) => {
-    if (!confirm('¿Eliminar este hábito? Se quitará de las notas existentes.')) return
     try {
       await api.delete(`/habits/${id}`)
       setHabits(prev => {
@@ -153,6 +163,7 @@ export default function PatientProfile() {
         updatePatientCache('habits', nextHabits)
         return nextHabits
       })
+      setConfirmDeleteHabit(null)
     } catch { alert('Error al eliminar.') }
   }
 
@@ -253,7 +264,7 @@ export default function PatientProfile() {
                       </p>
                     </div>
                   </div>
-                  <button onClick={() => handleUnlink(p.id)} className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-100 dark:border-red-900/50 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors">
+                  <button onClick={() => setConfirmUnlinkPsych(p.id)} className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-100 dark:border-red-900/50 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors">
                     Desvincular
                   </button>
                 </div>
@@ -423,7 +434,7 @@ export default function PatientProfile() {
                       <Pencil size={15} />
                     </button>
                     <button
-                      onClick={() => handleDeleteHabit(habit.id)}
+                      onClick={() => setConfirmDeleteHabit(habit.id)}
                       className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
                     >
                       <Trash2 size={15} />
@@ -445,7 +456,7 @@ export default function PatientProfile() {
 
           {/* Cerrar sesión */}
           <button
-            onClick={() => { logout(); navigate('/login') }}
+            onClick={() => setShowLogoutModal(true)}
             className="w-full flex items-center justify-center gap-2 text-red-500 hover:text-red-700 font-bold py-3.5 rounded-[20px] border-2 border-red-100 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all"
           >
             <LogOut size={18} />
@@ -454,6 +465,30 @@ export default function PatientProfile() {
         </div>{/* ── Fin columna derecha ── */}
 
       </div>{/* ── Fin grid ── */}
+
+      <ConfirmLogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+      />
+
+      <ConfirmActionModal
+        isOpen={!!confirmUnlinkPsych}
+        onClose={() => setConfirmUnlinkPsych(null)}
+        onConfirm={() => handleUnlink(confirmUnlinkPsych)}
+        title="¿Desvincular profesional?"
+        description="Se quitará la relación con este psicólogo y ya no podrán acceder a tu información de SOMA."
+        confirmLabel="Desvincular"
+      />
+
+      <ConfirmActionModal
+        isOpen={!!confirmDeleteHabit}
+        onClose={() => setConfirmDeleteHabit(null)}
+        onConfirm={() => handleDeleteHabit(confirmDeleteHabit)}
+        title="¿Eliminar este hábito?"
+        description="Se borrará el hábito y se quitará de las anotaciones existentes."
+        confirmLabel="Eliminar"
+      />
 
       {/* Modal de previsualización de vínculo */}
       {showPreviewModal && previewPsych && (

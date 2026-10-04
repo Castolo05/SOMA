@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeLogo from '../../components/ThemeLogo'
+import ConfirmLogoutModal from '../../components/ConfirmLogoutModal'
 import { applyTheme } from '../../lib/theme'
 import api from '../../lib/api'
 import {
@@ -31,6 +32,7 @@ export default function PsychLayout() {
   const [drawerOpen, setDrawerOpen] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [pendingRequestCount, setPendingRequestCount] = useState(0)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const isFirst = useRef(true)
 
   useEffect(() => {
@@ -79,6 +81,12 @@ export default function PsychLayout() {
     { to: '/psych/patients', icon: Users,    label: 'Pacientes'   },
     { to: '/psych/requests', icon: UserPlus, label: 'Solicitudes' },
   ]
+
+  const handleLogout = async () => {
+    setShowLogoutModal(false)
+    await logout()
+    navigate('/login')
+  }
 
   const isActive = (to) =>
     to === '/psych'
@@ -145,7 +153,7 @@ export default function PsychLayout() {
           <Settings size={16} className="shrink-0" /> Configuración
         </Link>
         <button
-          onClick={() => { logout(); navigate('/login') }}
+          onClick={() => setShowLogoutModal(true)}
           className="w-full flex items-center gap-2.5 text-sm text-gray-500 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors px-3 py-2"
         >
           <LogOut size={16} className="shrink-0" /> Cerrar sesión
@@ -206,7 +214,7 @@ export default function PsychLayout() {
             <Settings size={17} />
           </Link>
           <button
-            onClick={() => { logout(); navigate('/login') }}
+            onClick={() => setShowLogoutModal(true)}
             title="Cerrar sesión"
             className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
@@ -245,6 +253,12 @@ export default function PsychLayout() {
       )}
 
       {/* ── Main content — never shifts ──────────────────────── */}
+      <ConfirmLogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleLogout}
+      />
+
       <main className="flex-1 min-w-0">
         {/* Mobile topbar */}
         <header className="lg:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
@@ -275,7 +289,7 @@ export default function PsychLayout() {
             <Link to="/psych/settings" className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 min-w-10 min-h-10 flex items-center justify-center">
               <Settings size={18} />
             </Link>
-            <button onClick={() => { logout(); navigate('/login') }} className="p-2 rounded-lg text-gray-400 hover:text-red-500 min-w-10 min-h-10 flex items-center justify-center">
+            <button onClick={() => setShowLogoutModal(true)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 min-w-10 min-h-10 flex items-center justify-center">
               <LogOut size={18} />
             </button>
           </div>

@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, Plus, X, Trash2, Clock, User } from 'lucide-react'
 import { MONTH_NAMES, DAY_NAMES, isSameDay, formatTime } from '../lib/constants'
 import api from '../lib/api'
+import ConfirmActionModal from './ConfirmActionModal'
 
 /**
  * AppointmentCalendar — Calendario de citas del psicólogo
@@ -17,6 +18,7 @@ export default function AppointmentCalendar({ patients = [] }) {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ title: '', date: '', time: '09:00', patientId: '', duration: 50, notes: '' })
   const [saving, setSaving] = useState(false)
+  const [confirmDeleteAppointment, setConfirmDeleteAppointment] = useState(null)
 
   // Cargar citas del mes visible
   useEffect(() => {
@@ -95,10 +97,10 @@ export default function AppointmentCalendar({ patients = [] }) {
   }
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar esta cita?')) return
     try {
       await api.delete(`/appointments/${id}`)
       setAppointments(prev => prev.filter(a => a.id !== id))
+      setConfirmDeleteAppointment(null)
     } catch (err) {
       alert('Error al eliminar.')
     }
@@ -108,6 +110,14 @@ export default function AppointmentCalendar({ patients = [] }) {
 
   return (
     <div className="space-y-4">
+      <ConfirmActionModal
+        isOpen={!!confirmDeleteAppointment}
+        onClose={() => setConfirmDeleteAppointment(null)}
+        onConfirm={() => handleDelete(confirmDeleteAppointment)}
+        title="¿Eliminar esta cita?"
+        description="La cita quedará eliminada del calendario y no podrá recuperarse."
+        confirmLabel="Eliminar"
+      />
       {/* Calendario */}
       <div className="card-psych dark:bg-gray-800">
         {/* Header */}
@@ -280,7 +290,7 @@ export default function AppointmentCalendar({ patients = [] }) {
                     )}
                   </div>
                   <button
-                    onClick={() => handleDelete(appt.id)}
+                    onClick={() => setConfirmDeleteAppointment(appt.id)}
                     className="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                   >
                     <Trash2 size={14} />

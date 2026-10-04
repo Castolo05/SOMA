@@ -12,6 +12,7 @@ import {
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 import HabitCorrelationCard from '../../components/HabitCorrelation'
+import ConfirmActionModal from '../../components/ConfirmActionModal'
 
 // ── Página de historial ───────────────────────────────────
 export default function HistoryPage() {
@@ -30,6 +31,7 @@ export default function HistoryPage() {
   const [feedbackMsg, setFeedbackMsg] = useState('')
   const [selectedDay, setSelectedDay] = useState(null)
   const [tab, setTab] = useState('entries') // 'entries' | 'correlation' | 'chart'
+  const [confirmDeleteEntry, setConfirmDeleteEntry] = useState(null)
 
   const handleUpdate = async (entryId, { mood, content, completedHabits, habitData }) => {
     setSavingEdit(true)
@@ -83,7 +85,6 @@ export default function HistoryPage() {
 
 
   const handleDelete = async (id) => {
-    if (!confirm('¿Eliminar esta entrada?')) return
     setDeleting(id)
     try {
       await api.delete(`/journal/${id}`)
@@ -92,6 +93,7 @@ export default function HistoryPage() {
         updatePatientCache('entries', nextEntries)
         return nextEntries
       })
+      setConfirmDeleteEntry(null)
     } catch (err) {
       alert(err.response?.data?.error || 'Error al eliminar.')
     } finally {
@@ -166,6 +168,15 @@ export default function HistoryPage() {
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">Historial</h1>
         <p className="text-sm text-gray-400">{entries.length} entradas · Editable hasta 7 días (1 semana)</p>
       </div>
+
+      <ConfirmActionModal
+        isOpen={!!confirmDeleteEntry}
+        onClose={() => setConfirmDeleteEntry(null)}
+        onConfirm={() => handleDelete(confirmDeleteEntry)}
+        title="¿Eliminar esta entrada?"
+        description="Se eliminará esta anotación y no podrás recuperarla desde el historial."
+        confirmLabel="Eliminar"
+      />
 
       {feedbackMsg && (
         <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200 rounded-2xl text-xs font-semibold flex items-center justify-between animate-fade-in shadow-sm">
@@ -463,7 +474,7 @@ export default function HistoryPage() {
                             </button>
                             <button
                               type="button"
-                              onClick={(e) => { e.stopPropagation(); handleDelete(entry.id) }}
+                              onClick={(e) => { e.stopPropagation(); setConfirmDeleteEntry(entry.id) }}
                               disabled={deleting === entry.id}
                               className="p-1.5 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                               title="Eliminar anotación"
