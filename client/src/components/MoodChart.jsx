@@ -108,6 +108,7 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
     return filtered
       .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
       .map((e) => ({
+        id: e.id,
         dateLabel: formatDateShort(e.createdAt),
         mood: e.moodScore,
         rawDate: e.createdAt,
@@ -150,7 +151,8 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
             margin={{ top: 8, right: 4, bottom: 0, left: -24 }}
             onClick={(e) => {
               if (onDayClick && e && e.activePayload && e.activePayload.length > 0) {
-                onDayClick(new Date(e.activePayload[0].payload.rawDate))
+                const point = e.activePayload[0].payload
+                onDayClick(new Date(point.rawDate), point.id)
               }
             }}
           >

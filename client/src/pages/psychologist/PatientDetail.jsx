@@ -354,15 +354,16 @@ function TherapyGoals({ patientId }) {
 }
 
 // ── PatientEntries ─────────────────────────────────────────
-function PatientEntries({ entries, habitsList }) {
+function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedEntry }) {
   const [expanded, setExpanded] = useState(null)
   const [filter, setFilter]     = useState('all')
 
   const filtered = useMemo(() => entries.filter(e => {
+    if (selectedEntryId) return e.id === selectedEntryId
     if (filter === 'low')  return e.moodScore <= 3
     if (filter === 'high') return e.moodScore >= 7
     return true
-  }), [entries, filter])
+  }), [entries, filter, selectedEntryId])
 
   if (entries.length === 0) return (
     <div className="text-center py-10">
@@ -374,24 +375,37 @@ function PatientEntries({ entries, habitsList }) {
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-1 flex-wrap">
-        {[
-          { id: 'all',  label: `Todas (${entries.length})` },
-          { id: 'low',  label: '😟 Bajo' },
-          { id: 'high', label: '😊 Alto' },
-        ].map(({ id, label }) => (
-          <button key={id} onMouseDown={e => e.stopPropagation()} onClick={() => setFilter(id)}
-            className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${filter === id ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
-            {label}
+      {selectedEntryId ? (
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Entrada seleccionada en el gráfico</p>
+          <button
+            onMouseDown={e => e.stopPropagation()}
+            onClick={onClearSelectedEntry}
+            className="text-xs font-semibold text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400"
+          >
+            Ver todas las entradas
           </button>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <div className="flex gap-1 flex-wrap">
+          {[
+            { id: 'all',  label: `Todas (${entries.length})` },
+            { id: 'low',  label: '😟 Bajo' },
+            { id: 'high', label: '😊 Alto' },
+          ].map(({ id, label }) => (
+            <button key={id} onMouseDown={e => e.stopPropagation()} onClick={() => setFilter(id)}
+              className={`text-xs px-3 py-1.5 rounded-lg font-semibold transition-all ${filter === id ? 'bg-indigo-600 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="space-y-2">
         {filtered.length === 0 && <p className="text-center text-sm text-gray-400 py-4">Sin entradas para este filtro.</p>}
         {filtered.map(entry => {
           const cfg  = MOOD_ICONS[entry.moodScore]
-          const open = expanded === entry.id
+          const open = selectedEntryId ? true : expanded === entry.id
           return (
             <div key={entry.id} className={`rounded-xl border cursor-pointer transition-all ${open ? 'border-indigo-200 dark:border-indigo-700' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'}`}>
               <div className="flex items-center gap-3 p-3" onClick={() => setExpanded(open ? null : entry.id)}>
@@ -455,6 +469,7 @@ export default function PatientDetail() {
   const [habitsCorr, setHabitsCorr] = useState([])
   const [habitsList, setHabitsList] = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [selectedEntryId, setSelectedEntryId] = useState(null)
   usePageTitle(patient ? patient.name : 'Paciente')
 
   // Grid state
@@ -508,6 +523,7 @@ export default function PatientDetail() {
   const responsiveSm = useMemo(() => activeLayout.map(i => ({ ...i, w: 1, x: 0 })), [activeLayout])
 
   useEffect(() => {
+    setSelectedEntryId(null)
     const load = async () => {
       try {
         const [pRes, jRes, iRes, hRes, lRes] = await Promise.allSettled([
@@ -672,20 +688,35 @@ export default function PatientDetail() {
           {visible.includes('chart') && (
             <div key="chart">
               <PanelWrapper title="Evolución del Ánimo" icon={Activity} onHide={() => togglePanel('chart')}>
-                <MoodChart entries={entries} mode="psych" height="100%" defaultDays={14} />
+                <MoodChart
+                  entries={entries}
+                  mode="psych"
+                  height="100%"
+                  defaultDays={14}
+                  onDayClick={(_, entryId) => {
+                    if (entryId == null) return
+                    setSelectedEntryId(entryId)
+                    if (!visible.includes('entries')) togglePanel('entries')
+                  }}
+                />
               </PanelWrapper>
             </div>
           )}
           {visible.includes('entries') && (
             <div key="entries">
               <PanelWrapper title="Historial del Paciente" icon={BookOpen} onHide={() => togglePanel('entries')} scrollable={true}>
-                <PatientEntries entries={entries} habitsList={habitsList} />
+                <PatientEntries
+                  entries={entries}
+                  habitsList={habitsList}
+                  selectedEntryId={selectedEntryId}
+                  onClearSelectedEntry={() => setSelectedEntryId(null)}
+                />
               </PanelWrapper>
             </div>
           )}
           {visible.includes('habits') && (
             <div key="habits">
-              <PanelWrapper title="Hábitos del Paciente" icon={Activity} onHide={() => togglePanel('habits')}>
+              <PanelWrapper title="Hábitos del Paciente" icon={Activity} onHide={() => togglePanel('habits')} scrollable={true}>
                 <div className="space-y-6 animate-fade-in pb-4">
                   <div>
                     <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
