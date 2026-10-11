@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -15,28 +15,28 @@ import {
 
 // Auth
 import LoginPage from './pages/auth/LoginPage'
-import RegisterPage from './pages/auth/RegisterPage'
-import ForgotPasswordPage from './pages/auth/ForgotPasswordPage'
-
-// Paciente
-import PatientLayout from './pages/patient/PatientLayout'
-import PatientDashboard from './pages/patient/PatientDashboard'
-import NewEntryPage from './pages/patient/NewEntryPage'
-import HistoryPage from './pages/patient/HistoryPage'
-import PatientProfile from './pages/patient/PatientProfile'
-import EditProfilePage from './pages/patient/EditProfilePage'
-import BreathingPage from './pages/patient/BreathingPage'
-
-// Psicólogo
-import PsychLayout from './pages/psychologist/PsychLayout'
-import PatientsList from './pages/psychologist/PatientsList'
-import PatientDetail from './pages/psychologist/PatientDetail'
-import PsychSettings from './pages/psychologist/PsychSettings'
-import PatientRequests from './pages/psychologist/PatientRequests'
-
-// 404
-import NotFoundPage from './pages/NotFoundPage'
+import CookieBanner from './components/CookieBanner'
 import { applyTheme } from './lib/theme'
+import { initAnalytics } from './lib/analytics'
+
+const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
+const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
+const ResetPasswordPage = lazy(() => import('./pages/auth/ResetPasswordPage'))
+const ThankYouPage = lazy(() => import('./pages/auth/ThankYouPage'))
+const PatientLayout = lazy(() => import('./pages/patient/PatientLayout'))
+const PatientDashboard = lazy(() => import('./pages/patient/PatientDashboard'))
+const NewEntryPage = lazy(() => import('./pages/patient/NewEntryPage'))
+const HistoryPage = lazy(() => import('./pages/patient/HistoryPage'))
+const PatientProfile = lazy(() => import('./pages/patient/PatientProfile'))
+const EditProfilePage = lazy(() => import('./pages/patient/EditProfilePage'))
+const BreathingPage = lazy(() => import('./pages/patient/BreathingPage'))
+const PsychLayout = lazy(() => import('./pages/psychologist/PsychLayout'))
+const PatientsList = lazy(() => import('./pages/psychologist/PatientsList'))
+const PatientDetail = lazy(() => import('./pages/psychologist/PatientDetail'))
+const PsychSettings = lazy(() => import('./pages/psychologist/PsychSettings'))
+const PatientRequests = lazy(() => import('./pages/psychologist/PatientRequests'))
+const NotFoundPage = lazy(() => import('./pages/NotFoundPage'))
+const LegalPage = lazy(() => import('./pages/LegalPage'))
 
 const TUTORIAL_STORAGE_KEY = 'soma_first_visit_hidden'
 
@@ -207,19 +207,166 @@ export default function App() {
     const patientTheme = localStorage.getItem('nexo_dark') === 'true'
     const isDark = psychTheme || patientTheme
     applyTheme(isDark, false)
+    initAnalytics()
   }, [])
 
   return (
     <AuthProvider>
       <HashRouter>
         <FirstVisitTutorial />
-        <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+        <CookieBanner />
+        <Suspense
+          fallback={
+            <div
+              className="flex min-h-screen items-center justify-center bg-[#FAFAFA] text-sm font-medium text-gray-500 dark:bg-[var(--theme-canvas)] dark:text-gray-300"
+              role="status"
+              aria-live="polite"
+            >
+              Cargando…
+            </div>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/thank-you" element={<ThankYouPage />} />
+          <Route
+            path="/legal/privacy-policy"
+            element={
+              <LegalPage
+                title="Política de privacidad"
+                description="SOMA respeta la confidencialidad de los datos de salud emocional y la información personal de sus usuarios. Esta política explica cómo se recogen, usan y resguardan los datos en la plataforma."
+                sections={[
+                  {
+                    heading: '1. Información que recopilamos',
+                    text: [
+                      'Recopilamos los datos necesarios para crear y mantener la cuenta, como nombre, correo electrónico y datos básicos de perfil.',
+                      'Además, registramos información del diario emocional, hábitos, notas personales y vinculaciones con profesionales de salud mental, cuando el usuario lo autoriza.',
+                    ],
+                  },
+                  {
+                    heading: '2. Uso de la información',
+                    text: [
+                      'Los datos se utilizan para brindar la funcionalidad principal de la aplicación: llevar un seguimiento emocional, permitir el acceso a profesionales vinculados y mejorar la experiencia dentro de la plataforma.',
+                      'La información personal no se comparte con terceros sin consentimiento previo, salvo obligación legal o cumplimiento de seguridad y operación del servicio.',
+                    ],
+                  },
+                  {
+                    heading: '3. Seguridad y almacenamiento',
+                    text: [
+                      'Los datos se almacenan en entornos administrados por Supabase y se mantienen bajo medidas de seguridad razonables para evitar acceso no autorizado.',
+                      'Las personas vinculadas a un paciente solo podrán consultar la información que corresponda a esa relación de confianza y participación terapéutica.',
+                    ],
+                  },
+                  {
+                    heading: '4. Derechos del usuario',
+                    text: [
+                      'El usuario puede solicitar acceso, corrección o eliminación de sus datos personales dentro de los límites legales y de la operativa de la aplicación.',
+                      'Para consultas relacionadas con privacidad, podés escribir a hola@soma-app.vercel.app.',
+                    ],
+                  },
+                ]}
+              />
+            }
+          />
+          <Route
+            path="/legal/terms"
+            element={
+              <LegalPage
+                title="Términos y condiciones"
+                description="Estos términos regulan el uso de SOMA, la plataforma de bienestar emocional pensada para acompañar a pacientes y profesionales entre sesiones."
+                sections={[
+                  {
+                    heading: '1. Aceptación',
+                    text: [
+                      'Al crear una cuenta y utilizar SOMA, el usuario acepta estos términos y condiciones y se compromete a utilizar la plataforma de forma responsable.',
+                    ],
+                  },
+                  {
+                    heading: '2. Finalidad de la plataforma',
+                    text: [
+                      'SOMA sirve como herramienta de registro emocional, seguimiento de hábitos y acompañamiento terapéutico entre sesiones, siempre bajo la autorización y la relación de confianza entre paciente y profesional.',
+                    ],
+                  },
+                  {
+                    heading: '3. Limitaciones',
+                    text: [
+                      'SOMA no sustituye una atención profesional presencial ni un diagnóstico clínico, y no debe utilizarse como respuesta inmediata ante situaciones de crisis o emergencias.',
+                      'En caso de crisis o riesgo inminente, se recomienda comunicarse con servicios de emergencia o con un profesional de salud habilitado.',
+                    ],
+                  },
+                  {
+                    heading: '4. Contacto y responsabilidades',
+                    text: [
+                      'El equipo de SOMA puede actualizar estos términos con fines de mejora del servicio o cumplimiento de regulaciones.',
+                      'Para consultas, podés escribir a hola@soma-app.vercel.app.',
+                    ],
+                  },
+                ]}
+              />
+            }
+          />
+          <Route
+            path="/legal/cookies"
+            element={
+              <LegalPage
+                title="Política de cookies"
+                description="SOMA utiliza cookies con fines funcionales y, cuando el usuario lo autoriza, para analizar uso y mejorar la experiencia del servicio."
+                sections={[
+                  {
+                    heading: '1. ¿Qué son las cookies?',
+                    text: [
+                      'Las cookies son pequeños archivos de texto que se almacenan en el navegador para recordar preferencias, mantener la sesión y registrar información de uso del sitio.',
+                    ],
+                  },
+                  {
+                    heading: '2. Cookies funcionales',
+                    text: [
+                      'Se usan para mantener la sesión del usuario, recordar el tema visual y mantener la experiencia de navegación consistente.',
+                    ],
+                  },
+                  {
+                    heading: '3. Cookies de análisis',
+                    text: [
+                      'Cuando el usuario acepta el uso de analytics, se habilita la medición anónima del comportamiento del sitio para mejorar la experiencia y detectar problemas de uso.',
+                      'El uso de analytics requiere consentimiento previo y se puede desactivar desde este banner o en la configuración del sitio.',
+                    ],
+                  },
+                  {
+                    heading: '4. Administración',
+                    text: [
+                      'El usuario puede rechazar o aceptar cookies desde el banner de consentimiento visible en la interfaz.',
+                      'También podés contactarnos en hola@soma-app.vercel.app para consultas sobre privacidad y cookies.',
+                    ],
+                  },
+                ]}
+              />
+            }
+          />
+          <Route
+            path="/legal/contact"
+            element={
+              <LegalPage
+                title="Contacto"
+                description="Si tenés dudas sobre la plataforma, privacidad, seguridad, acceso, o cualquier consulta general, podés comunicarte directamente con el equipo de SOMA."
+                sections={[
+                  {
+                    heading: 'Contacto directo',
+                    text: [
+                      'Email: hola@soma-app.vercel.app',
+                      'Horario de atención: según disponibilidad del equipo de SOMA.',
+                      'Si necesitás ayuda con tu cuenta o con el acceso al servicio, indicá tu correo de registro y una descripción breve del problema.',
+                    ],
+                  },
+                ]}
+              />
+            }
+          />
 
           {/* Paciente */}
           <Route
@@ -255,8 +402,9 @@ export default function App() {
           </Route>
 
           {/* 404 */}
-          <Route path="*" element={<NotFoundPage />} />
-        </Routes>
+            <Route path="*" element={<NotFoundPage />} />
+          </Routes>
+        </Suspense>
       </HashRouter>
     </AuthProvider>
   )

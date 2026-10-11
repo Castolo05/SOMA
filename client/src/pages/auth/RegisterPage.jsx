@@ -67,7 +67,7 @@ export default function RegisterPage() {
           specialization: form.specialization,
         }),
       })
-      navigate(user.role === 'PATIENT' ? '/patient' : '/psych/patients', { replace: true })
+      navigate(user?.role ? (user.role === 'PATIENT' ? '/patient' : '/psych/patients') : '/thank-you?type=register', { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Error al crear la cuenta.')
     } finally {

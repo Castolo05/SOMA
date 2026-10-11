@@ -2,11 +2,12 @@ import { useState, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
 import { Moon, Sun, User, Camera, X } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
+import { readAvatarFile } from '../../lib/avatarUpload'
 
 export function AvatarDisplay({ avatar, size = 28, className = "" }) {
   if (!avatar) return <User size={size} className={className} />
   if (avatar.startsWith('data:image')) {
-    return <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+    return <img src={avatar} alt="Avatar de usuario" loading="lazy" decoding="async" className="w-full h-full object-cover" />
   }
   return <User size={size} className={className} />
 }
@@ -22,6 +23,7 @@ export default function PsychSettings() {
   const [editPassword, setEditPassword] = useState('')
   const [editAvatar, setEditAvatar] = useState(user?.avatar || '')
   const [profileSaving, setProfileSaving] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
   const fileInputRef = useRef(null)
 
   const handleSaveProfile = async () => {
@@ -42,12 +44,16 @@ export default function PsychSettings() {
     }
   }
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => setEditAvatar(reader.result)
-      reader.readAsDataURL(file)
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    setAvatarError('')
+    try {
+      setEditAvatar(await readAvatarFile(file))
+    } catch (err) {
+      setAvatarError(err.message)
     }
   }
 
@@ -124,7 +130,14 @@ export default function PsychSettings() {
                     <AvatarDisplay avatar={editAvatar} size={48} className="text-gray-400" />
                   </div>
                   <div className="flex gap-2">
-                    <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      ref={fileInputRef}
+                      className="hidden"
+                      onChange={handleFileUpload}
+                      aria-describedby={avatarError ? 'psych-avatar-upload-error' : undefined}
+                    />
                     <button onClick={() => fileInputRef.current?.click()} className="text-sm py-1.5 px-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 flex items-center gap-2">
                       <Camera size={16} /> Subir foto
                     </button>
@@ -132,6 +145,11 @@ export default function PsychSettings() {
                       Eliminar
                     </button>
                   </div>
+                  {avatarError && (
+                    <p id="psych-avatar-upload-error" role="alert" className="text-center text-sm text-red-600 dark:text-red-400">
+                      {avatarError}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-4">

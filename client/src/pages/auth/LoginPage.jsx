@@ -129,6 +129,26 @@ export default function LoginPage() {
               Regístrate aquí
             </Link>
           </p>
+
+          <footer className="mt-6 text-center text-xs text-gray-500 dark:text-gray-400">
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              <Link to="/legal/privacy-policy" className="hover:text-sage-500 hover:underline">
+                Privacidad
+              </Link>
+              <span>·</span>
+              <Link to="/legal/terms" className="hover:text-sage-500 hover:underline">
+                Términos
+              </Link>
+              <span>·</span>
+              <Link to="/legal/cookies" className="hover:text-sage-500 hover:underline">
+                Cookies
+              </Link>
+              <span>·</span>
+              <Link to="/legal/contact" className="hover:text-sage-500 hover:underline">
+                Contacto
+              </Link>
+            </div>
+          </footer>
         </div>
       </div>
     </div>

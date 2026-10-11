@@ -9,7 +9,7 @@ export const ANIMAL_ICONS = {
 export default function AvatarDisplay({ avatar, size = 28, className = "" }) {
   if (!avatar) return <UserRound size={size} className={className} />
   if (avatar.startsWith('data:image') || avatar.startsWith('http')) {
-    return <img src={avatar} alt="Avatar" className="w-full h-full object-cover" />
+    return <img src={avatar} alt="Avatar de usuario" loading="lazy" decoding="async" className="w-full h-full object-cover" />
   }
   if (avatar.startsWith('icon:')) {
     const iconName = avatar.split(':')[1]

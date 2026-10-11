@@ -5,6 +5,7 @@ import {
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { readAvatarFile } from '../../lib/avatarUpload'
 
 import AvatarDisplay, { ANIMAL_ICONS } from '../../components/AvatarDisplay'
 
@@ -18,6 +19,7 @@ export default function EditProfilePage() {
   const [editPassword, setEditPassword] = useState('')
   const [editAvatar, setEditAvatar] = useState(user?.avatar || '')
   const [profileSaving, setProfileSaving] = useState(false)
+  const [avatarError, setAvatarError] = useState('')
   const fileInputRef = useRef(null)
 
   const handleSaveProfile = async () => {
@@ -37,12 +39,16 @@ export default function EditProfilePage() {
     }
   }
 
-  const handleFileUpload = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onloadend = () => setEditAvatar(reader.result)
-      reader.readAsDataURL(file)
+  const handleFileUpload = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+
+    setAvatarError('')
+    try {
+      setEditAvatar(await readAvatarFile(file))
+    } catch (err) {
+      setAvatarError(err.message)
     }
   }
 
@@ -64,7 +70,14 @@ export default function EditProfilePage() {
               <AvatarDisplay avatar={editAvatar} size={48} className="text-sage-500" />
             </div>
             <div className="flex gap-2">
-              <input type="file" accept="image/*" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                ref={fileInputRef}
+                className="hidden"
+                onChange={handleFileUpload}
+                aria-describedby={avatarError ? 'avatar-upload-error' : undefined}
+              />
               <button onClick={() => fileInputRef.current?.click()} className="btn-ghost text-xs py-2 px-4 flex items-center gap-1.5">
                 <Camera size={16} /> Subir foto
               </button>
@@ -73,6 +86,11 @@ export default function EditProfilePage() {
               </button>
             </div>
           </div>
+          {avatarError && (
+            <p id="avatar-upload-error" role="alert" className="text-center text-sm text-red-600 dark:text-red-400">
+              {avatarError}
+            </p>
+          )}
           
           <p className="text-sm font-semibold text-center text-gray-500 dark:text-gray-400 mt-4">O elige un animalito:</p>
           <div className="flex flex-wrap justify-center gap-3">
