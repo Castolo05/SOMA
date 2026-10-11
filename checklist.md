@@ -13,6 +13,7 @@ Este checklist refleja lo que sí está implementado en el código y la configur
 - [x] Tiene `robots.txt` y `sitemap.xml` en `client/public`.
 - [x] Ahora existen archivos `llm.txt` y `humans.txt` públicos y accesibles.
 - [x] Hay páginas legales de Privacy Policy y Términos disponibles desde el sitio.
+- [x] El registro exige aceptación explícita de Términos y Política de Privacidad y guarda versión/fecha en los metadatos del usuario.
 
 ## Indexación y rastreo
 - [x] `robots.txt` existe y apunta al sitemap público.

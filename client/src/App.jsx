@@ -284,7 +284,7 @@ export default function App() {
                   {
                     heading: '1. Aceptación',
                     text: [
-                      'Al crear una cuenta y utilizar SOMA, el usuario acepta estos términos y condiciones y se compromete a utilizar la plataforma de forma responsable.',
+                      'Para crear una cuenta, el usuario debe confirmar expresamente que leyó y acepta estos términos y condiciones. Al utilizar SOMA, se compromete a usar la plataforma de forma responsable.',
                     ],
                   },
                   {

@@ -16,6 +16,8 @@ const SPECIALIZATIONS = [
   'Otro/a profesional de salud',
 ]
 
+const TERMS_VERSION = '2026-10-11'
+
 export default function RegisterPage() {
   usePageTitle('Crear cuenta')
   const { register } = useAuth()
@@ -31,6 +33,7 @@ export default function RegisterPage() {
     confirmPassword: '',
     specialization: '',
     role: 'PATIENT',
+    acceptedTerms: false,
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -59,6 +62,8 @@ export default function RegisterPage() {
         email: form.email.trim(),
         password: form.password,
         role: form.role,
+        acceptedTerms: form.acceptedTerms,
+        termsVersion: TERMS_VERSION,
         ...(form.role === 'PSYCHOLOGIST' && {
           firstName: form.firstName.trim(),
           lastName: form.lastName.trim(),
@@ -262,6 +267,42 @@ export default function RegisterPage() {
                 />
               </div>
             )}
+
+            <div className="rounded-xl border border-[#c8b3b0] bg-white/60 p-4 dark:border-[var(--theme-border)] dark:bg-slate-800/40">
+              <label htmlFor="accept-terms" className="flex cursor-pointer items-start gap-3 text-sm leading-6 text-gray-700 dark:text-gray-200">
+                <input
+                  id="accept-terms"
+                  type="checkbox"
+                  className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-sage-600 focus:ring-sage-500"
+                  checked={form.acceptedTerms}
+                  onChange={(event) => setForm((current) => ({ ...current, acceptedTerms: event.target.checked }))}
+                  required
+                  disabled={loading}
+                  aria-describedby={error ? 'register-error' : undefined}
+                />
+                <span>
+                  Leí y acepto los{' '}
+                  <Link
+                    to="/legal/terms"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-sage-600 underline underline-offset-2 hover:text-sage-700 dark:text-sage-400"
+                  >
+                    Términos y Condiciones
+                  </Link>
+                  {' '}y la{' '}
+                  <Link
+                    to="/legal/privacy-policy"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-semibold text-sage-600 underline underline-offset-2 hover:text-sage-700 dark:text-sage-400"
+                  >
+                    Política de Privacidad
+                  </Link>
+                  .
+                </span>
+              </label>
+            </div>
 
             <button type="submit" className="btn-patient mt-2 w-full" disabled={loading}>
               {loading ? 'Creando cuenta...' : 'Crear cuenta →'}

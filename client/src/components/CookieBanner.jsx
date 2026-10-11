@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { getCookiePreferences, setCookiePreferences, initAnalytics } from '../lib/analytics'
 
@@ -24,8 +25,8 @@ export default function CookieBanner() {
 
   if (!visible) return null
 
-  return (
-    <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200 bg-white/95 p-4 shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/95">
+  return createPortal(
+    <div className="fixed inset-x-0 bottom-0 z-[110] max-h-[100dvh] overflow-y-auto overscroll-contain border-t border-slate-200 bg-white/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_-8px_30px_rgba(15,23,42,0.12)] backdrop-blur-md dark:border-slate-700 dark:bg-slate-900/95">
       <div className="mx-auto flex max-w-6xl flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div className="max-w-2xl text-sm leading-6 text-gray-700 dark:text-gray-200">
           <p className="font-semibold text-gray-900 dark:text-white">Uso de cookies</p>
@@ -55,6 +56,7 @@ export default function CookieBanner() {
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }

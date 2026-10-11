@@ -163,7 +163,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="space-y-4 animate-fade-in pb-6">
+    <div className="w-full max-w-3xl mx-auto space-y-4 animate-fade-in pb-6">
       <div>
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">Historial</h1>
         <p className="text-sm text-gray-400">{entries.length} entradas · Editable hasta 7 días (1 semana)</p>

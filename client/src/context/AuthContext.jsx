@@ -169,8 +169,26 @@ export function AuthProvider({ children }) {
   }
 
 
-  const register = async ({ name, email, password, role, firstName, lastName, birthDate, phone, specialization }) => {
+  const register = async ({
+    name,
+    email,
+    password,
+    role,
+    firstName,
+    lastName,
+    birthDate,
+    phone,
+    specialization,
+    acceptedTerms,
+    termsVersion,
+  }) => {
     const normalizedRole = role || 'PATIENT'
+
+    if (!acceptedTerms || !termsVersion) {
+      const err = new Error('Tenés que aceptar los Términos y Condiciones para crear una cuenta.')
+      err.response = { data: { error: err.message } }
+      throw err
+    }
 
     if (!['PATIENT', 'PSYCHOLOGIST'].includes(normalizedRole)) {
       const err = new Error('El tipo de cuenta seleccionado no es válido.')
@@ -187,7 +205,12 @@ export function AuthProvider({ children }) {
       throw err
     }
 
-    const metadata = { name, role: normalizedRole }
+    const metadata = {
+      name,
+      role: normalizedRole,
+      termsAcceptedAt: new Date().toISOString(),
+      termsVersion,
+    }
     if (normalizedRole === 'PSYCHOLOGIST') {
       Object.assign(metadata, { firstName, lastName, birthDate, phone, specialization })
     }
