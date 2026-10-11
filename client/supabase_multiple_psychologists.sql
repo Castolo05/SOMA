@@ -45,7 +45,20 @@ CREATE POLICY "Patients can create links"
 DROP POLICY IF EXISTS "Psychologists can update their links" ON public.patient_psychologists;
 CREATE POLICY "Psychologists can update their links"
   ON public.patient_psychologists FOR UPDATE
-  USING (auth.uid() = psychologist_id);
+  USING (
+    auth.uid() = psychologist_id
+    AND status = 'PENDING'
+  )
+  WITH CHECK (
+    auth.uid() = psychologist_id
+    AND status = 'ACCEPTED'
+  );
+
+-- Los psicólogos solo necesitan modificar el estado al aceptar una solicitud.
+-- Limitar también los permisos SQL impide cambiar patient_id o psychologist_id,
+-- incluso si existiera otra política RLS permisiva.
+REVOKE UPDATE ON TABLE public.patient_psychologists FROM PUBLIC, anon, authenticated;
+GRANT UPDATE (status, updated_at) ON TABLE public.patient_psychologists TO authenticated;
 
 -- Un paciente puede eliminar sus vinculaciones (desvincularse)
 DROP POLICY IF EXISTS "Patients can delete their links" ON public.patient_psychologists;

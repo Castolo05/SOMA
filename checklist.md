@@ -72,6 +72,7 @@ Este checklist refleja lo que sí está implementado en el código y la configur
 
 ## Seguridad y cumplimiento técnico
 - [x] El proyecto mantiene políticas de acceso en Supabase y no expone el backend como una API abierta genérica en el frontend.
+- [x] Las migraciones limitan la aceptación de vinculaciones al psicólogo destinatario y a la transición `PENDING` → `ACCEPTED`; los permisos SQL impiden cambiar los IDs de paciente o psicólogo.
 - [x] Hay `ProtectedRoute` y control de acceso por rol en el cliente.
 - [x] El código usa Supabase en lugar de credenciales hardcodeadas en el frontend.
 - [x] Vercel entrega CSP y headers HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy y Permissions-Policy.
