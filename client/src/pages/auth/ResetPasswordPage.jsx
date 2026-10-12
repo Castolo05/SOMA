@@ -1,9 +1,27 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, Eye, EyeOff } from 'lucide-react'
 import { supabase } from '../../lib/supabase'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ThemeLogo from '../../components/ThemeLogo'
+
+function getRecoveryParams() {
+  const hashParts = window.location.hash.slice(1).split('#')
+  const routeQueryStart = hashParts[0].indexOf('?')
+  const routeQuery = routeQueryStart >= 0 ? hashParts[0].slice(routeQueryStart + 1) : ''
+  const fragmentParams = hashParts.slice(1).join('&')
+  const params = new URLSearchParams([
+    window.location.search.slice(1),
+    routeQuery,
+    fragmentParams,
+  ].filter(Boolean).join('&'))
+  return {
+    code: params.get('code'),
+    type: params.get('type'),
+    accessToken: params.get('access_token'),
+    refreshToken: params.get('refresh_token'),
+  }
+}
 
 export default function ResetPasswordPage() {
   usePageTitle('Restablecer contraseña')
@@ -11,12 +29,53 @@ export default function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [checkingRecovery, setCheckingRecovery] = useState(true)
+  const [recoveryReady, setRecoveryReady] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+
+  useEffect(() => {
+    const recoverSession = async () => {
+      const { code, type, accessToken, refreshToken } = getRecoveryParams()
+      if (type !== 'recovery' || (!code && (!accessToken || !refreshToken))) {
+        setError('El enlace de recuperación no es válido o ya expiró. Solicitá uno nuevo.')
+        setCheckingRecovery(false)
+        return
+      }
+
+      try {
+        const result = code
+          ? await supabase.auth.exchangeCodeForSession(code)
+          : await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken,
+            })
+
+        if (result.error) {
+          throw result.error
+        }
+        if (!result.data.session) {
+          throw new Error('Supabase no devolvió una sesión de recuperación.')
+        }
+        setRecoveryReady(true)
+      } catch {
+        setError('El enlace de recuperación no es válido o ya expiró. Solicitá uno nuevo.')
+      } finally {
+        setCheckingRecovery(false)
+      }
+    }
+
+    recoverSession()
+  }, [])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    if (!recoveryReady) {
+      setError('Abrí el enlace enviado por correo para autorizar el cambio de contraseña.')
+      return
+    }
 
     if (password.length < 8) {
       setError('La contraseña debe tener al menos 8 caracteres.')
@@ -41,17 +100,17 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] p-4 relative overflow-hidden">
+    <div className="relative flex min-h-screen min-h-[100dvh] items-center justify-center overflow-x-hidden overflow-y-auto bg-[#f2c6b6] px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] dark:bg-[var(--theme-canvas)] sm:p-6">
       <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
-      <div className="w-full max-w-md animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-lg mb-4 overflow-hidden border border-gray-100">
+      <div className="my-auto w-full max-w-md min-w-0 animate-fade-in">
+        <div className="mb-5 text-center sm:mb-8">
+          <div className="mb-3 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-gray-100 shadow-lg sm:mb-4 sm:h-20 sm:w-20">
             <ThemeLogo alt="SOMA Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">SOMA</h1>
+          <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">SOMA</h1>
         </div>
 
-        <div className="bg-[#f9e2da] dark:bg-[var(--theme-surface)] rounded-3xl shadow-xl border border-[#c8b3b0] dark:border-[var(--theme-border)] p-8">
+        <div className="min-w-0 rounded-3xl border border-[#c8b3b0] bg-[#f9e2da] p-5 shadow-xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] sm:p-8">
           {!success ? (
             <>
               <h2 className="text-xl font-bold text-gray-800 mb-2">Restablecer contraseña</h2>
@@ -65,52 +124,66 @@ export default function ResetPasswordPage() {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div>
-                  <label className="label">Nueva contraseña</label>
-                  <div className="relative">
+              {checkingRecovery ? (
+                <div className="flex items-center justify-center gap-2 rounded-2xl bg-white/60 px-4 py-3 text-sm text-gray-600">
+                  <span className="w-4 h-4 border-2 border-sage-500/40 border-t-sage-500 rounded-full animate-spin" />
+                  Validando enlace de recuperación...
+                </div>
+              ) : recoveryReady ? (
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div>
+                    <label className="label">Nueva contraseña</label>
+                    <div className="relative">
+                      <input
+                        type={showPassword ? 'text' : 'password'}
+                        className="input pr-12"
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        autoComplete="new-password"
+                        required
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
+                        aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                      >
+                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="label">Repetir contraseña</label>
                     <input
                       type={showPassword ? 'text' : 'password'}
-                      className="input pr-12"
+                      className="input"
                       placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
                       autoComplete="new-password"
                       required
                     />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-600"
-                      aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
                   </div>
-                </div>
 
-                <div>
-                  <label className="label">Repetir contraseña</label>
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    className="input"
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    autoComplete="new-password"
-                    required
-                  />
-                </div>
-
-                <button type="submit" className="btn-patient w-full" disabled={loading}>
-                  {loading ? (
-                    <span className="flex items-center justify-center gap-2">
-                      <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
-                      Guardando...
-                    </span>
-                  ) : 'Guardar contraseña'}
-                </button>
-              </form>
+                  <button type="submit" className="btn-patient w-full" disabled={loading}>
+                    {loading ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin" />
+                        Guardando...
+                      </span>
+                    ) : 'Guardar contraseña'}
+                  </button>
+                </form>
+              ) : (
+                <Link
+                  to="/forgot-password"
+                  className="btn-patient flex w-full items-center justify-center"
+                >
+                  Solicitar un nuevo enlace
+                </Link>
+              )}
             </>
           ) : (
             <div className="text-center py-4 animate-fade-in">

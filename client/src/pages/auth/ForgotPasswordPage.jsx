@@ -14,32 +14,42 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    const normalizedEmail = email.trim().toLowerCase()
     setError('')
     setLoading(true)
-    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/#/reset-password`,
-    })
-    if (err) {
-      setError('Error al enviar el email. Verifica que la dirección sea correcta.')
-    } else {
+
+    try {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
+        redirectTo: `${window.location.origin}/#/reset-password`,
+      })
+
+      if (err) {
+        throw err
+      }
+
+      setEmail(normalizedEmail)
       setSent(true)
+    } catch (err) {
+      const message = err?.message || 'Error al enviar el email. Verifica que la dirección sea correcta.'
+      setError(message)
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] p-4 relative overflow-hidden">
+    <div className="relative flex min-h-screen min-h-[100dvh] items-center justify-center overflow-x-hidden overflow-y-auto bg-[#f2c6b6] px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] dark:bg-[var(--theme-canvas)] sm:p-6">
       <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
-      <div className="w-full max-w-md animate-fade-in">
+      <div className="my-auto w-full max-w-md min-w-0 animate-fade-in">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl shadow-lg mb-4 overflow-hidden border border-gray-100">
+        <div className="mb-5 text-center sm:mb-8">
+          <div className="mb-3 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-gray-100 shadow-lg sm:mb-4 sm:h-20 sm:w-20">
             <ThemeLogo alt="SOMA Logo" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800">SOMA</h1>
+          <h1 className="text-2xl font-bold text-gray-800 sm:text-3xl">SOMA</h1>
         </div>
 
-        <div className="bg-[#f9e2da] dark:bg-[var(--theme-surface)] rounded-3xl shadow-xl border border-[#c8b3b0] dark:border-[var(--theme-border)] p-8">
+        <div className="min-w-0 rounded-3xl border border-[#c8b3b0] bg-[#f9e2da] p-5 shadow-xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] sm:p-8">
           {!sent ? (
             <>
               <h2 className="text-xl font-bold text-gray-800 mb-2">Recuperar contraseña</h2>
@@ -91,7 +101,7 @@ export default function ForgotPasswordPage() {
               </div>
               <h2 className="text-xl font-bold text-gray-800 mb-2">¡Email enviado!</h2>
               <p className="text-gray-500 text-sm mb-6">
-                Revisá tu bandeja de entrada en <strong>{email}</strong> y seguí el link para restablecer tu contraseña.
+                Revisá tu bandeja de entrada en <strong className="break-all">{email}</strong> y seguí el link para restablecer tu contraseña.
               </p>
               <p className="text-xs text-gray-400">
                 ¿No llegó? Revisá la carpeta de spam.

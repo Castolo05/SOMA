@@ -28,6 +28,10 @@ SOMA es una plataforma de bienestar emocional en producción que permite a las p
 
 La aplicación web utiliza Supabase para autenticación y acceso a los datos. El código fuente del cliente está en [`client/`](./client/).
 
+### Recuperación de contraseña
+
+El cliente envía el correo con Supabase Auth y actualiza la contraseña desde el enlace temporal de recuperación. En el proyecto de Supabase, agregá en **Authentication → URL Configuration → Redirect URLs** la URL de producción de la aplicación terminada en `/#/reset-password` (y, para desarrollo local, `http://localhost:5173/#/reset-password`). La aplicación desplegada también debe tener configuradas las variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` para ese mismo proyecto.
+
 ## Datos y privacidad
 
 Los datos del diario son personales. La lectura por parte de un profesional depende de que exista una vinculación autorizada entre las cuentas. Las notas de sesión del psicólogo son privadas y no se muestran al paciente.
