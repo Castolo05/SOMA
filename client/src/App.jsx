@@ -40,6 +40,37 @@ const LegalPage = lazy(() => import('./pages/LegalPage'))
 
 const TUTORIAL_STORAGE_KEY = 'soma_first_visit_hidden'
 
+function InitialRoute() {
+  const params = new URLSearchParams(window.location.search)
+  const isResetPasswordPath = window.location.pathname.replace(/\/+$/, '') === '/reset-password'
+  const isRecoveryCallback = params.has('recovery') || params.has('code') || params.get('type') === 'recovery'
+
+  return (
+    <Navigate
+      to={isResetPasswordPath || isRecoveryCallback ? '/reset-password' : '/login'}
+      replace
+    />
+  )
+}
+
+function NotFoundOrRecoveryRoute() {
+  const hashParts = window.location.hash.slice(1).split('#')
+  const fragmentParams = new URLSearchParams(hashParts[hashParts.length - 1])
+  const accessToken = fragmentParams.get('access_token')
+  const refreshToken = fragmentParams.get('refresh_token')
+
+  if (fragmentParams.get('type') === 'recovery' && accessToken && refreshToken) {
+    return (
+      <Navigate
+        to={`/reset-password?${fragmentParams.toString()}`}
+        replace
+      />
+    )
+  }
+
+  return <NotFoundPage />
+}
+
 function FirstVisitTutorial() {
   const [isOpen, setIsOpen] = useState(() => {
     try {
@@ -227,7 +258,7 @@ export default function App() {
           }
         >
           <Routes>
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<InitialRoute />} />
 
           {/* Auth */}
           <Route path="/login" element={<LoginPage />} />
@@ -402,7 +433,7 @@ export default function App() {
           </Route>
 
           {/* 404 */}
-            <Route path="*" element={<NotFoundPage />} />
+            <Route path="*" element={<NotFoundOrRecoveryRoute />} />
           </Routes>
         </Suspense>
       </HashRouter>

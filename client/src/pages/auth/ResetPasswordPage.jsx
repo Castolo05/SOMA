@@ -37,7 +37,9 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const recoverSession = async () => {
       const { code, type, accessToken, refreshToken } = getRecoveryParams()
-      if (type !== 'recovery' || (!code && (!accessToken || !refreshToken))) {
+      const hasRecoveryCode = Boolean(code) && (!type || type === 'recovery')
+      const hasRecoveryTokens = type === 'recovery' && accessToken && refreshToken
+      if (!hasRecoveryCode && !hasRecoveryTokens) {
         setError('El enlace de recuperación no es válido o ya expiró. Solicitá uno nuevo.')
         setCheckingRecovery(false)
         return
