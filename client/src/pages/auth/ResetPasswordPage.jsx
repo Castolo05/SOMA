@@ -101,8 +101,8 @@ export default function ResetPasswordPage() {
 
   return (
     <div className="relative flex min-h-screen min-h-[100dvh] items-center justify-center overflow-x-hidden overflow-y-auto bg-[#f2c6b6] px-4 py-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] dark:bg-[var(--theme-canvas)] sm:p-6">
-      <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
-      <div className="my-auto w-full max-w-md min-w-0 animate-fade-in">
+      <div className="pointer-events-none absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
+      <div className="relative z-10 my-auto w-full max-w-md min-w-0 animate-fade-in">
         <div className="mb-5 text-center sm:mb-8">
           <div className="mb-3 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-gray-100 shadow-lg sm:mb-4 sm:h-20 sm:w-20">
             <ThemeLogo alt="SOMA Logo" className="w-full h-full object-contain" />
