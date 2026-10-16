@@ -166,7 +166,7 @@ export default function HistoryPage() {
     <div className="w-full max-w-3xl mx-auto space-y-4 animate-fade-in pb-6">
       <div>
         <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">Historial</h1>
-        <p className="text-sm text-gray-400">{entries.length} entradas · Editable hasta 7 días (1 semana)</p>
+        <p className="text-sm text-gray-400">{entries.length} entradas</p>
       </div>
 
       <ConfirmActionModal
@@ -316,7 +316,7 @@ export default function HistoryPage() {
                             Sin anotación para el {selectedDay.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
                           </h2>
                           <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 max-w-sm mx-auto">
-                            Podés registrar cómo te sentiste ese día (plazo disponible de hasta 1 semana).
+                            Podés registrar cómo te sentiste ese día.
                           </p>
                         </div>
                         {!isAddingForDay ? (
@@ -392,7 +392,7 @@ export default function HistoryPage() {
                                     Modificar anotación ({formattedDay})
                                   </h2>
                                   <p className="text-[11px] text-gray-400">
-                                    Podés editar tu anotación hasta con 1 semana de retraso
+                                    Podés editar tu anotación
                                   </p>
                                 </div>
                               </div>
@@ -552,11 +552,8 @@ export default function HistoryPage() {
                                   </div>
                                 )
                               })()}
-                              {canEdit ? (
-                                <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700/60 mt-3">
-                                  <p className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                                    <Clock size={12} /> Editable (hasta con 1 semana de retraso)
-                                  </p>
+                              {canEdit && (
+                                <div className="flex items-center justify-end pt-3 border-t border-gray-100 dark:border-gray-700/60 mt-3">
                                   <button
                                     type="button"
                                     onClick={(e) => {
@@ -568,10 +565,6 @@ export default function HistoryPage() {
                                     <Edit2 size={13} /> Modificar anotación
                                   </button>
                                 </div>
-                              ) : (
-                                <p className="flex items-center gap-1 text-xs text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-700/60 mt-3">
-                                  <Clock size={11} /> Solo editable hasta con una semana de retraso
-                                </p>
                               )}
                             </div>
                           )}
@@ -616,7 +609,7 @@ export default function HistoryPage() {
                               Modificar anotación ({formattedDay})
                             </h2>
                             <p className="text-[11px] text-gray-400">
-                              Podés editar tu anotación hasta con 1 semana de retraso
+                              Podés editar tu anotación
                             </p>
                           </div>
                         </div>
@@ -760,11 +753,8 @@ export default function HistoryPage() {
                           </div>
                         )
                       })()}
-                      {canEdit ? (
-                        <div className="flex items-center justify-between pt-3 border-t border-gray-100 dark:border-gray-700/60 mt-3">
-                          <p className="flex items-center gap-1.5 text-xs text-emerald-600 dark:text-emerald-400 font-medium">
-                            <Clock size={12} /> Editable (hasta con 1 semana de retraso)
-                          </p>
+                      {canEdit && (
+                        <div className="flex items-center justify-end pt-3 border-t border-gray-100 dark:border-gray-700/60 mt-3">
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setEditingEntryId(entry.id) }}
@@ -773,10 +763,6 @@ export default function HistoryPage() {
                             <Edit2 size={13} /> Modificar anotación
                           </button>
                         </div>
-                      ) : (
-                        <p className="flex items-center gap-1 text-xs text-gray-400 pt-3 border-t border-gray-100 dark:border-gray-700/60 mt-3">
-                          <Clock size={11} /> Solo editable hasta con una semana de retraso
-                        </p>
                       )}
                     </div>
                   </div>
