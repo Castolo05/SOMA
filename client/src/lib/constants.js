@@ -104,13 +104,13 @@ export const entryDateToDate = (entryDate) => {
   return new Date(entryDate)
 }
 
-// La ventana de edición permite modificar anotaciones hasta con una semana (7 días) de retraso.
+// Sin límite de antigüedad: el paciente puede crear/editar anotaciones de cualquier
+// día pasado o presente (fechas futuras siempre son inválidas).
 export const isEditable = (entryDate) => {
   if (!entryDate) return false
   const target = entryDateKey(entryDateToDate(entryDate))
   const today = entryDateKey()
-  const weekAgo = entryDateKey(addDays(new Date(), -7))
-  return target <= today && target >= weekAgo
+  return target <= today
 }
 
 export const MONTH_NAMES = [

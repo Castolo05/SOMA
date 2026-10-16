@@ -220,8 +220,7 @@ DROP POLICY IF EXISTS "journal: paciente crea" ON public.journal_entries;
 CREATE POLICY "journal: paciente crea" ON public.journal_entries
   FOR INSERT WITH CHECK (
     auth.uid() = patient_id
-    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 7)
-                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
+    AND entry_date <= (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
   );
 
 DROP POLICY IF EXISTS "journal: paciente actualiza (24h)" ON public.journal_entries;
@@ -230,12 +229,10 @@ DROP POLICY IF EXISTS "journal: paciente actualiza (1 semana)" ON public.journal
 CREATE POLICY "journal: paciente actualiza (1 semana)" ON public.journal_entries
   FOR UPDATE USING (
     auth.uid() = patient_id
-    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 7)
-                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
+    AND entry_date <= (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
   ) WITH CHECK (
     auth.uid() = patient_id
-    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 7)
-                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
+    AND entry_date <= (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
   );
 
 DROP POLICY IF EXISTS "journal: paciente elimina (24h)" ON public.journal_entries;
@@ -244,8 +241,7 @@ DROP POLICY IF EXISTS "journal: paciente elimina (1 semana)" ON public.journal_e
 CREATE POLICY "journal: paciente elimina (1 semana)" ON public.journal_entries
   FOR DELETE USING (
     auth.uid() = patient_id
-    AND entry_date BETWEEN ((NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE - 7)
-                       AND  (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
+    AND entry_date <= (NOW() AT TIME ZONE 'America/Argentina/Buenos_Aires')::DATE
   );
 
 -- Psicólogo: solo lectura de entradas de SUS pacientes

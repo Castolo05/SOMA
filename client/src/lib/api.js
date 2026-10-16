@@ -355,11 +355,11 @@ const api = {
     // ── POST /journal ─────────────────────────────────────
     if (url === '/journal') {
       const today = entryDateKey()
-      const minDate = entryDateKey(addDays(new Date(), -7))
       const requestedEntryDate = body.entryDate || today
 
-      if (requestedEntryDate > today || requestedEntryDate < minDate) {
-        return fail('Solo podés crear anotaciones de hoy o de hasta 1 semana de antigüedad (7 días).', 403)
+      // Solo bloquear fechas futuras
+      if (requestedEntryDate > today) {
+        return fail('No podés crear anotaciones para fechas futuras.', 403)
       }
 
       // Una entrada por día de registro.
