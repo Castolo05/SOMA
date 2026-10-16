@@ -102,15 +102,26 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
       const cutoff = new Date(now)
       cutoff.setDate(now.getDate() - currentDays)
       cutoff.setHours(0, 0, 0, 0)
-      filtered = filtered.filter((e) => new Date(e.createdAt) >= cutoff)
+      // Usar entryDate (clave canónica YYYY-MM-DD) para respetar el día local correcto
+      filtered = filtered.filter((e) => {
+        const d = e.entryDate ? new Date(`${e.entryDate}T12:00:00`) : new Date(e.createdAt)
+        return d >= cutoff
+      })
     }
 
     return filtered
-      .sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt))
+      .sort((a, b) => {
+        const da = a.entryDate ? new Date(`${a.entryDate}T12:00:00`) : new Date(a.createdAt)
+        const db = b.entryDate ? new Date(`${b.entryDate}T12:00:00`) : new Date(b.createdAt)
+        return da - db
+      })
       .map((e) => ({
         id: e.id,
-        dateLabel: formatDateShort(e.createdAt),
+        // entryDate es la clave canónica; si no existe, caer a createdAt
+        dateLabel: formatDateShort(e.entryDate || e.createdAt),
         mood: e.moodScore,
+        // Guardar entryDate para que el click compare correctamente con selectedDayKey
+        entryDate: e.entryDate || null,
         rawDate: e.createdAt,
       }))
   }, [entries, currentDays])
@@ -152,7 +163,11 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
             onClick={(e) => {
               if (onDayClick && e && e.activePayload && e.activePayload.length > 0) {
                 const point = e.activePayload[0].payload
-                onDayClick(new Date(point.rawDate), point.id)
+                // Usar entryDate canónico (mediodía local) para evitar desfase por UTC
+                const date = point.entryDate
+                  ? new Date(`${point.entryDate}T12:00:00`)
+                  : new Date(point.rawDate)
+                onDayClick(date, point.id)
               }
             }}
           >
