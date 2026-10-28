@@ -10,18 +10,24 @@ import { addDays, entryDateKey } from './constants'
 // Usamos getSession() (caché local) en lugar de getUser() (llamada a red)
 // para evitar race conditions justo después del registro donde el JWT
 // puede no haber propagado aún a los servidores de validación de Supabase.
+// El rol y los datos de vínculo no se pueden editar desde el cliente, así que
+// el perfil se consulta una sola vez por usuario en lugar de en cada llamada.
+let profileCache = null
+
 async function currentUser() {
   // Primero intentamos con la sesión en caché (rápido, sin red)
   const { data: { session } } = await supabase.auth.getSession()
   const user = session?.user ?? null
   if (!user) return null
 
+  if (profileCache?.id === user.id) return { ...profileCache, email: user.email }
+
   // Intentar leer el perfil con reintentos (puede haber delay de RLS post-registro)
   let profile = null
   for (let attempt = 1; attempt <= 3; attempt++) {
     const { data, error } = await supabase
       .from('profiles')
-      .select('*')
+      .select('role, invite_code, psychologist_id, psychologist_status')
       .eq('id', user.id)
       .single()
     if (data) { profile = data; break }
@@ -46,15 +52,34 @@ async function currentUser() {
     }
   }
 
-  return {
+  profileCache = {
     id: user.id,
-    email: user.email,
     role: profile.role,
     inviteCode: profile.invite_code,
     psychologistId: profile.psychologist_id,
+    psychologistStatus: profile.psychologist_status,
   }
+  return { ...profileCache, email: user.email }
 }
 
+
+// Alternativa a psychologist_patient_summaries() si la función aún no existe
+// en la base: una sola consulta para todos los pacientes, agregada en el cliente.
+async function summarizeEntriesByPatient(patientIds) {
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .select('patient_id, mood_score, entry_date')
+    .in('patient_id', patientIds)
+    .order('entry_date', { ascending: false })
+  if (error) return new Error(error.message)
+  const byId = new Map()
+  for (const e of data || []) {
+    const summary = byId.get(e.patient_id)
+    if (summary) summary.total_entries += 1
+    else byId.set(e.patient_id, { total_entries: 1, last_mood: e.mood_score, last_entry_date: e.entry_date })
+  }
+  return byId
+}
 
 // ── Helpers ───────────────────────────────────────────────
 function ok(data) { return Promise.resolve({ data }) }
@@ -139,23 +164,23 @@ const api = {
       const patientIds = [...new Set((links || []).map(link => link.patient_id))]
       if (!patientIds.length) return ok({ patients: [] })
 
-      const { data: patients, error } = await supabase
-        .from('profiles')
-        .select('id, name, role, avatar_url')
-        .in('id', patientIds)
-        .eq('role', 'PATIENT')
+      // Perfiles y resumen de entradas en paralelo, en lugar de una consulta por paciente
+      const [{ data: patients, error }, { data: summaries, error: summariesError }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('id, name, role, avatar_url')
+          .in('id', patientIds)
+          .eq('role', 'PATIENT'),
+        supabase.rpc('psychologist_patient_summaries'),
+      ])
       if (error) return fail(error.message)
+      const summaryById = summariesError
+        ? await summarizeEntriesByPatient(patientIds)
+        : new Map((summaries || []).map(s => [s.patient_id, s]))
+      if (summaryById instanceof Error) return fail(summaryById.message)
 
-      // Para cada paciente, obtener sus entradas de diario
-      const enriched = await Promise.all((patients || []).map(async (p) => {
-        const { data: entries } = await supabase
-          .from('journal_entries')
-          .select('mood_score, entry_date, created_at')
-          .eq('patient_id', p.id)
-          .order('entry_date', { ascending: false })
-          .limit(10)
-        const lastEntry = entries?.[0]
-        const lastEntryDate = lastEntry?.entry_date || lastEntry?.created_at
+      const enriched = (patients || []).map((p) => {
+        const summary = summaryById.get(p.id)
         return {
           id: p.id,
           name: p.name,
@@ -163,11 +188,11 @@ const api = {
           role: p.role,
           avatarUrl: p.avatar_url,
           psychologistId: user.id,
-          totalEntries: (entries || []).length,
-          lastMood: lastEntry?.mood_score ?? null,
-          lastEntryDate: lastEntryDate ?? null,
+          totalEntries: Number(summary?.total_entries ?? 0),
+          lastMood: summary?.last_mood ?? null,
+          lastEntryDate: summary?.last_entry_date ?? null,
         }
-      }))
+      })
       return ok({ patients: enriched })
     }
 
