@@ -199,11 +199,10 @@ cliente son la referencia principal; el esquema de Prisma/SQLite es distinto.
   registra el momento técnico de creación. No intercambiar estos conceptos.
 - Las fechas de registro usan el día local y la lógica/migraciones actuales
   hacen referencia a `America/Argentina/Buenos_Aires`.
-- La interfaz y el adaptador permiten crear entradas para hoy y hasta siete
-  días atrás, inclusive. La edición y eliminación también se describen en la
-  interfaz como una ventana de siete días. Las políticas RLS desplegadas deben
-  coincidir con esta regla; verificar el estado real de producción antes de
-  modificarla.
+- El paciente puede crear, editar y eliminar entradas de hoy o de cualquier
+  día anterior; nunca de fechas futuras. Así lo aplican `isEditable` en
+  `client/src/lib/constants.js` y las políticas RLS de `journal_entries`
+  (algunas conservan "(1 semana)" en el nombre por herencia, sin límite real).
 - La fecha de una entrada creada es inmutable en la base de datos según la
   migración móvil. Si se cambia la lógica de fechas, contemplar zona horaria,
   fecha de experiencia, restricción de una entrada diaria, UI y RLS en conjunto.
@@ -248,29 +247,17 @@ hábito.
 
 ## 5. Evolución SQL y migraciones
 
-Los archivos `client/supabase_*.sql` documentan cambios incrementales e
-incluyen políticas antiguas, correcciones y migraciones. Entre ellos:
+- `supabase/migrations/` es la fuente de verdad del esquema. Se aplican en
+  orden por fecha:
+  - `20261028000000_baseline.sql`: esquema exportado de producción el
+    2026-10-28 (tablas, índices, funciones, triggers, permisos y RLS).
+  - `20261028022656_security_hardening_profiles_links.sql`: permisos de
+    columnas de `profiles`, vínculos solo `PENDING` desde el paciente y retiro
+    de la lectura pública de psicólogos. Ya aplicada en producción.
+- Todo cambio nuevo va en un archivo `supabase/migrations/<timestamp>_<nombre>.sql`.
+- `supabase/legacy/` conserva los scripts sueltos anteriores solo como
+  historial: no son una secuencia lineal y no deben volver a ejecutarse.
 
-- `supabase_migration.sql`: esquema inicial, tablas, trigger de creación de
-  perfiles y políticas.
-- `supabase_multiple_psychologists.sql`: relación de paciente con múltiples
-  profesionales y políticas asociadas.
-- `supabase_unlink_access_migration.sql`: acceso basado en vínculo aceptado y
-  retiro de accesos heredados al desvincular.
-- `supabase_link_preview_migration.sql`: función de vista previa de identidad
-  por código.
-- `supabase_mobile_migration.sql`: fecha de entrada, unicidad diaria,
-  inmutabilidad de fecha y políticas iniciales de la aplicación móvil.
-- `supabase_week_window_migration.sql`: amplía las políticas del diario a la
-  ventana de siete días actualmente esperada por la interfaz.
-- `supabase_psychologist_habits_read_migration.sql`: lectura profesional de
-  hábitos de pacientes aceptados.
-- `supabase_requests_migration.sql`, `supabase_rls_fix.sql` y
-  `supabase_fix.sql`: cambios y correcciones anteriores de solicitudes,
-  autenticación y RLS.
-
-No asumir que todos estos archivos son una secuencia lineal, que todos se
-ejecutaron en producción ni que un archivo antiguo refleja la política vigente.
 Antes de recomendar o ejecutar SQL:
 
 1. Leer el archivo completo y sus dependencias.
@@ -299,9 +286,11 @@ client/
 │   └── lib/theme.js             # Aplicación de tema claro/oscuro
 ├── public/                      # Marca, manifest, robots, sitemap y SW
 ├── android/                     # Proyecto nativo Capacitor
-├── supabase_*.sql               # Esquema, políticas y migraciones
 ├── vercel.json                  # Configuración de SPA para Vercel
 └── package.json                 # Scripts web y Android
+supabase/
+├── migrations/                  # Esquema vigente y migraciones nuevas
+└── legacy/                      # Scripts SQL históricos (no ejecutar)
 server/
 ├── src/                         # API Express complementaria
 └── prisma/                      # Esquema SQLite y seed local

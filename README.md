@@ -36,9 +36,7 @@ El cliente envía el correo con Supabase Auth y actualiza la contraseña desde e
 
 Los datos del diario son personales. La lectura por parte de un profesional depende de que exista una vinculación autorizada entre las cuentas. Las notas de sesión del psicólogo son privadas y no se muestran al paciente.
 
-Los cambios de esquema y políticas de acceso de Supabase se mantienen en los archivos SQL de [`client/`](./client/). Las políticas de la base de datos deben conservar las restricciones de acceso por usuario y por vínculo.
-
-Para habilitar el registro de profesionales y guardar sus datos de perfil, ejecutá [`client/supabase_psychologist_registration_migration.sql`](./client/supabase_psychologist_registration_migration.sql) en el editor SQL de Supabase después de las migraciones existentes.
+El esquema y las políticas de acceso de Supabase viven en [`supabase/migrations/`](./supabase/migrations/): `20261028000000_baseline.sql` reproduce la base de producción y cada cambio nuevo se agrega como otra migración con fecha. Los scripts anteriores quedan en [`supabase/legacy/`](./supabase/legacy/) solo como historial. Las políticas de la base de datos deben conservar las restricciones de acceso por usuario y por vínculo.
 
 ## Android
 

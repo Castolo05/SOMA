@@ -353,8 +353,8 @@ export default function HistoryPage() {
                     ) : (
                       <div className="card text-center py-8 text-gray-400">
                         <Clock size={32} className="mx-auto mb-2 text-gray-300 dark:text-gray-600" />
-                        <p className="font-semibold text-gray-700 dark:text-gray-300 text-sm">Plazo de registro expirado</p>
-                        <p className="text-xs text-gray-400 mt-1">El plazo para registrar o editar notas anteriores es de hasta 1 semana (7 días).</p>
+                        <p className="font-semibold text-gray-700 dark:text-gray-300 text-sm">Fecha no disponible</p>
+                        <p className="text-xs text-gray-400 mt-1">Podés registrar o editar notas de hoy o de cualquier día anterior, pero no de fechas futuras.</p>
                       </div>
                     )}
                   </div>

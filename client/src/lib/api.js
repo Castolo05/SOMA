@@ -336,7 +336,7 @@ const api = {
           return fail('Ya existe una solicitud o vinculación con este psicólogo.')
         }
         if (insertErr.code === '42P01') {
-          return fail('Falta configurar la tabla de vinculaciones en Supabase. Ejecuta supabase_multiple_psychologists.sql.')
+          return fail('Falta configurar la tabla de vinculaciones en Supabase. Aplicá las migraciones de supabase/migrations.')
         }
         return fail(insertErr.message)
       }

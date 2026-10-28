@@ -500,7 +500,7 @@ export default function PatientDashboard() {
                 </div>
               )}
               {!canEditToday && (
-                <p className="text-xs text-gray-400 mt-3">🔒 Período de edición (1 semana) expirado.</p>
+                <p className="text-xs text-gray-400 mt-3">🔒 Esta entrada no se puede editar.</p>
               )}
             </div>
           </div>
