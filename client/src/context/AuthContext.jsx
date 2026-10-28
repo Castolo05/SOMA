@@ -1,26 +1,29 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
-import {
-  clearSavedSession,
-  loadSavedSession,
-  saveSession,
-  setSessionPersistence,
-  supabase,
-} from '../lib/supabase'
+import { setSessionPersistence, supabase } from '../lib/supabase'
+import { clearProfileCache } from '../lib/api'
+import { clearPatientCache } from '../lib/patientCache'
 import ThemeLogo from '../components/ThemeLogo'
 
 const AuthContext = createContext(null)
 const OAUTH_RETURN_FLAG = 'oauth'
 export const OAUTH_ERROR_KEY = 'soma-oauth-error'
 
+// Los datos en memoria de una cuenta no deben verse si otra entra en la misma pestaña.
+function clearClientCaches() {
+  clearProfileCache()
+  clearPatientCache()
+}
+
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const initializedRef = useRef(false)
+  const userIdRef = useRef(null)
 
   // Carga el perfil completo desde la tabla profiles.
   // Si no existe (ej: cuenta creada antes del trigger), lo crea automáticamente.
   async function loadProfile(authUser) {
-    if (!authUser) { setUser(null); return null }
+    if (!authUser) { userIdRef.current = null; setUser(null); return null }
 
     const { data: profile, error } = await supabase
       .from('profiles')
@@ -52,6 +55,7 @@ export function AuthProvider({ children }) {
         psychologistStatus: profile.psychologist_status,
         avatar: profile.avatar_url || null,
       }
+      userIdRef.current = userData.id
       setUser(userData)
       return userData
     }
@@ -59,59 +63,45 @@ export function AuthProvider({ children }) {
   }
 
   useEffect(() => {
-    // Restaurar manualmente la sesión guardada en el almacenamiento local del APK.
+    // supabase-js recupera la sesión guardada (y la del fragmento de la URL al
+    // volver de Google) por su cuenta; getSession() espera a que termine.
     const restoreSession = async () => {
-      // Regreso de Google: supabase-js ya tomó los tokens del fragmento de la URL
-      // (detectSessionInUrl); getSession() espera a que termine de hacerlo.
-      if (new URLSearchParams(window.location.search).get('auth') === OAUTH_RETURN_FLAG) {
+      const isOAuthReturn = new URLSearchParams(window.location.search).get('auth') === OAUTH_RETURN_FLAG
+      if (isOAuthReturn) {
         window.history.replaceState(null, '', window.location.pathname + window.location.hash)
-        const { data } = await supabase.auth.getSession()
-        if (data.session) {
-          if (localStorage.getItem('nexo_trusted_device') !== 'false') saveSession(data.session)
-          await loadProfile(data.session.user)
-          initializedRef.current = true
-          setLoading(false)
-          return
-        }
+      }
+
+      const { data } = await supabase.auth.getSession()
+      if (isOAuthReturn && !data.session) {
         // Sin sesión: Google devolvió un error (por ejemplo, el usuario canceló).
         try { sessionStorage.setItem(OAUTH_ERROR_KEY, '1') } catch {}
         window.history.replaceState(null, '', `${window.location.pathname}#/login`)
       }
 
-      const savedSession = loadSavedSession()
-      if (!savedSession) {
-        initializedRef.current = true
-        setLoading(false)
-        return
-      }
-
-      const { data, error } = await supabase.auth.setSession(savedSession)
-      if (error || !data.session) {
-        clearSavedSession()
-        initializedRef.current = true
-        setLoading(false)
-        return
-      }
-
-      saveSession(data.session)
-      await loadProfile(data.session.user)
+      await loadProfile(data.session?.user ?? null)
       initializedRef.current = true
       setLoading(false)
     }
 
     restoreSession()
 
-    // Escuchar cambios de autenticación (login, logout, refresh)
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        if (!initializedRef.current) return
-        if (session && localStorage.getItem('nexo_trusted_device') !== 'false') {
-          saveSession(session)
-        }
-        await loadProfile(session?.user ?? null)
-        setLoading(false)
+    // Cambios de sesión, incluidos los de otras pestañas. Los refrescos de token
+    // no cambian el perfil, así que no se vuelve a consultar. El callback no
+    // espera llamadas a Supabase: se difieren para no bloquear al cliente de auth.
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!initializedRef.current) return
+      if (event === 'SIGNED_OUT' || !session) {
+        clearClientCaches()
+        userIdRef.current = null
+        setUser(null)
+        return
       }
-    )
+      const isOtherUser = session.user.id !== userIdRef.current
+      if ((event === 'SIGNED_IN' && isOtherUser) || event === 'USER_UPDATED') {
+        if (isOtherUser) clearClientCaches()
+        setTimeout(() => loadProfile(session.user), 0)
+      }
+    })
 
     return () => subscription.unsubscribe()
   }, [])
@@ -119,7 +109,7 @@ export function AuthProvider({ children }) {
 
   // Redirige a Google; al volver, restoreSession() completa el inicio de sesión.
   const loginWithGoogle = async (shouldTrustDevice = true) => {
-    await setSessionPersistence(shouldTrustDevice)
+    setSessionPersistence(shouldTrustDevice)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: `${window.location.origin}/?auth=${OAUTH_RETURN_FLAG}` },
@@ -132,15 +122,14 @@ export function AuthProvider({ children }) {
   }
 
   const login = async (email, password, shouldTrustDevice = true) => {
-    await setSessionPersistence(shouldTrustDevice)
+    setSessionPersistence(shouldTrustDevice)
+    clearClientCaches()
     const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) {
       const err = new Error(error.message)
       err.response = { data: { error: translateError(error.message) } }
       throw err
     }
-
-    if (shouldTrustDevice) saveSession(data.session)
 
     // Reintentos: la sesión puede tardar unos ms en propagar al RLS
     let userData = null
@@ -154,6 +143,7 @@ export function AuthProvider({ children }) {
     // desde los metadatos del token — la sesión es válida en cualquier caso.
     if (!userData && data.user) {
       const meta = data.user.user_metadata || {}
+      userIdRef.current = data.user.id
       userData = {
         id: data.user.id,
         name: meta.name || data.user.email?.split('@')[0] || 'Usuario',
@@ -234,7 +224,6 @@ export function AuthProvider({ children }) {
 
     // Si Supabase devuelve sesión directamente (email confirmation desactivado)
     if (data.session) {
-      await supabase.auth.setSession(data.session)
       // Intentar leer el perfil con reintentos (trigger puede tardar unos ms)
       let userData = null
       for (let attempt = 1; attempt <= 5; attempt++) {
@@ -244,6 +233,7 @@ export function AuthProvider({ children }) {
       }
       // Fallback con datos del formulario si RLS aún no propagó
       if (!userData && data.user) {
+        userIdRef.current = data.user.id
         userData = {
           id: data.user.id,
           name,
@@ -290,8 +280,12 @@ export function AuthProvider({ children }) {
   }
 
   const logout = async () => {
-    await supabase.auth.signOut()
-    clearSavedSession()
+    const { error } = await supabase.auth.signOut()
+    // Sin conexión el cierre global falla y supabase-js conserva la sesión;
+    // al menos se borra la de este dispositivo.
+    if (error) await supabase.auth.signOut({ scope: 'local' })
+    clearClientCaches()
+    userIdRef.current = null
     setUser(null)
   }
 

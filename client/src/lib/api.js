@@ -14,6 +14,10 @@ import { addDays, entryDateKey } from './constants'
 // el perfil se consulta una sola vez por usuario en lugar de en cada llamada.
 let profileCache = null
 
+export function clearProfileCache() {
+  profileCache = null
+}
+
 async function currentUser() {
   // Primero intentamos con la sesión en caché (rápido, sin red)
   const { data: { session } } = await supabase.auth.getSession()
