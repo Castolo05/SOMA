@@ -33,22 +33,14 @@ async function currentUser() {
     }
   }
 
-  // Fallback: perfil no existe en DB pero la sesión es válida.
-  // Intentar crearlo, y si falla (ya existe por race condition), ignorar.
+  // Fallback: el trigger handle_new_user crea el perfil; mientras tanto,
+  // construir con los metadatos del token (RLS sigue aplicando en la DB).
   if (!profile) {
     const meta = user.user_metadata || {}
-    const role = meta.role || 'PATIENT'
-    const name = meta.name || user.email?.split('@')[0] || 'Usuario'
-    await supabase
-      .from('profiles')
-      .insert({ id: user.id, name, role })
-      .select()
-      .single()
-    // Independientemente del resultado, construir con los metadatos del token
     return {
       id: user.id,
       email: user.email,
-      role,
+      role: meta.role || 'PATIENT',
       inviteCode: null,
       psychologistId: null,
     }
@@ -327,13 +319,12 @@ const api = {
       const inviteCode = body.inviteCode?.trim().toUpperCase()
       if (!inviteCode) return fail('Ingresa el código de invitación.')
 
-      const { data: psych, error } = await supabase
-        .from('profiles')
-        .select('id, name')
-        .eq('invite_code', inviteCode)
-        .eq('role', 'PSYCHOLOGIST')
-        .single()
-      if (error || !psych) return fail(error?.message || 'Código de invitación inválido.')
+      const { data, error } = await supabase.rpc('preview_psychologist_by_invite_code', {
+        p_invite_code: inviteCode,
+      })
+      if (error) return fail(error.message)
+      const psych = data?.[0]
+      if (!psych) return fail('Código de invitación inválido.')
       if (psych.id === user.id) return fail('No puedes vincularte con tu propia cuenta.')
 
       const { error: insertErr } = await supabase
@@ -632,24 +623,7 @@ const api = {
         .eq('patient_id', user.id)
         .eq('psychologist_id', psychId)
 
-      if (error) {
-        if (error.code === '42P01') {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update({ psychologist_id: null, psychologist_status: null })
-            .eq('id', user.id)
-            .eq('psychologist_id', psychId)
-          if (profileError) return fail(profileError.message)
-          return ok({ ok: true })
-        }
-        return fail(error.message)
-      }
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ psychologist_id: null, psychologist_status: null })
-        .eq('id', user.id)
-        .eq('psychologist_id', psychId)
-      if (profileError) return fail(profileError.message)
+      if (error) return fail(error.message)
       return ok({ ok: true })
     }
 

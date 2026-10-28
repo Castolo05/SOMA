@@ -18,7 +18,7 @@ import ConfirmActionModal from '../../components/ConfirmActionModal'
 
 export default function PatientProfile() {
   usePageTitle('Mi Perfil')
-  const { user, logout, updateUser, linkPsychologist } = useAuth()
+  const { user, logout, updateUser } = useAuth()
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [linkLoading, setLinkLoading] = useState(false)

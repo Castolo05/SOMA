@@ -1,0 +1,14 @@
+# Dependencias y resultados de build
+node_modules/
+dist/
+.npm-cache/
+
+# Variables de entorno locales (solo se versionan los *.example)
+.env
+.env.local
+.env.*.local
+
+# Bases de datos y scripts de prueba locales
+*.db
+client/test-signup.js
+client/test-supabase.js

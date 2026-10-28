@@ -20,42 +20,15 @@ export function AuthProvider({ children }) {
   async function loadProfile(authUser) {
     if (!authUser) { setUser(null); return null }
 
-    let { data: profile, error } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', authUser.id)
       .single()
 
-    // PGRST116 = "0 rows returned" → el perfil no existe aún (trigger no corrió)
+    // PGRST116 = "0 rows returned" → el trigger handle_new_user aún no creó el perfil
     if (error?.code === 'PGRST116') {
-      const meta = authUser.user_metadata || authUser.raw_user_meta_data || {}
-      const role = meta.role || 'PATIENT'
-      const name = meta.name || authUser.email?.split('@')[0] || 'Usuario'
-      const inviteCode = role === 'PSYCHOLOGIST'
-        ? Math.random().toString(36).slice(2, 10).toUpperCase()
-        : null
-
-      const { data: created, error: insertError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authUser.id,
-          name,
-          role,
-          invite_code: inviteCode,
-          first_name: meta.firstName || null,
-          last_name: meta.lastName || null,
-          birth_date: meta.birthDate || null,
-          phone: meta.phone || null,
-          specialization: meta.specialization || null,
-        })
-        .select()
-        .single()
-
-      if (insertError) {
-        console.error('Error creando perfil:', insertError)
-        return null
-      }
-      profile = created
+      return null
     } else if (error) {
       console.error('Error cargando perfil:', error.code, error.message)
       return null
@@ -293,11 +266,13 @@ export function AuthProvider({ children }) {
     if (!user) return
     // Actualizar email si cambió
     if (newData.email && newData.email !== user.email) {
-      await supabase.auth.updateUser({ email: newData.email })
+      const { error } = await supabase.auth.updateUser({ email: newData.email })
+      if (error) throw error
     }
     // Actualizar contraseña si se proveyó
     if (newData.password) {
-      await supabase.auth.updateUser({ password: newData.password })
+      const { error } = await supabase.auth.updateUser({ password: newData.password })
+      if (error) throw error
     }
     // Actualizar perfil en la tabla profiles
     // El campo canónico en el state es `avatar`; en la DB es `avatar_url`
@@ -320,55 +295,10 @@ export function AuthProvider({ children }) {
     }))
   }
 
-  const linkPsychologist = async (inviteCode) => {
-    // Buscar psicólogo por invite_code
-    const { data: psych, error } = await supabase
-      .from('profiles')
-      .select('id, name')
-      .eq('invite_code', inviteCode.toUpperCase())
-      .eq('role', 'PSYCHOLOGIST')
-      .single()
-
-    if (error || !psych) {
-      const err = new Error('Código de invitación inválido.')
-      err.response = { data: { error: 'Código de invitación inválido.' } }
-      throw err
-    }
-
-    // Verificar estado actual
-    const { data: currProfile } = await supabase
-      .from('profiles')
-      .select('psychologist_id, psychologist_status')
-      .eq('id', user.id)
-      .single()
-
-    if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'ACCEPTED') {
-      const err = new Error('Ya estás vinculado con este psicólogo.')
-      err.response = { data: { error: 'Ya estás vinculado con este psicólogo.' } }
-      throw err
-    }
-
-    if (currProfile?.psychologist_id === psych.id && currProfile?.psychologist_status === 'PENDING') {
-      const err = new Error('Tu solicitud ya está pendiente de aprobación.')
-      err.response = { data: { error: 'Tu solicitud ya está pendiente de aprobación.' } }
-      throw err
-    }
-
-    const { error: updateErr } = await supabase
-      .from('profiles')
-      .update({ psychologist_id: psych.id, psychologist_status: 'PENDING' })
-      .eq('id', user.id)
-
-    if (updateErr) throw updateErr
-
-    setUser(prev => ({ ...prev, psychologistId: psych.id, psychologistStatus: 'PENDING' }))
-    return { message: `Solicitud enviada a ${psych.name}. Espera su aprobación.` }
-  }
-
   if (loading) return <InitialLoadingScreen />
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, linkPsychologist }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

@@ -1,7 +1,0 @@
-Contact: mailto:hola@soma-app.vercel.app
-Contact: https://soma-app.vercel.app/#/legal/contact
-Encryption: https://soma-app.vercel.app/
-Acknowledgments: https://soma-app.vercel.app/
-Policy: https://soma-app.vercel.app/#/legal/privacy-policy
-Preferred-Languages: es, en
-Canonical: https://soma-app.vercel.app/security.txt
