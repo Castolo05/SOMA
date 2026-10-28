@@ -1,19 +1,21 @@
 // SOMA global constants (1-10 mood scale with Lucide icons).
+// La escala de ánimo va de violeta polvoriento (1) a dorado (10), dentro de la
+// paleta cálida de la marca; cada color tiene contraste ≥3:1 en ambos temas.
 
 // MOOD_ICONS: mapa de puntaje 1-10 → configuración visual
 // Los iconos son nombres de componentes de lucide-react
 // Se renderizan con el componente <MoodIcon score={n} />
 export const MOOD_ICONS = {
-  1:  { icon: 'CloudLightning', label: 'Terrible',    color: '#dc2626', bg: '#fef2f2', darkBg: '#450a0a' },
-  2:  { icon: 'CloudRain',      label: 'Muy mal',     color: '#ea580c', bg: '#fff7ed', darkBg: '#431407' },
-  3:  { icon: 'Cloud',          label: 'Mal',         color: '#d97706', bg: '#fffbeb', darkBg: '#451a03' },
-  4:  { icon: 'Wind',           label: 'Regular',     color: '#ca8a04', bg: '#fefce8', darkBg: '#422006' },
-  5:  { icon: 'Minus',          label: 'Neutro',      color: '#65a30d', bg: '#f7fee7', darkBg: '#1a2e05' },
-  6:  { icon: 'CloudSun',       label: 'Bien',        color: '#16a34a', bg: '#f0fdf4', darkBg: '#052e16' },
-  7:  { icon: 'Sun',            label: 'Muy bien', color: '#059669', bg: '#ecfdf5', darkBg: '#022c22' },
-  8:  { icon: 'Sparkles',       label: 'Genial',    color: '#0d9488', bg: '#f0fdfa', darkBg: '#042f2e' },
-  9:  { icon: 'Star',           label: 'Excelente',   color: '#267783', bg: '#edf5f6', darkBg: '#123e47' },
-  10: { icon: 'Zap',            label: 'Perfecto',    color: '#7c3aed', bg: '#faf5ff', darkBg: '#2e1065' },
+  1:  { icon: 'CloudLightning', label: 'Terrible',    color: '#9058a3', bg: '#efe0e5', darkBg: '#3f2d41' },
+  2:  { icon: 'CloudRain',      label: 'Muy mal',     color: '#a2529b', bg: '#f2dfe4', darkBg: '#442c3f' },
+  3:  { icon: 'Cloud',          label: 'Mal',         color: '#b04f87', bg: '#f4dfe1', darkBg: '#472b3a' },
+  4:  { icon: 'Wind',           label: 'Regular',     color: '#b8506a', bg: '#f5dfdd', darkBg: '#492c33' },
+  5:  { icon: 'Minus',          label: 'Neutro',      color: '#bf5248', bg: '#f6dfd8', darkBg: '#4b2c2b' },
+  6:  { icon: 'CloudSun',       label: 'Bien',        color: '#b75c35', bg: '#f5e0d6', darkBg: '#492e27' },
+  7:  { icon: 'Sun',            label: 'Muy bien', color: '#ad682b', bg: '#f4e2d4', darkBg: '#463124' },
+  8:  { icon: 'Sparkles',       label: 'Genial',    color: '#a47226', bg: '#f2e3d4', darkBg: '#443423' },
+  9:  { icon: 'Star',           label: 'Excelente',   color: '#9e7923', bg: '#f1e4d3', darkBg: '#433522' },
+  10: { icon: 'Zap',            label: 'Perfecto',    color: '#987f1d', bg: '#f1e5d2', darkBg: '#413721' },
 }
 
 // Color semáforo para gráficos (Recharts dot color)
@@ -41,11 +43,8 @@ export const HABIT_ICONS = {
 }
 
 export const MOOD_CHART_COLOR = (score) => {
-  if (score <= 2) return '#dc2626'
-  if (score <= 4) return '#d97706'
-  if (score <= 6) return '#16a34a'
-  if (score <= 8) return '#0d9488'
-  return '#7c3aed'
+  const clamped = Math.min(10, Math.max(1, Math.round(score)))
+  return MOOD_ICONS[clamped].color
 }
 
 export const MOOD_SCORES = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]

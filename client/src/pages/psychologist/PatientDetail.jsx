@@ -80,8 +80,8 @@ function PanelWrapper({ title, icon: Icon, onHide, scrollable = false, children 
       {/* Drag handle */}
       <div className="psych-panel-handle select-none cursor-grab active:cursor-grabbing flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shrink-0 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/80">
         <div className="flex items-center gap-2">
-          <GripHorizontal size={14} className="text-gray-400 group-hover:text-indigo-400 transition-colors shrink-0" />
-          {Icon && <Icon size={14} className="text-indigo-500 dark:text-indigo-400 shrink-0" />}
+          <GripHorizontal size={14} className="text-gray-400 group-hover:text-pro-400 transition-colors shrink-0" />
+          {Icon && <Icon size={14} className="text-pro-500 dark:text-pro-400 shrink-0" />}
           <span className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate">{title}</span>
         </div>
         <button
@@ -141,7 +141,7 @@ function PreSessionCard({ insights, patient }) {
             <p className="text-xs text-gray-400 font-medium mb-1">{s.label}</p>
             <div className={`flex items-center justify-center gap-1 ${s.cls ?? ''}`}>
               {s.icon}
-              <p className="text-xl font-black text-gray-900 dark:text-white">{s.main}</p>
+              <p className="text-xl font-bold text-gray-900 dark:text-white">{s.main}</p>
             </div>
             {s.sub && <div className="mt-0.5 flex justify-center">{s.sub}</div>}
           </div>
@@ -214,20 +214,20 @@ function SessionNotes({ patientId }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full">{notes.length}</span>
-        <button onMouseDown={e => e.stopPropagation()} onClick={() => setCreating(v => !v)} className="flex items-center gap-1 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+        <button onMouseDown={e => e.stopPropagation()} onClick={() => setCreating(v => !v)} className="flex items-center gap-1 text-sm font-bold text-pro-600 dark:text-pro-400 hover:underline">
           <Plus size={14} /> Nueva nota
         </button>
       </div>
 
       {creating && (
-        <div className="bg-indigo-50 dark:bg-indigo-900/10 border border-indigo-200 dark:border-indigo-800/40 rounded-xl p-3 space-y-2">
-          <input className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        <div className="bg-pro-50 dark:bg-pro-900/10 border border-pro-200 dark:border-pro-800/40 rounded-xl p-3 space-y-2">
+          <input className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pro-500"
             placeholder="Título" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
-          <textarea className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none h-24"
+          <textarea className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pro-500 resize-none h-24"
             placeholder="Contenido de la sesión..." value={newContent} onChange={e => setNewContent(e.target.value)} autoFocus />
           <div className="flex gap-2 justify-end">
             <button onClick={() => setCreating(false)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700">Cancelar</button>
-            <button onClick={create} disabled={saving || !newContent.trim()} className="text-sm px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold disabled:opacity-50">
+            <button onClick={create} disabled={saving || !newContent.trim()} className="text-sm px-3 py-1.5 rounded-lg bg-pro-600 text-white font-semibold disabled:opacity-50">
               {saving ? '...' : 'Guardar'}
             </button>
           </div>
@@ -262,7 +262,7 @@ function SessionNotes({ patientId }) {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); setEditing(note.id); setEditTitle(note.title); setEditContent(note.content); setExpanded(note.id) }}
-                    className="p-1.5 text-gray-400 hover:text-indigo-500 rounded"><Pencil size={14} /></button>
+                    className="p-1.5 text-gray-400 hover:text-pro-500 rounded"><Pencil size={14} /></button>
                   <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); setConfirmDeleteNote(note.id) }}
                     className="p-1.5 text-gray-400 hover:text-red-500 rounded"><Trash2 size={14} /></button>
                   {open ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
@@ -272,13 +272,13 @@ function SessionNotes({ patientId }) {
                 <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
                   {ed ? (
                     <div className="space-y-3">
-                      <input className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                      <input className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500"
                         value={editTitle} onChange={e => setEditTitle(e.target.value)} />
-                      <textarea className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none h-32"
+                      <textarea className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500 resize-none h-32"
                         value={editContent} onChange={e => setEditContent(e.target.value)} />
                       <div className="flex gap-2 justify-end">
                         <button onClick={() => setEditing(null)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500">Cancelar</button>
-                        <button onClick={() => update(note.id)} disabled={saving} className="text-sm px-3 py-1.5 rounded-lg bg-indigo-600 text-white font-semibold">Guardar</button>
+                        <button onClick={() => update(note.id)} disabled={saving} className="text-sm px-3 py-1.5 rounded-lg bg-pro-600 text-white font-semibold">Guardar</button>
                       </div>
                     </div>
                   ) : (
@@ -326,16 +326,16 @@ function TherapyGoals({ patientId }) {
         {goals.length > 0
           ? <span className="text-sm font-bold text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full">{done}/{goals.length}</span>
           : <span />}
-        <button onMouseDown={e => e.stopPropagation()} onClick={() => setAdding(v => !v)} className="flex items-center gap-1 text-sm font-bold text-indigo-600 dark:text-indigo-400 hover:underline">
+        <button onMouseDown={e => e.stopPropagation()} onClick={() => setAdding(v => !v)} className="flex items-center gap-1 text-sm font-bold text-pro-600 dark:text-pro-400 hover:underline">
           <Plus size={14} /> Añadir
         </button>
       </div>
 
       {adding && (
         <div className="flex gap-2">
-          <input className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          <input className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500"
             placeholder="Nuevo objetivo..." value={newGoal} onChange={e => setNewGoal(e.target.value)} onKeyDown={e => e.key === 'Enter' && add()} autoFocus />
-          <button onMouseDown={e => e.stopPropagation()} onClick={add} className="text-sm px-3 py-2 rounded-lg bg-indigo-600 text-white font-semibold">Ok</button>
+          <button onMouseDown={e => e.stopPropagation()} onClick={add} className="text-sm px-3 py-2 rounded-lg bg-pro-600 text-white font-semibold">Ok</button>
         </div>
       )}
 
@@ -390,11 +390,11 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
     <div className="space-y-3">
       {selectedEntryId && (
         <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold text-indigo-600 dark:text-indigo-400">Entrada seleccionada en el gráfico</p>
+          <p className="text-xs font-semibold text-pro-600 dark:text-pro-400">Entrada seleccionada en el gráfico</p>
           <button
             onMouseDown={e => e.stopPropagation()}
             onClick={onClearSelectedEntry}
-            className="text-xs font-semibold text-gray-500 hover:text-indigo-600 dark:text-gray-400 dark:hover:text-indigo-400"
+            className="text-xs font-semibold text-gray-500 hover:text-pro-600 dark:text-gray-400 dark:hover:text-pro-400"
           >
             Ver todas las entradas
           </button>
@@ -407,7 +407,7 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
           const cfg  = MOOD_ICONS[entry.moodScore]
           const open = selectedEntryId ? true : expanded === entry.id
           return (
-            <div key={entry.id} className={`rounded-xl border cursor-pointer transition-all ${open ? 'border-indigo-200 dark:border-indigo-700' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'}`}>
+            <div key={entry.id} className={`rounded-xl border cursor-pointer transition-all ${open ? 'border-pro-200 dark:border-pro-700' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'}`}>
               <div
                 className="flex items-center gap-3 p-3"
                 role="button"
@@ -418,7 +418,7 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
               >
                 <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0" style={{ backgroundColor: cfg?.bg }}>
                   <MoodIcon score={entry.moodScore} size={16} />
-                  <span className="text-[10px] font-black" style={{ color: cfg?.color }}>{entry.moodScore}</span>
+                  <span className="text-[10px] font-bold" style={{ color: cfg?.color }}>{entry.moodScore}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -576,7 +576,7 @@ export default function PatientDetail() {
         <User size={28} className="text-gray-400" />
       </div>
       <p className="font-semibold text-gray-900 dark:text-white mb-2">Paciente no encontrado</p>
-      <Link to="/psych/patients" className="text-indigo-600 dark:text-indigo-400 text-sm hover:underline">← Volver a la lista</Link>
+      <Link to="/psych/patients" className="text-pro-600 dark:text-pro-400 text-sm hover:underline">← Volver a la lista</Link>
     </div>
   )
 
@@ -593,7 +593,7 @@ export default function PatientDetail() {
           <Link to="/psych/patients" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0">
             <ArrowLeft size={18} className="text-gray-500 dark:text-gray-400" />
           </Link>
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden font-black text-base shrink-0 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden font-bold text-base shrink-0 bg-pro-100 dark:bg-pro-900/20 text-pro-700 dark:text-pro-400">
             {patient.avatarUrl ? (
               <AvatarDisplay avatar={patient.avatarUrl} size={28} className="text-current" />
             ) : (
@@ -602,7 +602,7 @@ export default function PatientDetail() {
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-lg font-black text-gray-900 dark:text-white tracking-tight">{patient.name}</h1>
+              <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{patient.name}</h1>
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-0.5 text-xs text-gray-500 dark:text-gray-400 mt-0.5">
               <span className="flex items-center gap-1"><Activity size={11} /> {patient.totalEntries} entradas</span>
@@ -624,7 +624,7 @@ export default function PatientDetail() {
         <div className="relative">
           <button
             onClick={() => setPanelMenu(v => !v)}
-            className="flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-indigo-300 transition-all"
+            className="flex items-center gap-2 text-xs font-semibold px-3.5 py-2 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-200 hover:border-pro-300 transition-all"
           >
             <LayoutGrid size={14} /> Paneles ({visible.length}/{PANELS.length})
           </button>
@@ -638,7 +638,7 @@ export default function PatientDetail() {
                   const on = visible.includes(panel.i)
                   return (
                     <button key={panel.i} onClick={() => togglePanel(panel.i)}
-                      className={`w-full flex items-center justify-between px-4 py-2 text-xs transition-colors ${on ? 'text-indigo-700 dark:text-indigo-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
+                      className={`w-full flex items-center justify-between px-4 py-2 text-xs transition-colors ${on ? 'text-pro-700 dark:text-pro-400 font-semibold' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700'}`}>
                       <span className="flex items-center gap-2"><panel.icon size={12} /> {panel.label}</span>
                       {on ? <Eye size={12} /> : <EyeOff size={12} className="text-gray-300" />}
                     </button>
@@ -666,7 +666,7 @@ export default function PatientDetail() {
         <div className="text-center py-20 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
           <LayoutGrid size={32} className="text-gray-300 mx-auto mb-3" />
           <p className="font-semibold text-gray-500 dark:text-gray-400 mb-3">Todos los paneles están ocultos</p>
-          <button onClick={resetAll} className="text-sm px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold">Restablecer</button>
+          <button onClick={resetAll} className="text-sm px-5 py-2.5 rounded-xl bg-pro-600 text-white font-semibold">Restablecer</button>
         </div>
       ) : (
         <RGL
@@ -750,7 +750,7 @@ export default function PatientDetail() {
                               </div>
                               <div className="text-right">
                                 <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">Registrado</p>
-                                <p className="text-sm font-black text-indigo-600 dark:text-indigo-400">
+                                <p className="text-sm font-bold text-pro-600 dark:text-pro-400">
                                   {totalTimes} {totalTimes === 1 ? 'día' : 'días'}
                                 </p>
                                 {totalQty !== null && totalQty > 0 && (

@@ -121,7 +121,7 @@ export default function PsychLayout() {
                 flex items-center gap-3 rounded-xl transition-all duration-200 font-medium text-sm
                 px-3 py-2.5 min-h-11
                 ${active
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                  ? 'bg-pro-600 text-white shadow-md shadow-pro-500/20'
                   : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'}
               `}
             >
@@ -136,9 +136,9 @@ export default function PsychLayout() {
       {/* Footer */}
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-1">
         {user?.inviteCode && (
-          <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-100 dark:border-indigo-800 rounded-xl px-3 py-2.5 mb-3">
-            <div className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-0.5">Código de invitación</div>
-            <div className="font-mono font-bold text-indigo-700 dark:text-indigo-300 tracking-widest text-sm">{user.inviteCode}</div>
+          <div className="bg-pro-50 dark:bg-pro-900/20 border border-pro-100 dark:border-pro-800 rounded-xl px-3 py-2.5 mb-3">
+            <div className="text-[10px] font-bold text-pro-400 uppercase tracking-widest mb-0.5">Código de invitación</div>
+            <div className="font-mono font-bold text-pro-700 dark:text-pro-300 tracking-widest text-sm">{user.inviteCode}</div>
           </div>
         )}
         <div className="px-1 py-1 mb-1">
@@ -171,7 +171,7 @@ export default function PsychLayout() {
         {/* Open drawer button */}
         <button
           onClick={() => setDrawerOpen(true)}
-          className="p-2.5 rounded-xl text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+          className="p-2.5 rounded-xl text-gray-400 hover:text-pro-600 hover:bg-pro-50 dark:hover:bg-pro-900/20 transition-colors"
           title="Abrir menú"
         >
           <ChevronRight size={17} />
@@ -191,8 +191,8 @@ export default function PsychLayout() {
               aria-label={hasRequests ? `${label}, ${pendingRequestCount} solicitudes pendientes` : label}
               className={`p-2.5 rounded-xl transition-all ${
                 active
-                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
-                  : 'text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20'
+                  ? 'bg-pro-600 text-white shadow-md shadow-pro-500/20'
+                  : 'text-gray-400 hover:text-pro-600 hover:bg-pro-50 dark:hover:bg-pro-900/20'
               }`}
             >
               <span className="relative block">
@@ -208,7 +208,7 @@ export default function PsychLayout() {
           <Link
             to="/psych/settings"
             title="Configuración"
-            className="p-2.5 rounded-xl text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"
+            className="p-2.5 rounded-xl text-gray-400 hover:text-pro-600 hover:bg-pro-50 dark:hover:bg-pro-900/20 transition-colors"
           >
             <Settings size={17} />
           </Link>
@@ -276,7 +276,7 @@ export default function PsychLayout() {
                   key={to}
                   to={to}
                   aria-label={hasRequests ? `${label}, ${pendingRequestCount} solicitudes pendientes` : label}
-                  className={`p-2 rounded-lg min-w-10 min-h-10 flex items-center justify-center transition-colors ${isActive(to) ? 'text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30' : 'text-gray-400'}`}
+                  className={`p-2 rounded-lg min-w-10 min-h-10 flex items-center justify-center transition-colors ${isActive(to) ? 'text-pro-600 bg-pro-50 dark:bg-pro-900/30' : 'text-gray-400'}`}
                 >
                   <span className="relative block">
                     <Icon size={18} />

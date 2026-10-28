@@ -2,16 +2,10 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
 import { useAuth, OAUTH_ERROR_KEY } from '../../context/AuthContext'
-import { Eye, EyeOff, ArrowRight, LineChart, Lock, UserRoundCheck } from 'lucide-react'
+import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { isGoogleAuthEnabled } from '../../lib/supabase'
-import ThemeLogo from '../../components/ThemeLogo'
-
-const HIGHLIGHTS = [
-  { icon: LineChart, text: 'Registrá tu ánimo y tus hábitos y mirá tu evolución.' },
-  { icon: UserRoundCheck, text: 'Compartí tu proceso solo con el profesional que vos elijas.' },
-  { icon: Lock, text: 'Tus registros son privados y viajan cifrados.' },
-]
+import AuthLayout from '../../components/AuthLayout'
 
 function GoogleIcon() {
   return (
@@ -84,180 +78,123 @@ export default function LoginPage() {
   const busy = loading || googleLoading
 
   return (
-    <div className="min-h-screen bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] lg:grid lg:grid-cols-[1.05fr_1fr]">
-      {/* Panel de marca (escritorio) */}
-      <aside className="relative hidden overflow-hidden bg-[#5a4b4b] p-12 text-white lg:flex lg:flex-col lg:justify-between">
-        <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[#f2c6b6]/15 blur-2xl" aria-hidden="true" />
-        <div className="absolute -bottom-32 -left-16 h-96 w-96 rounded-full bg-[#e8a87c]/20 blur-3xl" aria-hidden="true" />
+    <AuthLayout>
+      <h1 className="font-display text-2xl font-semibold text-gray-800 dark:text-white">Iniciar sesión</h1>
+      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Qué bueno verte de nuevo.</p>
 
-        <div className="relative flex items-center gap-3">
-          <div className="h-11 w-11 overflow-hidden rounded-2xl bg-[#f9e2da]">
-            <ThemeLogo alt="" className="h-full w-full object-contain" />
+      {error && (
+        <div role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-fade-in short:mt-4">
+          {error}
+        </div>
+      )}
+
+      {googleEnabled && (
+        <>
+          <button
+            type="button"
+            onClick={handleGoogle}
+            disabled={busy}
+            className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-[#c8b3b0] bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60 short:mt-5 short:py-2.5 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-100 dark:hover:bg-[var(--theme-accent)]"
+          >
+            {googleLoading
+              ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
+              : <GoogleIcon />}
+            Continuar con Google
+          </button>
+
+          <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-gray-400 short:my-4">
+            <span className="h-px flex-1 bg-[#c8b3b0]/70 dark:bg-[var(--theme-border)]" />
+            o con tu email
+            <span className="h-px flex-1 bg-[#c8b3b0]/70 dark:bg-[var(--theme-border)]" />
           </div>
-          <span className="font-display text-xl font-semibold tracking-wide">SOMA</span>
+        </>
+      )}
+
+      <form onSubmit={handleSubmit} className={`space-y-4 short:space-y-3 ${googleEnabled ? '' : 'mt-6 short:mt-5'}`}>
+        <div>
+          <label htmlFor="login-email" className="label">Correo electrónico</label>
+          <input
+            id="login-email"
+            type="email"
+            className="input short:!py-2.5"
+            placeholder="tu@email.com"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            autoComplete="email"
+            required
+          />
         </div>
 
-        <div className="relative max-w-md">
-          <h2 className="font-display text-4xl font-semibold leading-tight">
-            Tu bienestar, acompañado entre sesiones.
-          </h2>
-          <ul className="mt-8 space-y-4">
-            {HIGHLIGHTS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex items-start gap-3 text-white/85">
-                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-white/10">
-                  <Icon size={16} />
-                </span>
-                <span className="leading-relaxed">{text}</span>
-              </li>
-            ))}
-          </ul>
+        <div>
+          <div className="flex items-baseline justify-between">
+            <label htmlFor="login-password" className="label">Contraseña</label>
+            <Link to="/forgot-password" className="text-sm font-medium text-brand-600 hover:underline dark:text-brand-400">
+              ¿La olvidaste?
+            </Link>
+          </div>
+          <div className="relative">
+            <input
+              id="login-password"
+              type={showPass ? 'text' : 'password'}
+              className="input pr-12 short:!py-2.5"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={(e) => setForm({ ...form, password: e.target.value })}
+              autoComplete="current-password"
+              required
+            />
+            <button
+              type="button"
+              onClick={() => setShowPass(!showPass)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 transition-colors hover:text-gray-600"
+              aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+            >
+              {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
+            </button>
+          </div>
         </div>
 
-        <p className="relative text-sm text-white/60">
-          SOMA no reemplaza la atención profesional ni es un servicio de emergencias.
+        <label className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-600 dark:text-gray-300">
+          <input
+            type="checkbox"
+            checked={trustDevice}
+            onChange={(e) => setTrustDevice(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400"
+          />
+          Mantener la sesión iniciada en este dispositivo
+        </label>
+
+        <button
+          id="login-submit"
+          type="submit"
+          className="btn-patient flex w-full items-center justify-center gap-2 short:!py-3"
+          disabled={busy}
+        >
+          {loading ? (
+            <span className="flex items-center gap-2">
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              Entrando...
+            </span>
+          ) : (
+            <>Entrar <ArrowRight size={16} /></>
+          )}
+        </button>
+      </form>
+
+      {googleEnabled && (
+        <p className="mt-4 text-center text-xs leading-relaxed text-gray-500 short:mt-3 dark:text-gray-400">
+          Si es tu primera vez con Google, se crea una cuenta de paciente y aceptás los{' '}
+          <Link to="/legal/terms" className="underline hover:text-brand-600">Términos</Link> y la{' '}
+          <Link to="/legal/privacy-policy" className="underline hover:text-brand-600">Política de privacidad</Link>.
         </p>
-      </aside>
+      )}
 
-      {/* Formulario */}
-      <main className="flex min-h-screen items-center justify-center p-4 sm:p-8">
-        <div className="w-full max-w-md animate-fade-in">
-          <div className="mb-8 text-center lg:hidden">
-            <div className="mb-4 inline-flex h-16 w-16 items-center justify-center overflow-hidden rounded-3xl border border-[#c8b3b0] shadow-lg">
-              <ThemeLogo alt="SOMA" className="h-full w-full object-contain" />
-            </div>
-            <p className="text-gray-600 dark:text-gray-300">Tu espacio seguro de bienestar mental</p>
-          </div>
-
-          <div className="rounded-3xl border border-[#c8b3b0] bg-[#f9e2da] p-6 shadow-[0_18px_60px_rgba(90,75,75,0.18)] dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] sm:p-8">
-            <h1 className="font-display text-2xl font-semibold text-gray-800 dark:text-white">Iniciar sesión</h1>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">Qué bueno verte de nuevo.</p>
-
-            {error && (
-              <div role="alert" className="mt-5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 animate-fade-in">
-                {error}
-              </div>
-            )}
-
-            {googleEnabled && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleGoogle}
-                  disabled={busy}
-                  className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-[#c8b3b0] bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-100 dark:hover:bg-[var(--theme-accent)]"
-                >
-                  {googleLoading
-                    ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
-                    : <GoogleIcon />}
-                  Continuar con Google
-                </button>
-
-                <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-gray-400">
-                  <span className="h-px flex-1 bg-[#c8b3b0]/70 dark:bg-[var(--theme-border)]" />
-                  o con tu email
-                  <span className="h-px flex-1 bg-[#c8b3b0]/70 dark:bg-[var(--theme-border)]" />
-                </div>
-              </>
-            )}
-
-            <form onSubmit={handleSubmit} className={`space-y-4 ${googleEnabled ? '' : 'mt-6'}`}>
-              <div>
-                <label htmlFor="login-email" className="label">Correo electrónico</label>
-                <input
-                  id="login-email"
-                  type="email"
-                  className="input"
-                  placeholder="tu@email.com"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
-                  autoComplete="email"
-                  required
-                />
-              </div>
-
-              <div>
-                <div className="flex items-baseline justify-between">
-                  <label htmlFor="login-password" className="label">Contraseña</label>
-                  <Link to="/forgot-password" className="text-sm font-medium text-sage-600 hover:underline dark:text-sage-400">
-                    ¿La olvidaste?
-                  </Link>
-                </div>
-                <div className="relative">
-                  <input
-                    id="login-password"
-                    type={showPass ? 'text' : 'password'}
-                    className="input pr-12"
-                    placeholder="••••••••"
-                    value={form.password}
-                    onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    autoComplete="current-password"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(!showPass)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-400 transition-colors hover:text-gray-600"
-                    aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                  >
-                    {showPass ? <EyeOff size={20} /> : <Eye size={20} />}
-                  </button>
-                </div>
-              </div>
-
-              <label className="flex cursor-pointer items-center gap-2.5 text-sm text-gray-600 dark:text-gray-300">
-                <input
-                  type="checkbox"
-                  checked={trustDevice}
-                  onChange={(e) => setTrustDevice(e.target.checked)}
-                  className="h-4 w-4 rounded border-gray-300 text-sage-500 focus:ring-sage-400"
-                />
-                Mantener la sesión iniciada en este dispositivo
-              </label>
-
-              <button
-                id="login-submit"
-                type="submit"
-                className="btn-patient flex w-full items-center justify-center gap-2"
-                disabled={busy}
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-                    Entrando...
-                  </span>
-                ) : (
-                  <>Entrar <ArrowRight size={16} /></>
-                )}
-              </button>
-            </form>
-
-            {googleEnabled && (
-              <p className="mt-4 text-center text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-                Si es tu primera vez con Google, se crea una cuenta de paciente y aceptás los{' '}
-                <Link to="/legal/terms" className="underline hover:text-sage-600">Términos</Link> y la{' '}
-                <Link to="/legal/privacy-policy" className="underline hover:text-sage-600">Política de privacidad</Link>.
-              </p>
-            )}
-
-            <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-300">
-              ¿No tenés cuenta?{' '}
-              <Link to="/register" className="font-semibold text-sage-600 hover:underline dark:text-sage-400">
-                Creá una
-              </Link>
-            </p>
-          </div>
-
-          <footer className="mt-6 flex flex-wrap items-center justify-center gap-2 text-xs text-gray-600 dark:text-gray-400">
-            <Link to="/legal/privacy-policy" className="hover:underline">Privacidad</Link>
-            <span aria-hidden="true">·</span>
-            <Link to="/legal/terms" className="hover:underline">Términos</Link>
-            <span aria-hidden="true">·</span>
-            <Link to="/legal/cookies" className="hover:underline">Cookies</Link>
-            <span aria-hidden="true">·</span>
-            <Link to="/legal/contact" className="hover:underline">Contacto</Link>
-          </footer>
-        </div>
-      </main>
-    </div>
+      <p className="mt-6 text-center text-sm text-gray-600 short:mt-4 dark:text-gray-300">
+        ¿No tenés cuenta?{' '}
+        <Link to="/register" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+          Creá una
+        </Link>
+      </p>
+    </AuthLayout>
   )
 }

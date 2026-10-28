@@ -1,4 +1,4 @@
-/* Las fuentes (DM Sans y Space Grotesk) se cargan con <link> en index.html */
+/* Las fuentes (DM Sans y Fraunces) se cargan con <link> en index.html */
 /* Estilos base para react-grid-layout (inline, sin dependencia del paquete instalado) */
 
 .react-resizable-handle {
@@ -31,8 +31,6 @@
 
 .react-resizable-handle:hover::after,
 .react-resizable-handle:active::after {
-  background-color: #6366f1; /* indigo-500 */
-  border-color: #4f46e5; /* indigo-600 */
   transform: translate(-50%, -50%) scale(1.2);
 }
 
@@ -46,20 +44,9 @@
 .react-grid-item.react-grid-placeholder {
   opacity: 0.2 !important;
   border-radius: 1rem;
-  background: #6366f1 !important; /* Indigo 500 */
   transition-duration: 100ms;
 }
 
-html[data-theme='dark'] .react-resizable-handle::after {
-  background-color: #374151;
-  border-color: #4b5563;
-}
-
-html[data-theme='dark'] .react-resizable-handle:hover::after,
-html[data-theme='dark'] .react-resizable-handle:active::after {
-  background-color: #818cf8; /* indigo-400 */
-  border-color: #6366f1;
-}
 
 .react-resizable-handle-se {
   bottom: 5px !important;
@@ -97,8 +84,6 @@ html[data-theme='dark'] .react-resizable-handle:active::after {
   overflow: visible;
 }
 
-.psych-panel .react-resizable-handle::after {
-}
 
 @media (max-width: 767px) {
   .psych-dashboard-grid {
@@ -159,8 +144,9 @@ body {
 }
 
 h1, h2, h3, h4 {
-  font-family: 'Space Grotesk', 'DM Sans', sans-serif;
-  letter-spacing: -0.02em;
+  font-family: 'Fraunces', Georgia, serif;
+  font-optical-sizing: auto;
+  letter-spacing: -0.01em;
 }
 
 button, a, input, textarea, select {

@@ -68,8 +68,8 @@ export default function EditProfilePage() {
         <div className="space-y-4">
           <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Foto de Perfil</label>
           <div className="flex flex-col items-center gap-4">
-            <div className="w-24 h-24 bg-sage-50 dark:bg-sage-900/30 rounded-full flex items-center justify-center overflow-hidden border-2 border-sage-200 dark:border-sage-800">
-              <AvatarDisplay avatar={editAvatar} size={48} className="text-sage-500" />
+            <div className="w-24 h-24 bg-brand-50 dark:bg-brand-900/30 rounded-full flex items-center justify-center overflow-hidden border-2 border-brand-200 dark:border-brand-800">
+              <AvatarDisplay avatar={editAvatar} size={48} className="text-brand-500" />
             </div>
             <div className="flex gap-2">
               <input
@@ -104,7 +104,7 @@ export default function EditProfilePage() {
                   key={name}
                   onClick={() => setEditAvatar(`icon:${name}`)}
                   className={`p-3 rounded-2xl transition-all ${
-                    isActive ? 'bg-sage-400 text-white shadow-md scale-110' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200'
+                    isActive ? 'bg-brand-400 text-white shadow-md scale-110' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:bg-gray-200'
                   }`}
                 >
                   <AnimalIcon size={32} />
@@ -114,7 +114,7 @@ export default function EditProfilePage() {
           </div>
         </div>
 
-        <div className="space-y-4 pt-6 border-t border-peach-100 dark:border-gray-700 mt-6">
+        <div className="space-y-4 pt-6 border-t border-brand-100 dark:border-gray-700 mt-6">
           <div>
             <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Nombre</label>
             <input className="input" value={editName} onChange={e => setEditName(e.target.value)} />

@@ -18,10 +18,10 @@ export default function LegalPage({
         </div>
 
         <article className="rounded-[28px] border border-[#c8b3b0] bg-[#fffaf8] p-6 shadow-[0_18px_60px_rgba(90,75,75,0.08)] dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] md:p-10">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-sage-600 dark:text-sage-400">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400">
             Información legal
           </p>
-          <h1 className="text-3xl font-black tracking-tight md:text-4xl">{title}</h1>
+          <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{title}</h1>
           <p className="mt-4 text-base leading-7 text-gray-600 dark:text-gray-300">{description}</p>
 
           <div className="mt-8 space-y-8">

@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { CheckCircle2 } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import AuthLayout from '../../components/AuthLayout'
 
 export default function ThankYouPage() {
   const location = useLocation()
@@ -32,22 +33,19 @@ export default function ThankYouPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f2c6b6] px-4 py-10 dark:bg-[var(--theme-canvas)]">
-      <div className="mx-auto max-w-xl rounded-[32px] border border-[#c8b3b0] bg-[#f9e2da] p-8 text-center shadow-[0_18px_60px_rgba(90,75,75,0.18)] dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]">
+    <AuthLayout>
+      <div className="text-center">
         <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
           <CheckCircle2 size={42} />
         </div>
 
-        <h1 className="text-3xl font-black text-gray-800 dark:text-white">{content.title}</h1>
+        <h1 className="font-display text-3xl font-semibold text-gray-800 dark:text-white">{content.title}</h1>
         <p className="mt-4 text-base leading-7 text-gray-600 dark:text-gray-300">{content.description}</p>
 
-        <Link
-          to="/login"
-          className="mt-8 inline-flex items-center justify-center rounded-2xl bg-sage-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sage-600"
-        >
+        <Link to="/login" className="btn-patient mt-8 inline-flex items-center justify-center text-sm">
           {content.button}
         </Link>
       </div>
-    </div>
+    </AuthLayout>
   )
 }

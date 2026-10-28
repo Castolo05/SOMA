@@ -125,7 +125,7 @@ function FirstVisitTutorial() {
         className="w-full max-w-md overflow-hidden rounded-[30px] border border-[#c8b3b0] bg-[#f9e2da] shadow-2xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]"
       >
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-sage-600 dark:text-sage-400">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
             <Sparkles size={14} />
             Bienvenido
           </div>
@@ -141,7 +141,7 @@ function FirstVisitTutorial() {
         </div>
 
         <div className="px-5 pb-4 pt-6">
-          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-sage-100 text-sage-600 shadow-sm dark:bg-sage-900/30 dark:text-sage-300">
+          <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-3xl bg-brand-100 text-brand-600 shadow-sm dark:bg-brand-900/30 dark:text-brand-300">
             <Icon size={30} />
           </div>
 
@@ -151,7 +151,7 @@ function FirstVisitTutorial() {
           <ul className="mt-5 space-y-2.5">
             {current.points.map((point) => (
               <li key={point} className="flex items-start gap-2 text-sm text-gray-700 dark:text-gray-200">
-                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-sage-500" />
+                <CheckCircle2 size={16} className="mt-0.5 shrink-0 text-brand-500" />
                 <span>{point}</span>
               </li>
             ))}
@@ -166,7 +166,7 @@ function FirstVisitTutorial() {
                 type="button"
                 onClick={() => setStep(index)}
                 className={`h-2.5 rounded-full transition-all ${
-                  step === index ? 'w-8 bg-sage-500' : 'w-2.5 bg-gray-300 dark:bg-slate-700'
+                  step === index ? 'w-8 bg-brand-500' : 'w-2.5 bg-gray-300 dark:bg-slate-700'
                 }`}
                 aria-label={`Ir al paso ${index + 1}`}
               />
@@ -178,7 +178,7 @@ function FirstVisitTutorial() {
               type="checkbox"
               checked={hideForever}
               onChange={(e) => setHideForever(e.target.checked)}
-              className="h-4 w-4 rounded border-gray-300 text-sage-500 focus:ring-sage-400"
+              className="h-4 w-4 rounded border-gray-300 text-brand-500 focus:ring-brand-400"
             />
             No volver a mostrar
           </label>
@@ -188,7 +188,7 @@ function FirstVisitTutorial() {
               <button
                 type="button"
                 onClick={() => setStep((prev) => prev - 1)}
-                className="flex-1 rounded-2xl border border-[#c8b3b0] bg-[#f2c6b6] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-peach-100 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-200 dark:hover:bg-[var(--theme-accent)]"
+                className="flex-1 rounded-2xl border border-[#c8b3b0] bg-[#f2c6b6] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-brand-100 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-200 dark:hover:bg-[var(--theme-accent)]"
               >
                 Atrás
               </button>
@@ -198,7 +198,7 @@ function FirstVisitTutorial() {
               <button
                 type="button"
                 onClick={() => setStep((prev) => prev + 1)}
-                className="flex-1 rounded-2xl bg-sage-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sage-600"
+                className="flex-1 rounded-2xl bg-brand-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
               >
                 Siguiente
               </button>
@@ -206,7 +206,7 @@ function FirstVisitTutorial() {
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-sage-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sage-600"
+                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
               >
                 Empezar <ArrowRight size={16} />
               </button>

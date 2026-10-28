@@ -79,7 +79,7 @@ export default function PatientRequests() {
               return (
                 <li key={req.id} className="p-4 sm:px-6 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                   <div className="flex min-w-0 items-center gap-4">
-                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-indigo-50 dark:bg-indigo-900/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 border border-indigo-100 dark:border-indigo-800">
+                    <div className="h-10 w-10 shrink-0 overflow-hidden rounded-full bg-pro-50 dark:bg-pro-900/20 flex items-center justify-center text-pro-600 dark:text-pro-400 border border-pro-100 dark:border-pro-800">
                       {req.avatarUrl
                         ? <AvatarDisplay avatar={req.avatarUrl} size={24} />
                         : <UserPlus size={20} />}

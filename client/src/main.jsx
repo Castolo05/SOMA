@@ -4,8 +4,7 @@ import App from './App.jsx'
 import ErrorBoundary from './components/ErrorBoundary'
 import { ToastProvider } from './context/ToastContext'
 import './index.css'
-import './light-theme.css'
-import './dark-theme.css'
+import './theme.css'
 import { registerReminderTapHandler } from './lib/reminders'
 
 registerReminderTapHandler()

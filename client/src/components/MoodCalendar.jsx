@@ -18,12 +18,12 @@ export default function MoodCalendar({ entries = [], onDayClick, selectedDate, m
   const [viewMonth, setViewMonth] = useState(today.getMonth()) // 0-indexed
 
   const accentClass = mode === 'psych'
-    ? 'bg-indigo-600 text-white'
-    : 'bg-sage-300 text-white'
+    ? 'bg-pro-600 text-white'
+    : 'bg-brand-300 text-white'
 
   const todayClass = mode === 'psych'
-    ? 'ring-2 ring-indigo-400'
-    : 'ring-2 ring-sage-400'
+    ? 'ring-2 ring-pro-400'
+    : 'ring-2 ring-brand-400'
 
   // Construir mapa: "YYYY-MM-DD" → entries[]
   const entryMap = useMemo(() => {
@@ -143,7 +143,7 @@ export default function MoodCalendar({ entries = [], onDayClick, selectedDate, m
               style={hasEntries ? { backgroundColor: moodConfig?.color, borderColor: selected ? moodConfig?.color : 'transparent' } : {}}
             >
               <span className={`text-sm font-bold z-10 relative ${
-                hasEntries ? 'text-white' : selected ? 'text-white' : today_ ? 'text-sage-600 dark:text-sage-400' : 'text-gray-700 dark:text-gray-300'
+                hasEntries ? 'text-white' : selected ? 'text-white' : today_ ? 'text-brand-600 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300'
               }`}>
                 {day}
               </span>

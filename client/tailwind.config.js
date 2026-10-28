@@ -4,61 +4,56 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
+      screens: {
+        // Pantallas bajas (p. ej. notebooks 1366×768): compacta el espaciado vertical
+        short: { raw: '(max-height: 820px)' },
+      },
       fontFamily: {
         sans: ['DM Sans', 'sans-serif'],
-        display: ['Space Grotesk', 'DM Sans', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
       },
       colors: {
-        // ── Paleta SOMA — bienestar clínico cálido ──
-        sage: {
-          50:  '#fff5ec',
-          100: '#ffe7d2',
-          200: '#ffcba8',
-          300: '#f5a477',
-          400: '#df7952',
-          500: '#bd5940',
-          600: '#914131',
+        // Paleta SOMA: los valores viven en src/theme.css y cambian con el tema
+        // ── Paciente: coral / terracota ──
+        brand: {
+          50: 'rgb(var(--brand-50) / <alpha-value>)',
+          100: 'rgb(var(--brand-100) / <alpha-value>)',
+          200: 'rgb(var(--brand-200) / <alpha-value>)',
+          300: 'rgb(var(--brand-300) / <alpha-value>)',
+          400: 'rgb(var(--brand-400) / <alpha-value>)',
+          500: 'rgb(var(--brand-500) / <alpha-value>)',
+          600: 'rgb(var(--brand-600) / <alpha-value>)',
+          700: 'rgb(var(--brand-700) / <alpha-value>)',
+          800: 'rgb(var(--brand-800) / <alpha-value>)',
+          900: 'rgb(var(--brand-900) / <alpha-value>)',
+          950: 'rgb(var(--brand-950) / <alpha-value>)',
         },
-        lavender: {
-          50:  '#eef6ff',
-          100: '#dcecff',
-          200: '#bdd8f4',
-          300: '#91b9e5',
-          400: '#6298d0',
+        // ── Profesional: terracota tostado ──
+        pro: {
+          50: 'rgb(var(--pro-50) / <alpha-value>)',
+          100: 'rgb(var(--pro-100) / <alpha-value>)',
+          200: 'rgb(var(--pro-200) / <alpha-value>)',
+          300: 'rgb(var(--pro-300) / <alpha-value>)',
+          400: 'rgb(var(--pro-400) / <alpha-value>)',
+          500: 'rgb(var(--pro-500) / <alpha-value>)',
+          600: 'rgb(var(--pro-600) / <alpha-value>)',
+          700: 'rgb(var(--pro-700) / <alpha-value>)',
+          800: 'rgb(var(--pro-800) / <alpha-value>)',
+          900: 'rgb(var(--pro-900) / <alpha-value>)',
+          950: 'rgb(var(--pro-950) / <alpha-value>)',
         },
-        peach: {
-          50:  '#fff8ed',
-          100: '#ffebc7',
-          200: '#ffd398',
-          300: '#f3ae55',
-        },
-        sky: {
-          pastel: '#e0f2fe',
-        },
-        // ── Paleta psicólogo — azul petróleo profesional ──
-        indigo: {
-          50:  '#eef4ff',
-          100: '#dce8ff',
-          200: '#bfd2f5',
-          400: '#6c91cf',
-          500: '#466eae',
-          600: '#34578e',
-          700: '#294775',
-          800: '#223a60',
-          900: '#192b48',
-        },
-        // ── Colores de ánimo 1-10 ──
+        // ── Ánimo 1-10: de violeta polvoriento a dorado (ver lib/constants.js) ──
         mood: {
-          1:  '#dc2626',
-          2:  '#ea580c',
-          3:  '#d97706',
-          4:  '#ca8a04',
-          5:  '#65a30d',
-          6:  '#16a34a',
-          7:  '#059669',
-          8:  '#0d9488',
-          9:  '#4f46e5',
-          10: '#7c3aed',
+          1: '#9058a3',
+          2: '#a2529b',
+          3: '#b04f87',
+          4: '#b8506a',
+          5: '#bf5248',
+          6: '#b75c35',
+          7: '#ad682b',
+          8: '#a47226',
+          9: '#9e7923',
+          10: '#987f1d',
         },
       },
       animation: {

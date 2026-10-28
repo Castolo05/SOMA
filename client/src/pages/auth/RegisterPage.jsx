@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { UserRound, Stethoscope } from 'lucide-react'
+import { UserRound, Stethoscope, ArrowRight } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
-import ThemeLogo from '../../components/ThemeLogo'
+import AuthLayout from '../../components/AuthLayout'
 
 const SPECIALIZATIONS = [
   'Psicólogo/a',
@@ -80,243 +80,237 @@ export default function RegisterPage() {
     }
   }
 
+  const isPsych = form.role === 'PSYCHOLOGIST'
+  const roleButtonClass = (active) => `flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 px-3 py-2.5 transition-all duration-200 ${
+    active
+      ? 'border-[#5a4b4b] bg-[#5a4b4b] text-[#fff0dc] shadow-md dark:border-brand-300 dark:bg-brand-300/15 dark:text-brand-200'
+      : 'border-[#c8b3b0] text-gray-500 hover:border-[#5a4b4b]/50 dark:border-[var(--theme-border)]'
+  }`
+
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-[#f2c6b6] p-4 py-8 dark:bg-[var(--theme-canvas)]">
-      <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
-      <div className="relative w-full max-w-lg animate-fade-in">
-        <div className="mb-8 text-center">
-          <div className="mb-4 inline-flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-gray-100 shadow-lg">
-            <ThemeLogo alt="SOMA Logo" className="h-full w-full object-contain" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-800">SOMA</h1>
-          <p className="mt-1 text-gray-500">Crea tu cuenta gratuita</p>
+    <AuthLayout maxWidth={isPsych ? 'max-w-xl' : 'max-w-md'} showFooter={false}>
+      <h1 className="font-display text-2xl font-semibold text-gray-800 dark:text-white">Crear cuenta</h1>
+      <p className="mt-1 text-sm text-gray-500 short:hidden dark:text-gray-400">Es gratis y te lleva un minuto.</p>
+
+      {error && (
+        <div id="register-error" role="alert" className="mt-5 animate-fade-in rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 short:mt-4">
+          {error}
         </div>
+      )}
 
-        <div className="rounded-3xl border border-[#c8b3b0] bg-[#f9e2da] p-8 shadow-xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]">
-          <h2 className="mb-6 text-xl font-bold text-gray-800">Registrarse</h2>
+      <fieldset className="mt-5 short:mt-4">
+        <legend className="sr-only">Soy...</legend>
+        <div className="grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            aria-pressed={!isPsych}
+            disabled={loading}
+            onClick={() => setForm((current) => ({ ...current, role: 'PATIENT' }))}
+            className={roleButtonClass(!isPsych)}
+          >
+            <UserRound size={20} className="shrink-0" />
+            <span className="text-sm font-semibold">Paciente</span>
+          </button>
+          <button
+            type="button"
+            aria-pressed={isPsych}
+            disabled={loading}
+            onClick={() => setForm((current) => ({ ...current, role: 'PSYCHOLOGIST' }))}
+            className={roleButtonClass(isPsych)}
+          >
+            <Stethoscope size={20} className="shrink-0" />
+            <span className="text-sm font-semibold">Profesional de salud</span>
+          </button>
+        </div>
+      </fieldset>
 
-          {error && (
-            <div id="register-error" role="alert" className="mb-4 animate-fade-in rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              {error}
-            </div>
-          )}
-
-          <fieldset className="mb-5">
-            <legend className="label">Soy...</legend>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <button
-                type="button"
-                aria-pressed={form.role === 'PATIENT'}
-                disabled={loading}
-                onClick={() => setForm((current) => ({ ...current, role: 'PATIENT' }))}
-                className={`flex min-h-11 flex-col items-center rounded-2xl border-2 p-4 transition-all duration-200 ${
-                  form.role === 'PATIENT'
-                    ? 'border-sage-300 bg-sage-50 text-sage-600'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                }`}
-              >
-                <UserRound size={28} className="mb-1" />
-                <span className="text-sm font-semibold">Paciente</span>
-              </button>
-              <button
-                type="button"
-                aria-pressed={form.role === 'PSYCHOLOGIST'}
-                disabled={loading}
-                onClick={() => setForm((current) => ({ ...current, role: 'PSYCHOLOGIST' }))}
-                className={`flex min-h-11 flex-col items-center rounded-2xl border-2 p-4 transition-all duration-200 ${
-                  form.role === 'PSYCHOLOGIST'
-                    ? 'border-sage-300 bg-sage-50 text-sage-600'
-                    : 'border-gray-200 text-gray-500 hover:border-gray-300'
-                }`}
-              >
-                <Stethoscope size={28} className="mb-1" />
-                <span className="text-sm font-semibold">Profesional de salud</span>
-              </button>
-            </div>
-          </fieldset>
-
-          <form onSubmit={handleSubmit} className="space-y-4" aria-describedby={error ? 'register-error' : undefined}>
-            {form.role === 'PSYCHOLOGIST' ? (
-              <>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div>
-                    <label htmlFor="first-name" className="label">Nombre</label>
-                    <input
-                      id="first-name"
-                      type="text"
-                      autoComplete="given-name"
-                      className="input"
-                      placeholder="Tu nombre"
-                      value={form.firstName}
-                      onChange={updateField('firstName')}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label htmlFor="last-name" className="label">Apellido</label>
-                    <input
-                      id="last-name"
-                      type="text"
-                      autoComplete="family-name"
-                      className="input"
-                      placeholder="Tu apellido"
-                      value={form.lastName}
-                      onChange={updateField('lastName')}
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label htmlFor="birth-date" className="label">Fecha de nacimiento</label>
-                  <input
-                    id="birth-date"
-                    type="date"
-                    autoComplete="bday"
-                    max={maxBirthDate}
-                    className="input"
-                    value={form.birthDate}
-                    onChange={updateField('birthDate')}
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="phone" className="label">Número de teléfono</label>
-                  <input
-                    id="phone"
-                    type="tel"
-                    autoComplete="tel"
-                    className="input"
-                    placeholder="+54 11 1234 5678"
-                    value={form.phone}
-                    onChange={updateField('phone')}
-                    required
-                  />
-                </div>
-                <div>
-                  <label htmlFor="specialization" className="label">Área de especialización</label>
-                  <select
-                    id="specialization"
-                    className="input"
-                    value={form.specialization}
-                    onChange={updateField('specialization')}
-                    required
-                  >
-                    <option value="" disabled>Seleccioná tu profesión</option>
-                    {SPECIALIZATIONS.map((specialization) => (
-                      <option key={specialization} value={specialization}>{specialization}</option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            ) : (
+      <form onSubmit={handleSubmit} className="mt-4 space-y-4 short:space-y-3" aria-describedby={error ? 'register-error' : undefined}>
+        {isPsych ? (
+          <>
+            <div className="grid gap-4 short:gap-3 sm:grid-cols-2">
               <div>
-                <label htmlFor="name" className="label">Nombre completo</label>
+                <label htmlFor="first-name" className="label">Nombre</label>
                 <input
-                  id="name"
+                  id="first-name"
                   type="text"
-                  autoComplete="name"
-                  className="input"
+                  autoComplete="given-name"
+                  className="input short:!py-2.5"
                   placeholder="Tu nombre"
-                  value={form.name}
-                  onChange={updateField('name')}
+                  value={form.firstName}
+                  onChange={updateField('firstName')}
                   required
                 />
               </div>
-            )}
+              <div>
+                <label htmlFor="last-name" className="label">Apellido</label>
+                <input
+                  id="last-name"
+                  type="text"
+                  autoComplete="family-name"
+                  className="input short:!py-2.5"
+                  placeholder="Tu apellido"
+                  value={form.lastName}
+                  onChange={updateField('lastName')}
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid gap-4 short:gap-3 sm:grid-cols-2">
+              <div>
+                <label htmlFor="birth-date" className="label">Fecha de nacimiento</label>
+                <input
+                  id="birth-date"
+                  type="date"
+                  autoComplete="bday"
+                  max={maxBirthDate}
+                  className="input short:!py-2.5"
+                  value={form.birthDate}
+                  onChange={updateField('birthDate')}
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="specialization" className="label">Especialización</label>
+                <select
+                  id="specialization"
+                  className="input short:!py-2.5"
+                  value={form.specialization}
+                  onChange={updateField('specialization')}
+                  required
+                >
+                  <option value="" disabled>Seleccioná tu profesión</option>
+                  {SPECIALIZATIONS.map((specialization) => (
+                    <option key={specialization} value={specialization}>{specialization}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div>
+            <label htmlFor="name" className="label">Nombre completo</label>
+            <input
+              id="name"
+              type="text"
+              autoComplete="name"
+              className="input short:!py-2.5"
+              placeholder="Tu nombre"
+              value={form.name}
+              onChange={updateField('name')}
+              required
+            />
+          </div>
+        )}
 
+        <div className={isPsych ? 'grid gap-4 short:gap-3 sm:grid-cols-2' : ''}>
+          <div>
+            <label htmlFor="email" className="label">Correo electrónico</label>
+            <input
+              id="email"
+              type="email"
+              autoComplete="email"
+              className="input short:!py-2.5"
+              placeholder="tu@email.com"
+              value={form.email}
+              onChange={updateField('email')}
+              required
+            />
+          </div>
+          {isPsych && (
             <div>
-              <label htmlFor="email" className="label">Correo electrónico</label>
+              <label htmlFor="phone" className="label">Teléfono</label>
               <input
-                id="email"
-                type="email"
-                autoComplete="email"
-                className="input"
-                placeholder="tu@email.com"
-                value={form.email}
-                onChange={updateField('email')}
+                id="phone"
+                type="tel"
+                autoComplete="tel"
+                className="input short:!py-2.5"
+                placeholder="+54 11 1234 5678"
+                value={form.phone}
+                onChange={updateField('phone')}
                 required
               />
             </div>
+          )}
+        </div>
+
+        <div className={isPsych ? 'grid gap-4 short:gap-3 sm:grid-cols-2' : ''}>
+          <div>
+            <label htmlFor="password" className="label">Contraseña</label>
+            <input
+              id="password"
+              type="password"
+              autoComplete="new-password"
+              className="input short:!py-2.5"
+              placeholder="Mínimo 6 caracteres"
+              value={form.password}
+              onChange={updateField('password')}
+              required
+              minLength={6}
+            />
+          </div>
+          {isPsych && (
             <div>
-              <label htmlFor="password" className="label">Contraseña (mín. 6 caracteres)</label>
+              <label htmlFor="confirm-password" className="label">Confirmar contraseña</label>
               <input
-                id="password"
+                id="confirm-password"
                 type="password"
                 autoComplete="new-password"
-                className="input"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={updateField('password')}
+                className="input short:!py-2.5"
+                placeholder="Repetila"
+                value={form.confirmPassword}
+                onChange={updateField('confirmPassword')}
                 required
                 minLength={6}
               />
             </div>
-            {form.role === 'PSYCHOLOGIST' && (
-              <div>
-                <label htmlFor="confirm-password" className="label">Confirmar contraseña</label>
-                <input
-                  id="confirm-password"
-                  type="password"
-                  autoComplete="new-password"
-                  className="input"
-                  placeholder="Volvé a escribir tu contraseña"
-                  value={form.confirmPassword}
-                  onChange={updateField('confirmPassword')}
-                  required
-                  minLength={6}
-                />
-              </div>
-            )}
-
-            <div className="rounded-xl border border-[#c8b3b0] bg-white/60 p-4 dark:border-[var(--theme-border)] dark:bg-slate-800/40">
-              <label htmlFor="accept-terms" className="flex cursor-pointer items-start gap-3 text-sm leading-6 text-gray-700 dark:text-gray-200">
-                <input
-                  id="accept-terms"
-                  type="checkbox"
-                  className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-sage-600 focus:ring-sage-500"
-                  checked={form.acceptedTerms}
-                  onChange={(event) => setForm((current) => ({ ...current, acceptedTerms: event.target.checked }))}
-                  required
-                  disabled={loading}
-                  aria-describedby={error ? 'register-error' : undefined}
-                />
-                <span>
-                  Leí y acepto los{' '}
-                  <Link
-                    to="/legal/terms"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-semibold text-sage-600 underline underline-offset-2 hover:text-sage-700 dark:text-sage-400"
-                  >
-                    Términos y Condiciones
-                  </Link>
-                  {' '}y la{' '}
-                  <Link
-                    to="/legal/privacy-policy"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="font-semibold text-sage-600 underline underline-offset-2 hover:text-sage-700 dark:text-sage-400"
-                  >
-                    Política de Privacidad
-                  </Link>
-                  .
-                </span>
-              </label>
-            </div>
-
-            <button type="submit" className="btn-patient mt-2 w-full" disabled={loading}>
-              {loading ? 'Creando cuenta...' : 'Crear cuenta →'}
-            </button>
-          </form>
-
-          <p className="mt-6 text-center text-sm text-gray-500">
-            ¿Ya tienes cuenta?{' '}
-            <Link to="/login" className="font-semibold text-sage-500 hover:underline">
-              Iniciar sesión
-            </Link>
-          </p>
+          )}
         </div>
-      </div>
-    </div>
+
+        <label htmlFor="accept-terms" className="flex cursor-pointer items-start gap-3 text-sm leading-6 text-gray-700 dark:text-gray-200">
+          <input
+            id="accept-terms"
+            type="checkbox"
+            className="mt-1 h-4 w-4 shrink-0 rounded border-gray-300 text-brand-600 focus:ring-brand-500"
+            checked={form.acceptedTerms}
+            onChange={(event) => setForm((current) => ({ ...current, acceptedTerms: event.target.checked }))}
+            required
+            disabled={loading}
+            aria-describedby={error ? 'register-error' : undefined}
+          />
+          <span>
+            Leí y acepto los{' '}
+            <Link
+              to="/legal/terms"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-700 dark:text-brand-400"
+            >
+              Términos y Condiciones
+            </Link>
+            {' '}y la{' '}
+            <Link
+              to="/legal/privacy-policy"
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-brand-600 underline underline-offset-2 hover:text-brand-700 dark:text-brand-400"
+            >
+              Política de Privacidad
+            </Link>
+            .
+          </span>
+        </label>
+
+        <button type="submit" className="btn-patient flex w-full items-center justify-center gap-2 short:!py-3" disabled={loading}>
+          {loading ? 'Creando cuenta...' : <>Crear cuenta <ArrowRight size={16} /></>}
+        </button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-gray-600 short:mt-4 dark:text-gray-300">
+        ¿Ya tenés cuenta?{' '}
+        <Link to="/login" className="font-semibold text-brand-600 hover:underline dark:text-brand-400">
+          Iniciar sesión
+        </Link>
+      </p>
+    </AuthLayout>
   )
 }

@@ -30,10 +30,10 @@ function HabitScatterChart({ scatterPoints, trend, pearsonR, unit }) {
   if (!scatterPoints || scatterPoints.length < 3) return null
 
   const dotColor = (mood) => {
-    if (mood >= 8) return '#10b981'
-    if (mood >= 6) return '#0d9488'
-    if (mood >= 4) return '#f59e0b'
-    return '#ef4444'
+    if (mood >= 8) return MOOD_ICONS[9].color
+    if (mood >= 6) return MOOD_ICONS[7].color
+    if (mood >= 4) return MOOD_ICONS[5].color
+    return MOOD_ICONS[2].color
   }
 
   const r = pearsonR
@@ -43,12 +43,12 @@ function HabitScatterChart({ scatterPoints, trend, pearsonR, unit }) {
     : null
 
   const lineColor = r !== null
-    ? (r >= 0.15 ? '#0d9488' : r <= -0.15 ? '#ef4444' : '#64748b')
-    : '#64748b'
+    ? (r >= 0.15 ? '#4f8a5c' : r <= -0.15 ? '#a03f36' : '#806f70')
+    : '#806f70'
 
   const badgeColor = r !== null
-    ? (absr > 0.5 ? '#10b981' : absr > 0.3 ? '#f59e0b' : '#64748b')
-    : '#64748b'
+    ? (absr > 0.5 ? '#4f8a5c' : absr > 0.3 ? '#ad682b' : '#806f70')
+    : '#806f70'
 
   const trendPoints = (() => {
     let t = trend
@@ -114,16 +114,16 @@ function HabitScatterChart({ scatterPoints, trend, pearsonR, unit }) {
               dataKey="qty"
               type="number"
               domain={['auto', 'auto']}
-              tick={{ fontSize: 10, fill: '#9ca3af' }}
-              label={{ value: unit || 'Cantidad', position: 'insideBottom', offset: -10, fontSize: 10, fill: '#9ca3af' }}
+              tick={{ fontSize: 10, fill: '#806f70' }}
+              label={{ value: unit || 'Cantidad', position: 'insideBottom', offset: -10, fontSize: 10, fill: '#806f70' }}
             />
             <YAxis
               dataKey="mood"
               type="number"
               domain={[1, 10]}
               ticks={[2, 4, 6, 8, 10]}
-              tick={{ fontSize: 10, fill: '#9ca3af' }}
-              label={{ value: 'Ánimo', angle: -90, position: 'insideLeft', offset: 14, fontSize: 10, fill: '#9ca3af' }}
+              tick={{ fontSize: 10, fill: '#806f70' }}
+              label={{ value: 'Ánimo', angle: -90, position: 'insideLeft', offset: 14, fontSize: 10, fill: '#806f70' }}
             />
             <Tooltip content={<ScatterTooltip unit={unit} />} />
 
@@ -193,7 +193,7 @@ export default function HabitCorrelationCard({ data }) {
     <div className="space-y-4 animate-fade-in">
       <div className="card">
         <div className="flex items-center gap-2 mb-1">
-          <BarChart2 size={16} className="text-sage-500" />
+          <BarChart2 size={16} className="text-brand-500" />
           <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
             Hábitos y estado de ánimo
           </h2>
@@ -231,7 +231,7 @@ export default function HabitCorrelationCard({ data }) {
           <div key={item.habitId} className="card">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-sage-50 dark:bg-sage-900/30 text-sage-600 dark:text-sage-400 border border-sage-100 dark:border-sage-800">
+                <span className="p-2 rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-800">
                   <IconComp size={18} />
                 </span>
                 <div>
@@ -258,14 +258,14 @@ export default function HabitCorrelationCard({ data }) {
                 <div>
                   <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                     <span>Con este hábito <span className="text-gray-400 ml-1">({item.countWith} días)</span></span>
-                    <span className="font-bold" style={{ color: item.avgWith ? MOOD_ICONS[Math.round(item.avgWith)]?.color : '#9ca3af' }}>
+                    <span className="font-bold" style={{ color: item.avgWith ? MOOD_ICONS[Math.round(item.avgWith)]?.color : '#806f70' }}>
                       {item.avgWith ?? '—'}/10
                     </span>
                   </div>
                   <div className="h-2.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className="h-full rounded-full transition-all duration-700"
-                      style={{ width: `${withPct}%`, backgroundColor: item.avgWith ? MOOD_ICONS[Math.round(item.avgWith)]?.color : '#d1d5db' }}
+                      style={{ width: `${withPct}%`, backgroundColor: item.avgWith ? MOOD_ICONS[Math.round(item.avgWith)]?.color : '#c8b3b0' }}
                     />
                   </div>
                 </div>
@@ -298,10 +298,10 @@ export default function HabitCorrelationCard({ data }) {
                 <div>
                   <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
                     <span>Con el hábito <span className="text-gray-400 ml-1">({item.countWith} días)</span></span>
-                    <span className="font-bold" style={{ color: MOOD_ICONS[Math.round(item.avgWith)]?.color ?? '#9ca3af' }}>{item.avgWith}/10</span>
+                    <span className="font-bold" style={{ color: MOOD_ICONS[Math.round(item.avgWith)]?.color ?? '#806f70' }}>{item.avgWith}/10</span>
                   </div>
                   <div className="h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${withPct}%`, backgroundColor: MOOD_ICONS[Math.round(item.avgWith)]?.color ?? '#0d9488' }} />
+                    <div className="h-full rounded-full transition-all duration-700" style={{ width: `${withPct}%`, backgroundColor: MOOD_ICONS[Math.round(item.avgWith)]?.color ?? '#b4533e' }} />
                   </div>
                 </div>
                 {item.avgWithout !== null && item.countWithout > 0 && (

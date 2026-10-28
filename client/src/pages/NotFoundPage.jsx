@@ -6,14 +6,13 @@ export default function NotFoundPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] p-4 relative overflow-hidden">
-      <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(47,135,110,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(47,135,110,0.06)_1px,transparent_1px)] [background-size:32px_32px]" aria-hidden="true" />
       <div className="w-full max-w-sm text-center animate-fade-in">
         {/* Número 404 grande */}
         <div className="relative mb-6">
           <p
-            className="text-[120px] font-black leading-none select-none"
+            className="text-[120px] font-bold leading-none select-none"
             style={{
-              background: 'linear-gradient(135deg, var(--color-sage-300, #a3b899) 0%, var(--color-lavender-300, #b5a8d0) 100%)',
+              background: 'linear-gradient(135deg, rgb(var(--brand-300)) 0%, rgb(var(--brand-600)) 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               backgroundClip: 'text',
@@ -37,8 +36,8 @@ export default function NotFoundPage() {
         <Link
           to="/login"
           className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold text-sm transition-all
-            bg-sage-500 hover:bg-sage-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
-          style={{ backgroundColor: 'var(--color-sage-500, #7a9c6e)' }}
+            bg-brand-500 hover:bg-brand-600 text-white shadow-md hover:shadow-lg hover:-translate-y-0.5"
+          style={{ backgroundColor: 'var(--theme-primary)' }}
         >
           ← Volver al inicio
         </Link>

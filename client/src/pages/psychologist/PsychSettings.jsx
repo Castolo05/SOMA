@@ -86,7 +86,7 @@ export default function PsychSettings() {
           <div className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                <div className="p-2 bg-pro-50 dark:bg-pro-900/20 text-pro-600 dark:text-pro-400 rounded-lg">
                   {darkMode ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
                 <div>
@@ -96,8 +96,8 @@ export default function PsychSettings() {
               </div>
               <button
                 onClick={() => setDarkMode(d => !d)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 ${
-                  darkMode ? 'bg-indigo-600' : 'bg-gray-200 dark:bg-gray-700'
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-pro-500 focus:ring-offset-2 ${
+                  darkMode ? 'bg-pro-600' : 'bg-gray-200 dark:bg-gray-700'
                 }`}
               >
                 <span
@@ -117,7 +117,7 @@ export default function PsychSettings() {
             {!isEditing && (
               <button 
                 onClick={() => setIsEditing(true)}
-                className="text-sm font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-700 dark:hover:text-indigo-300"
+                className="text-sm font-medium text-pro-600 dark:text-pro-400 hover:text-pro-700 dark:hover:text-pro-300"
               >
                 Editar Perfil
               </button>
@@ -128,7 +128,7 @@ export default function PsychSettings() {
             {isEditing ? (
               <div className="space-y-6">
                 <div className="flex flex-col items-center gap-4">
-                  <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border-2 border-indigo-100 dark:border-indigo-900">
+                  <div className="w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border-2 border-pro-100 dark:border-pro-900">
                     <AvatarDisplay avatar={editAvatar} size={48} className="text-gray-400" />
                   </div>
                   <div className="flex gap-2">
@@ -158,7 +158,7 @@ export default function PsychSettings() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre y Apellido</label>
                     <input 
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white" 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-pro-500 dark:bg-gray-700 dark:text-white" 
                       value={editName} 
                       onChange={e => setEditName(e.target.value)} 
                     />
@@ -166,7 +166,7 @@ export default function PsychSettings() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
                     <input 
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white" 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-pro-500 dark:bg-gray-700 dark:text-white" 
                       type="email" 
                       value={editEmail} 
                       onChange={e => setEditEmail(e.target.value)} 
@@ -176,7 +176,7 @@ export default function PsychSettings() {
                     <label htmlFor="psychologist-phone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de teléfono</label>
                     <input
                       id="psychologist-phone"
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white"
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-pro-500 dark:bg-gray-700 dark:text-white"
                       type="tel"
                       autoComplete="tel"
                       value={editPhone}
@@ -186,7 +186,7 @@ export default function PsychSettings() {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nueva Contraseña (opcional)</label>
                     <input 
-                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 dark:bg-gray-700 dark:text-white" 
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-pro-500 dark:bg-gray-700 dark:text-white" 
                       type="password" 
                       placeholder="Dejar en blanco para no cambiar" 
                       value={editPassword} 
@@ -205,7 +205,7 @@ export default function PsychSettings() {
                   <button 
                     onClick={handleSaveProfile} 
                     disabled={profileSaving || !editName || !editEmail} 
-                    className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
+                    className="px-4 py-2 bg-pro-600 hover:bg-pro-700 text-white rounded-lg text-sm font-medium disabled:opacity-50"
                   >
                     {profileSaving ? 'Guardando...' : 'Guardar Cambios'}
                   </button>
@@ -213,7 +213,7 @@ export default function PsychSettings() {
               </div>
             ) : (
               <div className="flex items-center gap-4">
-                <div className="h-16 w-16 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center text-indigo-500 overflow-hidden border border-indigo-100 dark:border-indigo-800">
+                <div className="h-16 w-16 bg-pro-50 dark:bg-pro-900/20 rounded-full flex items-center justify-center text-pro-500 overflow-hidden border border-pro-100 dark:border-pro-800">
                   <AvatarDisplay avatar={user?.avatar} size={32} />
                 </div>
                 <div>

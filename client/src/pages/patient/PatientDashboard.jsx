@@ -35,7 +35,7 @@ function StatCard({ label, value, sub, color, icon: Icon }) {
         <Icon size={18} style={{ color }} />
       </div>
       <div className="min-w-0">
-        <div className="text-lg font-extrabold text-gray-800 dark:text-white leading-none">
+        <div className="text-lg font-bold text-gray-800 dark:text-white leading-none">
           {value ?? '—'}
         </div>
         <div className="text-xs text-gray-400 font-medium truncate">{label}</div>
@@ -196,20 +196,20 @@ export default function PatientDashboard() {
           <StatCard
             label="Racha actual"
             value={`${streak} día${streak !== 1 ? 's' : ''}`}
-            color="#bd5940"
+            color="#b4533e"
             icon={Flame}
           />
           <StatCard
             label="Ánimo promedio"
             value={avgMood ? `${avgMood}/10` : '—'}
             sub="Últimos 14 días"
-            color="#059669"
+            color="#b04f87"
             icon={TrendingUp}
           />
           <StatCard
             label="Entradas totales"
             value={entries.length}
-            color="#267783"
+            color="#ad682b"
             icon={BookOpen}
           />
         </div>
@@ -259,7 +259,7 @@ export default function PatientDashboard() {
                   {canEditToday && (
                     <button
                       onClick={() => setEditMode(true)}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-pro-600 dark:text-pro-400 hover:underline"
                     >
                       <Edit2 size={12} /> Editar
                     </button>
@@ -273,7 +273,7 @@ export default function PatientDashboard() {
                       style={{ backgroundColor: todayMoodConfig?.color }}
                     >
                       <MoodIcon score={todayEntry.moodScore} size={24} color="white" />
-                      <span className="text-xs font-extrabold mt-1" style={{ color: 'white' }}>
+                      <span className="text-xs font-bold mt-1" style={{ color: 'white' }}>
                         {todayEntry.moodScore}/10
                       </span>
                     </div>
@@ -304,7 +304,7 @@ export default function PatientDashboard() {
                         const hData = todayEntry.habitData?.[hId]
                         const showQty = (type === 'toggle+qty') && hData?.qty !== undefined && hData?.qty !== ''
                         return (
-                          <span key={hId} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                          <span key={hId} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                             <IconComp size={12} /> {h.text}
                             {showQty && <span className="font-bold ml-0.5">{hData.qty} {h.unit}</span>}
                           </span>
@@ -318,7 +318,7 @@ export default function PatientDashboard() {
                       {habits.filter(h => h.trackingType === 'qty' && todayEntry.habitData?.[h.id]?.qty !== undefined && todayEntry.habitData?.[h.id]?.qty !== '').map(h => {
                         const IconComp = HABIT_ICONS[h.icon] || HABIT_ICONS.CheckCircle
                         return (
-                          <span key={h.id} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                          <span key={h.id} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                             <IconComp size={12} /> {h.text}: <span className="font-bold">{todayEntry.habitData[h.id].qty} {h.unit}</span>
                           </span>
                         )
@@ -342,7 +342,7 @@ export default function PatientDashboard() {
                     Evolución del ánimo
                   </div>
                   {avgMood && (
-                    <span className="text-xs font-bold" style={{ color: todayMoodConfig?.color || '#059669' }}>
+                    <span className="text-xs font-bold" style={{ color: todayMoodConfig?.color || '#b4533e' }}>
                       Prom. {avgMood}/10
                     </span>
                   )}
@@ -361,7 +361,7 @@ export default function PatientDashboard() {
             {yesterdayMode ? (
               <div>
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">
+                  <p className="text-xs font-bold text-pro-500 dark:text-pro-400 uppercase tracking-widest">
                     {yesterdayEntry ? 'Editando nota de ayer' : 'Anotación de ayer'}
                   </p>
                   <span className="text-[11px] text-gray-400">Solo disponible hoy</span>
@@ -385,9 +385,9 @@ export default function PatientDashboard() {
               <button
                 type="button"
                 onClick={() => setYesterdayMode(true)}
-                className="w-full card !p-4 flex items-center gap-3 text-left border-indigo-100 dark:border-indigo-900/60 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors group"
+                className="w-full card !p-4 flex items-center gap-3 text-left border-pro-100 dark:border-pro-900/60 hover:border-pro-300 dark:hover:border-pro-700 transition-colors group"
               >
-                <span className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/50 transition-colors">
+                <span className="p-2.5 rounded-2xl bg-pro-50 dark:bg-pro-900/30 text-pro-500 group-hover:bg-pro-100 dark:group-hover:bg-pro-900/50 transition-colors">
                   <Edit2 size={18} />
                 </span>
                 <span className="flex-1">
@@ -463,7 +463,7 @@ export default function PatientDashboard() {
               {canEditToday && (
                 <button
                   onClick={() => setEditMode(true)}
-                  className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:underline"
+                  className="flex items-center gap-1.5 text-xs font-semibold text-pro-600 dark:text-pro-400 hover:underline"
                 >
                   <Edit2 size={12} /> Editar
                 </button>
@@ -499,7 +499,7 @@ export default function PatientDashboard() {
                     if (!h) return null
                     const IconComp = HABIT_ICONS[h.icon] || HABIT_ICONS.CheckCircle
                     return (
-                      <span key={hId} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                      <span key={hId} className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                         <IconComp size={12} /> {h.text}
                       </span>
                     )
@@ -517,7 +517,7 @@ export default function PatientDashboard() {
         {yesterdayMode ? (
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
-              <p className="text-xs font-bold text-indigo-500 dark:text-indigo-400 uppercase tracking-widest">
+              <p className="text-xs font-bold text-pro-500 dark:text-pro-400 uppercase tracking-widest">
                 {yesterdayEntry ? 'Editando la nota de ayer' : 'Anotación pendiente de ayer'}
               </p>
               <span className="text-[11px] text-gray-400">Disponible solo hoy</span>
@@ -541,9 +541,9 @@ export default function PatientDashboard() {
           <button
             type="button"
             onClick={() => setYesterdayMode(true)}
-            className="w-full card !p-4 flex items-center gap-3 text-left border-indigo-100 dark:border-indigo-900/60 hover:border-indigo-300 dark:hover:border-indigo-700 transition-colors"
+            className="w-full card !p-4 flex items-center gap-3 text-left border-pro-100 dark:border-pro-900/60 hover:border-pro-300 dark:hover:border-pro-700 transition-colors"
           >
-            <span className="p-2.5 rounded-2xl bg-indigo-50 dark:bg-indigo-900/30 text-indigo-500">
+            <span className="p-2.5 rounded-2xl bg-pro-50 dark:bg-pro-900/30 text-pro-500">
               <Edit2 size={19} />
             </span>
             <span className="flex-1">

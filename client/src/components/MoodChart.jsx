@@ -43,7 +43,7 @@ const CustomDot = (props) => {
       cy={cy}
       r={5}
       fill={MOOD_CHART_COLOR(payload.mood)}
-      stroke={isDark ? '#f3f6fa' : 'white'}
+      stroke={isDark ? '#f3e9e4' : '#fff6f0'}
       strokeWidth={2}
     />
   )
@@ -89,9 +89,9 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
     else setInternalDays(d)
   }
   const isDark = useIsDarkTheme()
-  const lineColor = isDark ? '#f3f6fa' : mode === 'psych' ? '#267783' : '#2f876e'
-  const gridColor = isDark ? 'rgba(230, 237, 245, 0.14)' : '#f0f0f0'
-  const axisColor = isDark ? '#9aa6b8' : '#9ca3af'
+  const lineColor = isDark ? '#f3e9e4' : mode === 'psych' ? '#8f5644' : '#b4533e'
+  const gridColor = isDark ? 'rgba(243, 233, 228, 0.12)' : 'rgba(90, 75, 75, 0.12)'
+  const axisColor = isDark ? '#b3a3a0' : '#725f60'
 
   // Filtrar entradas por período seleccionado
   const chartData = useMemo(() => {
@@ -138,8 +138,8 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
               className={`text-[11px] px-2.5 min-h-11 rounded-lg font-bold transition-all ${
                 currentDays === value
                   ? mode === 'psych'
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-sage-400 text-white'
+                    ? 'bg-pro-600 text-white'
+                    : 'bg-brand-400 text-white'
                   : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'
               }`}
             >
@@ -192,7 +192,7 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
               stroke={lineColor}
               strokeWidth={2.5}
               dot={chartData.length <= 15 ? <CustomDot isDark={isDark} /> : false}
-              activeDot={{ r: 7, fill: lineColor, stroke: isDark ? '#161c26' : '#fff', strokeWidth: 2, cursor: onDayClick ? 'pointer' : 'default' }}
+              activeDot={{ r: 7, fill: lineColor, stroke: isDark ? '#1c1719' : '#fff6f0', strokeWidth: 2, cursor: onDayClick ? 'pointer' : 'default' }}
             />
           </LineChart>
         </ResponsiveContainer>

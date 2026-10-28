@@ -31,7 +31,7 @@ export default function PatientsList() {
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-black text-gray-900 dark:text-white tracking-tight">Bienvenido, {user?.name}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Bienvenido, {user?.name}</h1>
         <p className="text-gray-400 mt-1">{patients.length} paciente{patients.length !== 1 ? 's' : ''} vinculado{patients.length !== 1 ? 's' : ''}</p>
       </div>
 
@@ -40,7 +40,7 @@ export default function PatientsList() {
         <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+          className="w-full pl-10 pr-4 py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-transparent transition-all"
           placeholder="Buscar paciente..."
           value={search}
           onChange={e => setSearch(e.target.value)}
@@ -74,7 +74,7 @@ export default function PatientsList() {
                 className="flex items-center gap-4 px-6 py-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors group"
               >
                 {/* Avatar */}
-                <div className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden font-bold text-base shrink-0 bg-indigo-100 dark:bg-indigo-900/20 text-indigo-700 dark:text-indigo-400">
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center overflow-hidden font-bold text-base shrink-0 bg-pro-100 dark:bg-pro-900/20 text-pro-700 dark:text-pro-400">
                   {p.avatarUrl ? (
                     <AvatarDisplay avatar={p.avatarUrl} size={28} className="text-current" />
                   ) : (
@@ -94,7 +94,7 @@ export default function PatientsList() {
                 </div>
 
                 {p.lastMood && <MoodIcon score={p.lastMood} size={22} />}
-                <ChevronRight size={16} className="text-gray-300 group-hover:text-indigo-400 transition-colors shrink-0" />
+                <ChevronRight size={16} className="text-gray-300 group-hover:text-pro-400 transition-colors shrink-0" />
               </Link>
             ))}
           </div>

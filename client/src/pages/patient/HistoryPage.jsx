@@ -208,7 +208,7 @@ export default function HistoryPage() {
           onClick={() => setTab('entries')}
           className={`flex-1 min-h-11 px-1 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
             tab === 'entries'
-              ? 'bg-white dark:bg-gray-700 text-sage-600 shadow-sm'
+              ? 'bg-white dark:bg-gray-700 text-brand-600 shadow-sm'
               : 'text-gray-500 dark:text-gray-400'
           }`}
         >
@@ -218,7 +218,7 @@ export default function HistoryPage() {
           onClick={() => setTab('chart')}
           className={`flex-1 min-h-11 px-1 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
             tab === 'chart'
-              ? 'bg-white dark:bg-gray-700 text-sage-600 shadow-sm'
+              ? 'bg-white dark:bg-gray-700 text-brand-600 shadow-sm'
               : 'text-gray-500 dark:text-gray-400'
           }`}
         >
@@ -228,7 +228,7 @@ export default function HistoryPage() {
           onClick={() => setTab('correlation')}
           className={`flex-1 min-h-11 px-1 rounded-xl text-[13px] font-semibold transition-all duration-200 flex items-center justify-center gap-1.5 ${
             tab === 'correlation'
-              ? 'bg-white dark:bg-gray-700 text-sage-600 shadow-sm'
+              ? 'bg-white dark:bg-gray-700 text-brand-600 shadow-sm'
               : 'text-gray-500 dark:text-gray-400'
           }`}
         >
@@ -271,7 +271,7 @@ export default function HistoryPage() {
 
           {selectedDay && (
             <div className="flex items-center justify-between mb-2 px-1">
-              <p className="text-xs text-sage-600 dark:text-sage-400 font-semibold flex items-center gap-1">
+              <p className="text-xs text-brand-600 dark:text-brand-400 font-semibold flex items-center gap-1">
                 <Calendar size={14} /> {selectedDay.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
               <button onClick={() => setSelectedDay(null)} className="text-xs text-gray-400 hover:text-gray-600 underline">
@@ -300,14 +300,14 @@ export default function HistoryPage() {
                   mode="patient"
                 />
                 {selectedDay && (
-                  <div className="flex items-center justify-between mt-2 px-3 py-2 rounded-2xl bg-sage-50/80 dark:bg-sage-950/30 border border-sage-200/60 dark:border-sage-800/60">
-                    <p className="text-xs text-sage-700 dark:text-sage-300 font-semibold flex items-center gap-1.5 capitalize">
-                      <Calendar size={14} className="text-sage-500" />
+                  <div className="flex items-center justify-between mt-2 px-3 py-2 rounded-2xl bg-brand-50/80 dark:bg-brand-950/30 border border-brand-200/60 dark:border-brand-800/60">
+                    <p className="text-xs text-brand-700 dark:text-brand-300 font-semibold flex items-center gap-1.5 capitalize">
+                      <Calendar size={14} className="text-brand-500" />
                       {selectedDay.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' })}
                     </p>
                     <button
                       onClick={() => { setSelectedDay(null); setIsAddingForDay(false) }}
-                      className="text-xs text-sage-600 dark:text-sage-400 hover:text-sage-800 dark:hover:text-sage-200 font-medium flex items-center gap-1 hover:underline"
+                      className="text-xs text-brand-600 dark:text-brand-400 hover:text-brand-800 dark:hover:text-brand-200 font-medium flex items-center gap-1 hover:underline"
                     >
                       <X size={13} /> Ver todas
                     </button>
@@ -319,8 +319,8 @@ export default function HistoryPage() {
                 {selectedDay && filtered.length === 0 && (
                   <div className="animate-fade-in my-2">
                     {canAddForSelectedDay ? (
-                      <div className="card border-2 border-dashed border-sage-300 dark:border-sage-700 bg-sage-50/60 dark:bg-sage-950/20 text-center py-6 px-4 space-y-3">
-                        <div className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 text-sage-600 dark:text-sage-400 mx-auto flex items-center justify-center shadow-sm border border-sage-200 dark:border-sage-800">
+                      <div className="card border-2 border-dashed border-brand-300 dark:border-brand-700 bg-brand-50/60 dark:bg-brand-950/20 text-center py-6 px-4 space-y-3">
+                        <div className="w-12 h-12 rounded-2xl bg-white dark:bg-gray-800 text-brand-600 dark:text-brand-400 mx-auto flex items-center justify-center shadow-sm border border-brand-200 dark:border-brand-800">
                           <CalendarPlus size={24} />
                         </div>
                         <div>
@@ -340,7 +340,7 @@ export default function HistoryPage() {
                             <Plus size={15} /> Añadir anotación para este día
                           </button>
                         ) : (
-                          <div className="mt-3 text-left border-t border-sage-200 dark:border-sage-800/60 pt-3">
+                          <div className="mt-3 text-left border-t border-brand-200 dark:border-brand-800/60 pt-3">
                             <NoteForm
                               initialMood={5}
                               initialContent=""
@@ -393,10 +393,10 @@ export default function HistoryPage() {
 
                       if (isEditing) {
                         return (
-                          <div key={entry.id} className="card border-2 border-sage-300 dark:border-sage-700 bg-white dark:bg-gray-800 shadow-md animate-fade-in">
+                          <div key={entry.id} className="card border-2 border-brand-300 dark:border-brand-700 bg-white dark:bg-gray-800 shadow-md animate-fade-in">
                             <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
                               <div className="flex items-center gap-2">
-                                <span className="p-1.5 rounded-lg bg-sage-50 dark:bg-sage-900/30 text-sage-600 dark:text-sage-400">
+                                <span className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
                                   <Edit2 size={16} />
                                 </span>
                                 <div>
@@ -464,7 +464,7 @@ export default function HistoryPage() {
                                 <div className="flex gap-1 mt-1 flex-wrap">
                                   {entryHabits.slice(0, 3).map(h => {
                                     const IconComp = HABIT_ICONS[h.icon] || HABIT_ICONS.CheckCircle
-                                    return <span key={h.id} className="p-1 bg-gray-100 dark:bg-gray-800 rounded-md text-sage-500"><IconComp size={12} /></span>
+                                    return <span key={h.id} className="p-1 bg-gray-100 dark:bg-gray-800 rounded-md text-brand-500"><IconComp size={12} /></span>
                                   })}
                                   {entryHabits.length > 3 && (
                                     <span className="text-xs text-gray-400">+{entryHabits.length - 3}</span>
@@ -482,7 +482,7 @@ export default function HistoryPage() {
                                       e.stopPropagation()
                                       setEditingEntryId(entry.id)
                                     }}
-                                    className="p-1.5 text-gray-400 hover:text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-900/20 rounded-lg transition-colors"
+                                    className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                                     title="Modificar anotación"
                                   >
                                     <Edit2 size={15} />
@@ -532,7 +532,7 @@ export default function HistoryPage() {
                                         const note = entry.habitData?.[h.id]?.note
                                         return (
                                           <div key={h.id}>
-                                            <span className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                                            <span className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                                               <IconComp size={14} /> {h.text}
                                             </span>
                                             {note && <p className="text-[11px] text-gray-400 mt-0.5 pl-1 italic">{note}</p>}
@@ -544,10 +544,10 @@ export default function HistoryPage() {
                                         const hd = entry.habitData?.[h.id] || {}
                                         return (
                                           <div key={h.id}>
-                                            <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                                            <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                                               <IconComp size={14} /> {h.text}
                                               {hd.qty !== undefined && hd.qty !== '' && (
-                                                <span className="font-bold text-sage-600 dark:text-sage-400 ml-0.5">{hd.qty} {h.unit}</span>
+                                                <span className="font-bold text-brand-600 dark:text-brand-400 ml-0.5">{hd.qty} {h.unit}</span>
                                               )}
                                             </span>
                                             {hd.note && <p className="text-[11px] text-gray-400 mt-0.5 pl-1 italic">{hd.note}</p>}
@@ -559,7 +559,7 @@ export default function HistoryPage() {
                                         const hd = entry.habitData?.[h.id] || {}
                                         return (
                                           <div key={h.id}>
-                                            <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                                            <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                                               <IconComp size={14} /> {h.text}
                                               <span className="font-bold ml-0.5">{hd.qty} {h.unit}</span>
                                             </span>
@@ -579,7 +579,7 @@ export default function HistoryPage() {
                                       e.stopPropagation()
                                       setEditingEntryId(entry.id)
                                     }}
-                                    className="flex items-center gap-1.5 text-xs font-semibold text-sage-700 dark:text-sage-300 bg-sage-50 dark:bg-sage-900/30 hover:bg-sage-100 dark:hover:bg-sage-900/50 border border-sage-200 dark:border-sage-800 px-3 py-1.5 rounded-xl transition-all"
+                                    className="flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/30 hover:bg-brand-100 dark:hover:bg-brand-900/50 border border-brand-200 dark:border-brand-800 px-3 py-1.5 rounded-xl transition-all"
                                   >
                                     <Edit2 size={13} /> Modificar anotación
                                   </button>
@@ -615,10 +615,10 @@ export default function HistoryPage() {
 
                 if (isEditing) {
                   return (
-                    <div key={entry.id} className="card border-2 border-sage-300 dark:border-sage-700 bg-white dark:bg-gray-800 shadow-md animate-fade-in">
+                    <div key={entry.id} className="card border-2 border-brand-300 dark:border-brand-700 bg-white dark:bg-gray-800 shadow-md animate-fade-in">
                       <div className="flex items-center justify-between mb-3 pb-2 border-b border-gray-100 dark:border-gray-700">
                         <div className="flex items-center gap-2">
-                          <span className="p-1.5 rounded-lg bg-sage-50 dark:bg-sage-900/30 text-sage-600 dark:text-sage-400">
+                          <span className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400">
                             <Edit2 size={16} />
                           </span>
                           <div>
@@ -682,7 +682,7 @@ export default function HistoryPage() {
                             <button
                               type="button"
                               onClick={(e) => { e.stopPropagation(); setEditingEntryId(entry.id) }}
-                              className="p-1.5 text-gray-400 hover:text-sage-600 hover:bg-sage-50 dark:hover:bg-sage-900/20 rounded-lg transition-colors"
+                              className="p-1.5 text-gray-400 hover:text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-lg transition-colors"
                               title="Modificar anotación"
                             >
                               <Edit2 size={15} />
@@ -731,7 +731,7 @@ export default function HistoryPage() {
                                 const note = entry.habitData?.[h.id]?.note
                                 return (
                                   <div key={h.id}>
-                                    <span className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                                    <span className="flex items-center gap-1 text-xs px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                                       <IconComp size={14} /> {h.text}
                                     </span>
                                     {note && <p className="text-[11px] text-gray-400 mt-0.5 pl-1 italic">{note}</p>}
@@ -743,10 +743,10 @@ export default function HistoryPage() {
                                 const hd = entry.habitData?.[h.id] || {}
                                 return (
                                   <div key={h.id}>
-                                    <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                                    <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                                       <IconComp size={14} /> {h.text}
                                       {hd.qty !== undefined && hd.qty !== '' && (
-                                        <span className="font-bold text-sage-600 dark:text-sage-400 ml-0.5">{hd.qty} {h.unit}</span>
+                                        <span className="font-bold text-brand-600 dark:text-brand-400 ml-0.5">{hd.qty} {h.unit}</span>
                                       )}
                                     </span>
                                     {hd.note && <p className="text-[11px] text-gray-400 mt-0.5 pl-1 italic">{hd.note}</p>}
@@ -758,7 +758,7 @@ export default function HistoryPage() {
                                 const hd = entry.habitData?.[h.id] || {}
                                 return (
                                   <div key={h.id}>
-                                    <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 text-sage-700 dark:text-sage-300 font-medium">
+                                    <span className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 text-brand-700 dark:text-brand-300 font-medium">
                                       <IconComp size={14} /> {h.text}
                                       <span className="font-bold ml-0.5">{hd.qty} {h.unit}</span>
                                     </span>
@@ -775,7 +775,7 @@ export default function HistoryPage() {
                           <button
                             type="button"
                             onClick={(e) => { e.stopPropagation(); setEditingEntryId(entry.id) }}
-                            className="flex items-center gap-1.5 text-xs font-semibold text-sage-700 dark:text-sage-300 bg-sage-50 dark:bg-sage-900/30 hover:bg-sage-100 dark:hover:bg-sage-900/50 border border-sage-200 dark:border-sage-800 px-3 py-1.5 rounded-xl transition-all"
+                            className="flex items-center gap-1.5 text-xs font-semibold text-brand-700 dark:text-brand-300 bg-brand-50 dark:bg-brand-900/30 hover:bg-brand-100 dark:hover:bg-brand-900/50 border border-brand-200 dark:border-brand-800 px-3 py-1.5 rounded-xl transition-all"
                           >
                             <Edit2 size={13} /> Modificar anotación
                           </button>

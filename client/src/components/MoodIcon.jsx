@@ -63,8 +63,8 @@ export function MoodBadge({ score, size = 'md' }) {
 
   return (
     <span
-      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold text-xs"
-      style={{ backgroundColor: config.bg, color: config.color }}
+      className="bg-[var(--mood-bg)] dark:bg-[var(--mood-bg-dark)] inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold text-xs"
+      style={{ '--mood-bg': config.bg, '--mood-bg-dark': config.darkBg, color: config.color }}
     >
       <IconComponent size={iconSize} strokeWidth={2.5} />
       <span>{score}/10</span>

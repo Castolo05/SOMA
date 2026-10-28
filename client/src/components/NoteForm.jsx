@@ -48,8 +48,8 @@ export default function NoteForm({
         <div className="flex items-center justify-between mb-3">
           <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Estado de ánimo</span>
           <div
-            className="flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-sm"
-            style={{ backgroundColor: moodConfig.bg, color: moodConfig.color }}
+            className="bg-[var(--mood-bg)] dark:bg-[var(--mood-bg-dark)] flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-sm"
+            style={{ '--mood-bg': moodConfig.bg, '--mood-bg-dark': moodConfig.darkBg, color: moodConfig.color }}
           >
             <MoodIcon score={mood} size={15} />
             <span>{mood}/10</span>
@@ -99,7 +99,7 @@ export default function NoteForm({
             onClick={() => setPreferInSession(!preferInSession)}
             className={`text-sm px-4 py-2.5 rounded-xl font-semibold transition-all border ${
               preferInSession
-                ? 'bg-sage-100 dark:bg-sage-900/30 text-sage-700 dark:text-sage-300 border-sage-200 dark:border-sage-800'
+                ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-700 dark:text-brand-300 border-brand-200 dark:border-brand-800'
                 : 'btn-ghost'
             }`}
           >
@@ -129,18 +129,18 @@ export default function NoteForm({
                       onClick={() => toggleHabit(habit.id)}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl border-2 transition-all text-left ${
                         done
-                          ? 'border-sage-400 bg-sage-50 dark:bg-sage-900/20'
-                          : 'border-gray-200 dark:border-gray-600 hover:border-sage-300'
+                          ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/20'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-brand-300'
                       }`}
                     >
-                      <span className={`p-1.5 rounded-lg ${done ? 'bg-white dark:bg-sage-800 text-sage-500 shadow-sm' : 'text-gray-400'}`}>
+                      <span className={`p-1.5 rounded-lg ${done ? 'bg-white dark:bg-brand-800 text-brand-500 shadow-sm' : 'text-gray-400'}`}>
                         <IconComp size={18} />
                       </span>
-                      <span className={`flex-1 text-sm font-semibold ${done ? 'text-sage-700 dark:text-sage-300' : 'text-gray-600 dark:text-gray-300'}`}>
+                      <span className={`flex-1 text-sm font-semibold ${done ? 'text-brand-700 dark:text-brand-300' : 'text-gray-600 dark:text-gray-300'}`}>
                         {habit.text}
                       </span>
                       <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                        done ? 'bg-sage-400 border-sage-400' : 'border-gray-300 dark:border-gray-500'
+                        done ? 'bg-brand-400 border-brand-400' : 'border-gray-300 dark:border-gray-500'
                       }`}>
                         {done && <span className="text-white text-xs font-bold">✓</span>}
                       </span>
@@ -163,27 +163,27 @@ export default function NoteForm({
                 const done = hData.done === true
                 return (
                   <div key={habit.id} className={`rounded-2xl border-2 transition-all overflow-hidden ${
-                    done ? 'border-sage-400 bg-sage-50 dark:bg-sage-900/20' : 'border-gray-200 dark:border-gray-600'
+                    done ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/20' : 'border-gray-200 dark:border-gray-600'
                   }`}>
                     <button
                       type="button"
                       onClick={() => setHabitField(habit.id, 'done', !done)}
                       className="w-full flex items-center gap-3 px-4 py-3 text-left"
                     >
-                      <span className={`p-1.5 rounded-lg ${done ? 'bg-white dark:bg-sage-800 text-sage-500 shadow-sm' : 'text-gray-400'}`}>
+                      <span className={`p-1.5 rounded-lg ${done ? 'bg-white dark:bg-brand-800 text-brand-500 shadow-sm' : 'text-gray-400'}`}>
                         <IconComp size={18} />
                       </span>
-                      <span className={`flex-1 text-sm font-semibold ${done ? 'text-sage-700 dark:text-sage-300' : 'text-gray-600 dark:text-gray-300'}`}>
+                      <span className={`flex-1 text-sm font-semibold ${done ? 'text-brand-700 dark:text-brand-300' : 'text-gray-600 dark:text-gray-300'}`}>
                         {habit.text}
                       </span>
                       <span className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all ${
-                        done ? 'bg-sage-400 border-sage-400' : 'border-gray-300 dark:border-gray-500'
+                        done ? 'bg-brand-400 border-brand-400' : 'border-gray-300 dark:border-gray-500'
                       }`}>
                         {done && <span className="text-white text-xs font-bold">✓</span>}
                       </span>
                     </button>
                     {done && (
-                      <div className="px-4 pb-3 space-y-2 border-t border-sage-200 dark:border-sage-800/50 pt-2">
+                      <div className="px-4 pb-3 space-y-2 border-t border-brand-200 dark:border-brand-800/50 pt-2">
                         <div className="flex flex-wrap items-center gap-2">
                           <input
                             type="number"
@@ -194,7 +194,7 @@ export default function NoteForm({
                             value={hData.qty ?? ''}
                             onChange={(e) => setHabitField(habit.id, 'qty', e.target.value === '' ? '' : parseFloat(e.target.value))}
                           />
-                          <span className="text-sm font-semibold text-sage-600 dark:text-sage-400">{habit.unit || 'unidades'}</span>
+                          <span className="text-sm font-semibold text-brand-600 dark:text-brand-400">{habit.unit || 'unidades'}</span>
                         </div>
                         {habit.hasNote && (
                           <input
@@ -216,13 +216,13 @@ export default function NoteForm({
                 const hasValue = hData.qty !== undefined && hData.qty !== ''
                 return (
                   <div key={habit.id} className={`rounded-2xl border-2 transition-all overflow-hidden ${
-                    hasValue ? 'border-sage-400 bg-sage-50 dark:bg-sage-900/20' : 'border-gray-200 dark:border-gray-600'
+                    hasValue ? 'border-brand-400 bg-brand-50 dark:bg-brand-900/20' : 'border-gray-200 dark:border-gray-600'
                   }`}>
                     <div className="flex items-center gap-3 px-4 py-3">
-                      <span className={`p-1.5 rounded-lg ${hasValue ? 'bg-white dark:bg-sage-800 text-sage-500 shadow-sm' : 'text-gray-400'}`}>
+                      <span className={`p-1.5 rounded-lg ${hasValue ? 'bg-white dark:bg-brand-800 text-brand-500 shadow-sm' : 'text-gray-400'}`}>
                         <IconComp size={18} />
                       </span>
-                      <span className={`flex-1 text-sm font-semibold ${hasValue ? 'text-sage-700 dark:text-sage-300' : 'text-gray-600 dark:text-gray-300'}`}>
+                      <span className={`flex-1 text-sm font-semibold ${hasValue ? 'text-brand-700 dark:text-brand-300' : 'text-gray-600 dark:text-gray-300'}`}>
                         {habit.text}
                       </span>
                       <div className="flex items-center gap-2 shrink-0">
@@ -230,7 +230,7 @@ export default function NoteForm({
                           type="number"
                           min="0"
                           step="0.1"
-                          className="w-20 text-center rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-1.5 px-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-sage-400"
+                          className="w-20 text-center rounded-xl border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 py-1.5 px-2 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-brand-400"
                           placeholder="—"
                           value={hData.qty ?? ''}
                           onChange={(e) => setHabitField(habit.id, 'qty', e.target.value === '' ? '' : parseFloat(e.target.value))}

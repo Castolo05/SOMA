@@ -4,9 +4,9 @@ import { ArrowLeft, Wind } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
 const PHASES = [
-  { label: 'Inhala', duration: 4, color: '#059669' },
-  { label: 'Sostén', duration: 4, color: '#267783' },
-  { label: 'Exhala', duration: 4, color: '#0d9488' },
+  { label: 'Inhala', duration: 4, color: '#bf5248' },
+  { label: 'Sostén', duration: 4, color: '#9058a3' },
+  { label: 'Exhala', duration: 4, color: '#ad682b' },
 ]
 
 const INITIAL_BREATHING = { phase: 0, secondsLeft: PHASES[0].duration, cycles: 0 }
@@ -64,7 +64,7 @@ export default function BreathingPage() {
             <circle
               cx="80" cy="80" r="70"
               fill="none"
-              stroke={running ? currentPhase.color : 'var(--theme-mist, #d1d5db)'}
+              stroke={running ? currentPhase.color : 'var(--theme-muted, #725f60)'}
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}
@@ -78,12 +78,12 @@ export default function BreathingPage() {
             {running ? (
               <>
                 <p
-                  className="text-2xl font-extrabold transition-all"
+                  className="text-2xl font-bold transition-all"
                   style={{ color: currentPhase.color }}
                 >
                   {currentPhase.label}
                 </p>
-                <p className="text-4xl font-black text-gray-700 dark:text-gray-200 tabular-nums mt-1">
+                <p className="text-4xl font-bold text-gray-700 dark:text-gray-200 tabular-nums mt-1">
                   {secondsLeft}
                 </p>
               </>

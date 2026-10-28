@@ -1,0 +1,439 @@
+/*
+ * Sistema de temas de SOMA.
+ *
+ * 1. Tokens: cada tema define sus colores una sola vez como variables CSS.
+ *    Las escalas brand-* (coral, paciente) y pro-* (terracota, profesional)
+ *    se exponen a Tailwind en tailwind.config.js como canales RGB, así que
+ *    clases como bg-brand-50/60 cambian solas con el tema.
+ * 2. Componentes (.card, .input, .btn-*): definidos una vez con tokens.
+ * 3. Neutros y estados: el código usa grises y colores semánticos de Tailwind
+ *    (gray, emerald, red...). Acá se remapean a la paleta de cada tema.
+ */
+
+/* ── 1. Tokens ─────────────────────────────────────────────── */
+
+:root,
+html[data-theme='light'] {
+  color-scheme: light;
+  /* Coral suave, rosa empolvado, marfil, topo y ciruela */
+  --theme-canvas: #f2c6b6;
+  --theme-header: #f9e2da;
+  --theme-nav: #f9e2da;
+  --theme-surface: #f9e2da;
+  --theme-raised: #fff6f0;
+  --theme-inset: #f6d4c7;
+  --theme-border: #dfc7c0;
+  --theme-border-strong: #c8b3b0;
+  --theme-text: #5a4b4b;
+  --theme-muted: #725f60;
+  --theme-primary: #5a4b4b;
+  --theme-primary-hover: #463a3a;
+  --theme-on-primary: #fff6f0;
+  --theme-accent: #9a4535;
+  --theme-accent-hover: #74342a;
+  --theme-focus: rgba(90, 75, 75, 0.55);
+  --theme-shadow: rgba(90, 75, 75, 0.14);
+  --theme-chart: #5a4b4b;
+  --theme-chart-grid: rgba(90, 75, 75, 0.12);
+
+  --ok-bg: #dce9d8;
+  --ok-solid: #4f8a5c;
+  --ok-text: #3f6e4a;
+  --ok-border: #b7d1b3;
+  --danger-bg: #f4d3c9;
+  --danger-text: #a03f36;
+  --danger-border: #dda59b;
+  --warn-bg: #f5e2c6;
+  --warn-text: #8f5a22;
+  --warn-border: #dfbd8e;
+
+  /* Variables que leen algunos componentes (barras, pistas de sliders) */
+  --surface: var(--theme-surface);
+  --surface-muted: var(--theme-canvas);
+  --border: var(--theme-border-strong);
+  --text-muted: var(--theme-muted);
+  --track-bg: var(--theme-border-strong);
+
+  /* brand: coral/terracota (canales RGB para Tailwind) */
+  --brand-50: 251 235 228;
+  --brand-100: 246 217 205;
+  --brand-200: 235 191 174;
+  --brand-300: 223 159 136;
+  --brand-400: 208 124 96;
+  --brand-500: 180 83 62;
+  --brand-600: 154 69 53;
+  --brand-700: 116 52 42;
+  --brand-800: 92 42 35;
+  --brand-900: 70 33 28;
+  --brand-950: 46 22 19;
+
+  /* pro: terracota tostado para el área profesional */
+  --pro-50: 247 233 225;
+  --pro-100: 240 216 203;
+  --pro-200: 226 187 167;
+  --pro-300: 205 151 125;
+  --pro-400: 176 112 90;
+  --pro-500: 163 101 79;
+  --pro-600: 143 86 68;
+  --pro-700: 116 69 55;
+  --pro-800: 90 54 44;
+  --pro-900: 67 40 33;
+  --pro-950: 45 27 22;
+
+  background: var(--theme-canvas);
+}
+
+html.dark,
+html[data-theme='dark'] {
+  color-scheme: dark;
+  /* Versión nocturna de la misma paleta: ciruela profundo con acentos coral */
+  --theme-canvas: #1c1719;
+  --theme-header: #211b1d;
+  --theme-nav: #181315;
+  --theme-surface: #262022;
+  --theme-raised: #2f282a;
+  --theme-inset: #221c1e;
+  --theme-border: #43393b;
+  --theme-border-strong: #574a4c;
+  --theme-text: #f3e9e4;
+  --theme-muted: #b3a3a0;
+  --theme-primary: #a0563f;
+  --theme-primary-hover: #b0644c;
+  --theme-on-primary: #fff6f0;
+  --theme-accent: #eba68e;
+  --theme-accent-hover: #f3bba7;
+  --theme-focus: rgba(235, 166, 142, 0.6);
+  --theme-shadow: rgba(0, 0, 0, 0.4);
+  --theme-chart: #f3e9e4;
+  --theme-chart-grid: rgba(243, 233, 228, 0.12);
+
+  --ok-bg: #1f2b23;
+  --ok-solid: #5f9a6c;
+  --ok-text: #9cc6a3;
+  --ok-border: #3a5541;
+  --danger-bg: #3a2528;
+  --danger-text: #e3a4a0;
+  --danger-border: #6e4549;
+  --warn-bg: #352a1f;
+  --warn-text: #dcb684;
+  --warn-border: #6a5540;
+
+  --surface: var(--theme-raised);
+  --surface-muted: var(--theme-surface);
+  --border: var(--theme-border);
+  --text-muted: var(--theme-muted);
+  --track-bg: var(--theme-border);
+
+  --brand-50: 51 39 42;
+  --brand-100: 59 45 47;
+  --brand-200: 90 67 68;
+  --brand-300: 138 94 85;
+  --brand-400: 176 100 76;
+  --brand-500: 160 86 63;
+  --brand-600: 144 76 56;
+  --brand-700: 134 70 52;
+  --brand-800: 59 45 47;
+  --brand-900: 44 34 36;
+  --brand-950: 36 29 31;
+
+  --pro-50: 44 36 38;
+  --pro-100: 52 42 44;
+  --pro-200: 74 61 63;
+  --pro-300: 217 179 163;
+  --pro-400: 220 174 154;
+  --pro-500: 168 112 90;
+  --pro-600: 143 86 68;
+  --pro-700: 116 69 55;
+  --pro-800: 59 47 48;
+  --pro-900: 42 34 36;
+  --pro-950: 34 28 30;
+
+  background: var(--theme-canvas);
+}
+
+body {
+  background-color: var(--theme-canvas);
+  color: var(--theme-text);
+}
+
+/* ── 2. Componentes ────────────────────────────────────────── */
+/* Prefijo :root para que la clase de componente gane sobre utilidades sueltas
+   (mismo comportamiento que tenían los temas anteriores). */
+
+:root .btn-patient {
+  @apply font-bold py-3.5 px-6 rounded-2xl transition-all duration-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--theme-primary);
+  color: var(--theme-on-primary);
+  box-shadow: 0 8px 22px var(--theme-shadow);
+}
+
+:root .btn-psych {
+  @apply font-semibold py-2.5 px-5 rounded-xl transition-all duration-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  background-color: var(--theme-primary);
+  color: var(--theme-on-primary);
+  box-shadow: 0 8px 22px var(--theme-shadow);
+}
+
+:root .btn-patient:hover:not(:disabled),
+:root .btn-psych:hover:not(:disabled) {
+  background-color: var(--theme-primary-hover);
+}
+
+:root .btn-ghost {
+  @apply font-medium py-2.5 px-5 rounded-xl transition-all duration-300;
+  border: 1px solid var(--theme-border-strong);
+  color: var(--theme-text);
+}
+
+:root .btn-ghost:hover {
+  background-color: var(--theme-inset);
+}
+
+:root .card,
+:root .card-pastel {
+  @apply rounded-3xl p-5 sm:p-6;
+  background-color: var(--theme-surface);
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 8px 28px var(--theme-shadow);
+}
+
+:root .card-pastel {
+  background-color: var(--theme-inset);
+  box-shadow: none;
+}
+
+:root .card-psych {
+  @apply rounded-2xl p-4 sm:p-5 transition-colors duration-300;
+  background-color: var(--theme-surface);
+  border: 1px solid var(--theme-border);
+  box-shadow: 0 6px 22px var(--theme-shadow);
+}
+
+html.dark .card,
+html.dark .card-psych {
+  background-color: var(--theme-raised);
+}
+
+:root .input,
+:root .input-psych {
+  @apply w-full px-4 py-3.5 rounded-2xl focus:outline-none transition-all duration-300 text-base shadow-sm;
+  border: 1px solid var(--theme-border);
+  background-color: var(--theme-raised);
+  color: var(--theme-text);
+}
+
+:root .input-psych {
+  @apply px-4 py-2.5 rounded-lg text-sm shadow-none;
+}
+
+html.dark .input,
+html.dark .input-psych {
+  background-color: var(--theme-surface);
+}
+
+:root .input::placeholder,
+:root .input-psych::placeholder {
+  color: var(--theme-muted);
+  opacity: 0.8;
+}
+
+:root .input:focus,
+:root .input-psych:focus {
+  border-color: var(--theme-border-strong);
+  box-shadow: 0 0 0 2px var(--theme-focus);
+}
+
+:root .tag {
+  @apply text-xs font-semibold px-2.5 py-1 rounded-full;
+  background-color: var(--theme-inset);
+  color: var(--theme-text);
+  border: 1px solid var(--theme-border);
+}
+
+:root .label {
+  @apply block text-sm font-semibold mb-1.5;
+  color: var(--theme-text);
+}
+
+html.dark .label {
+  color: var(--theme-muted);
+}
+
+:root .glass {
+  @apply backdrop-blur-md;
+  background-color: color-mix(in srgb, var(--theme-header) 92%, transparent);
+  border-bottom: 1px solid var(--theme-border);
+}
+
+:root .mood-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--theme-raised);
+  border: 3px solid rgb(var(--brand-400));
+  box-shadow: 0 2px 8px var(--theme-shadow);
+  cursor: grab;
+}
+
+:root .mood-slider::-moz-range-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--theme-raised);
+  border: 3px solid rgb(var(--brand-400));
+  box-shadow: 0 2px 8px var(--theme-shadow);
+  cursor: grab;
+}
+
+:root .mood-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+:root .react-resizable-handle::after {
+  background-color: var(--theme-raised);
+  border-color: var(--theme-border-strong);
+}
+
+:root .psych-panel .react-resizable-handle::after {
+  background-color: var(--theme-inset);
+  border-color: rgb(var(--pro-400));
+}
+
+:root .react-resizable-handle:hover::after,
+:root .react-resizable-handle:active::after {
+  background-color: rgb(var(--brand-400));
+  border-color: rgb(var(--brand-500));
+}
+
+:root .react-grid-item.react-grid-placeholder {
+  background: rgb(var(--brand-400)) !important;
+}
+
+:root :focus-visible {
+  outline: 3px solid var(--theme-focus);
+  outline-offset: 2px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--theme-border-strong);
+}
+
+/* ── 3. Neutros y estados ──────────────────────────────────── */
+
+/* Superficies */
+:root .bg-white,
+:root .bg-white\/90,
+:root .bg-white\/95,
+:root .bg-white\/60,
+:root .bg-white\/70,
+:root .bg-white\/80 { background-color: var(--theme-raised) !important; }
+:root .bg-gray-50,
+:root .bg-gray-100 { background-color: var(--theme-inset) !important; }
+:root .bg-gray-200 { background-color: var(--theme-border) !important; }
+:root .bg-gray-300 { background-color: var(--theme-border-strong) !important; }
+
+/* Texto */
+:root .text-gray-600,
+:root .text-gray-700,
+:root .text-gray-800,
+:root .text-gray-900 { color: var(--theme-text) !important; }
+:root .text-gray-300,
+:root .text-gray-400,
+:root .text-gray-500 { color: var(--theme-muted) !important; }
+:root .text-white { color: #fff6f0 !important; }
+
+/* Bordes */
+:root .border-gray-100,
+:root .border-gray-200,
+:root .border-gray-300,
+:root .border-\[\#c8b3b0\] { border-color: var(--theme-border) !important; }
+
+/* Estados semánticos: cada color comunica una acción distinta */
+:root .bg-emerald-50,
+:root .bg-emerald-100 { background-color: var(--ok-bg) !important; }
+:root .bg-emerald-400,
+:root .bg-emerald-500,
+:root .bg-emerald-600 { background-color: var(--ok-solid) !important; }
+:root .text-emerald-300,
+:root .text-emerald-400,
+:root .text-emerald-500,
+:root .text-emerald-600,
+:root .text-emerald-700 { color: var(--ok-text) !important; }
+:root .border-emerald-200,
+:root .border-emerald-800 { border-color: var(--ok-border) !important; }
+
+:root .bg-red-50,
+:root .bg-red-100 { background-color: var(--danger-bg) !important; }
+:root .text-red-300,
+:root .text-red-400,
+:root .text-red-500,
+:root .text-red-600,
+:root .text-red-700 { color: var(--danger-text) !important; }
+:root .border-red-100,
+:root .border-red-200,
+:root .border-red-800 { border-color: var(--danger-border) !important; }
+
+:root .bg-orange-100,
+:root .bg-yellow-100 { background-color: var(--warn-bg) !important; }
+:root .text-orange-600,
+:root .text-yellow-600 { color: var(--warn-text) !important; }
+:root .border-orange-200,
+:root .border-yellow-200 { border-color: var(--warn-border) !important; }
+
+:root .bg-sky-50,
+:root .bg-sky-100 { background-color: var(--theme-inset) !important; }
+:root .text-sky-500,
+:root .text-sky-600 { color: rgb(var(--pro-600)) !important; }
+:root .border-sky-200 { border-color: var(--theme-border) !important; }
+
+/* Ajustes propios del tema oscuro */
+html.dark .bg-\[\#f9e2da\] { background-color: var(--theme-surface) !important; }
+html.dark .bg-\[\#f2c6b6\] { background-color: var(--theme-canvas) !important; }
+html.dark .dark-surface-header { background-color: var(--theme-header) !important; }
+html.dark .dark-surface-nav { background-color: var(--theme-nav) !important; }
+/* Los selectores por atributo cubren también las variantes con opacidad (/70, /80…) */
+html.dark [class*='dark:bg-gray-900'],
+html.dark [class*='dark:bg-gray-950'],
+html.dark [class*='dark:bg-slate-900'],
+html.dark [class*='dark:bg-slate-950'] { background-color: var(--theme-canvas) !important; }
+html.dark .bg-white,
+html.dark .bg-white\/60,
+html.dark .bg-white\/70,
+html.dark .bg-white\/80,
+html.dark .bg-white\/90,
+html.dark .bg-white\/95,
+html.dark [class*='dark:bg-gray-800'],
+html.dark [class*='dark:bg-slate-800'] { background-color: var(--theme-surface) !important; }
+html.dark [class*='dark:bg-gray-700'],
+html.dark [class*='dark:bg-slate-700'],
+html.dark .dark\:hover\:bg-gray-800:hover,
+html.dark .dark\:hover\:bg-gray-700:hover,
+html.dark .dark\:hover\:bg-slate-800:hover { background-color: var(--theme-raised) !important; }
+html.dark .dark\:bg-gray-600 { background-color: var(--theme-border) !important; }
+html.dark .dark\:hover\:bg-gray-600:hover { background-color: var(--theme-border-strong) !important; }
+html.dark [class*='dark:border-gray-'],
+html.dark [class*='dark:border-slate-'] { border-color: var(--theme-border) !important; }
+html.dark .dark\:text-white,
+html.dark .dark\:text-gray-100,
+html.dark .dark\:text-gray-200,
+html.dark .dark\:text-slate-200 { color: var(--theme-text) !important; }
+html.dark .dark\:text-gray-300,
+html.dark .dark\:text-gray-400,
+html.dark .dark\:text-gray-500 { color: var(--theme-muted) !important; }
+html.dark .text-white { color: #fff6f0 !important; }
+
+/* En oscuro, los tonos de acento como texto se aclaran para leerse sobre ciruela */
+html.dark [class*='text-brand-'],
+html.dark [class*='text-pro-'] { color: var(--theme-accent) !important; }
+html.dark .bg-brand-400,
+html.dark .bg-brand-500,
+html.dark .bg-brand-600,
+html.dark .bg-pro-500,
+html.dark .bg-pro-600 { background-color: var(--theme-primary) !important; }
+
+/* Gráficos */
+html.dark .recharts-cartesian-grid line { stroke: var(--theme-chart-grid) !important; }
+html.dark .recharts-text { fill: var(--theme-muted) !important; }
+html.dark .recharts-line-curve { stroke: var(--theme-chart) !important; }

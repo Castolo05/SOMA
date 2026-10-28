@@ -181,7 +181,7 @@ export default function PatientProfile() {
   }
 
   const IconSelector = ({ value, onChange }) => (
-    <div className="flex items-center gap-1 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-sage-200">
+    <div className="flex items-center gap-1 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-brand-200">
       {Object.keys(HABIT_ICONS).map(iconName => {
         const Icon = HABIT_ICONS[iconName]
         return (
@@ -190,8 +190,8 @@ export default function PatientProfile() {
             onClick={() => onChange(iconName)}
             className={`p-2 rounded-xl shrink-0 transition-colors ${
               value === iconName
-                ? 'bg-sage-400 text-white shadow-sm'
-                : 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-sage-50 dark:hover:bg-gray-600'
+                ? 'bg-brand-400 text-white shadow-sm'
+                : 'bg-white dark:bg-gray-700 text-gray-500 dark:text-gray-300 hover:bg-brand-50 dark:hover:bg-gray-600'
             }`}
           >
             <Icon size={18} />
@@ -218,8 +218,8 @@ export default function PatientProfile() {
             onClick={() => onChange(t.value)}
             className={`px-3 py-1.5 rounded-xl text-xs font-semibold border-2 transition-all ${
               value === t.value
-                ? 'border-sage-400 bg-sage-400 text-white'
-                : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-sage-300'
+                ? 'border-brand-400 bg-brand-400 text-white'
+                : 'border-gray-200 dark:border-gray-600 text-gray-500 dark:text-gray-400 hover:border-brand-300'
             }`}
           >
             {t.label}
@@ -245,15 +245,15 @@ export default function PatientProfile() {
           {/* Info del usuario */}
           <div 
             onClick={openProfileEditor}
-            className="card flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-sage-300 dark:hover:border-sage-700 transition-all group"
+            className="card flex items-center gap-4 cursor-pointer hover:shadow-md hover:border-brand-300 dark:hover:border-brand-700 transition-all group"
           >
-            <div className="w-16 h-16 bg-sage-100 dark:bg-sage-900/30 rounded-full flex items-center justify-center overflow-hidden border border-sage-200 dark:border-sage-800">
-              <AvatarDisplay avatar={user?.avatar} size={32} className="text-sage-500" />
+            <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center overflow-hidden border border-brand-200 dark:border-brand-800">
+              <AvatarDisplay avatar={user?.avatar} size={32} className="text-brand-500" />
             </div>
             <div className="flex-1">
-              <div className="font-bold text-gray-800 dark:text-white text-lg group-hover:text-sage-600 transition-colors">{user?.name}</div>
+              <div className="font-bold text-gray-800 dark:text-white text-lg group-hover:text-brand-600 transition-colors">{user?.name}</div>
               <div className="text-sm text-gray-400">{user?.email}</div>
-              <div className="text-xs text-sage-500 font-semibold mt-0.5">Toca para editar perfil</div>
+              <div className="text-xs text-brand-500 font-semibold mt-0.5">Toca para editar perfil</div>
             </div>
           </div>
 
@@ -265,10 +265,10 @@ export default function PatientProfile() {
             
             <div className="space-y-3 mb-4">
               {psychologists.map(p => (
-                <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-sage-50 dark:bg-sage-900/20 border border-sage-200 dark:border-sage-800 rounded-2xl px-4 py-3">
+                <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 shrink-0 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-sage-200 dark:border-sage-700">
-                      <AvatarDisplay avatar={p.avatar_url} size={24} className="text-sage-500" />
+                    <div className="w-10 h-10 shrink-0 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-brand-200 dark:border-brand-700">
+                      <AvatarDisplay avatar={p.avatar_url} size={24} className="text-brand-500" />
                     </div>
                     <div>
                       <p className="font-bold text-gray-900 dark:text-white text-sm">{p.name}</p>
@@ -315,7 +315,7 @@ export default function PatientProfile() {
           <h2 className="font-semibold text-gray-700 dark:text-gray-200">Mis hábitos diarios</h2>
           <button
             onClick={() => setAdding(!adding)}
-            className="flex items-center gap-1.5 text-sm font-semibold text-sage-600 dark:text-sage-400 hover:underline"
+            className="flex items-center gap-1.5 text-sm font-semibold text-brand-600 dark:text-brand-400 hover:underline"
           >
             <Plus size={15} /> Añadir
           </button>
@@ -347,7 +347,7 @@ export default function PatientProfile() {
               <div
                 onClick={() => setNewHasNote(!newHasNote)}
                 className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${
-                  newHasNote ? 'bg-sage-400' : 'bg-gray-300 dark:bg-gray-600'
+                  newHasNote ? 'bg-brand-400' : 'bg-gray-300 dark:bg-gray-600'
                 }`}
               >
                 <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${
@@ -380,7 +380,7 @@ export default function PatientProfile() {
             const typeLabel = type === 'toggle+qty' ? `Sí/No+${habit.unit||'cant.'}` : type === 'qty' ? `${habit.unit||'cant.'}` : null
 
             return (
-              <div key={habit.id} className="flex flex-col gap-2 bg-gray-50 dark:bg-gray-800/70 rounded-2xl px-4 py-3 border border-gray-200 dark:border-gray-600 hover:border-sage-300 dark:hover:border-gray-400 transition-colors shadow-sm">
+              <div key={habit.id} className="flex flex-col gap-2 bg-gray-50 dark:bg-gray-800/70 rounded-2xl px-4 py-3 border border-gray-200 dark:border-gray-600 hover:border-brand-300 dark:hover:border-gray-400 transition-colors shadow-sm">
                 {editingId === habit.id ? (
                   <>
                     <IconSelector value={editIcon} onChange={setEditIcon} />
@@ -403,7 +403,7 @@ export default function PatientProfile() {
                       <div
                         onClick={() => setEditHasNote(!editHasNote)}
                         className={`w-10 h-5 rounded-full transition-colors relative shrink-0 ${
-                          editHasNote ? 'bg-sage-400' : 'bg-gray-300 dark:bg-gray-600'
+                          editHasNote ? 'bg-brand-400' : 'bg-gray-300 dark:bg-gray-600'
                         }`}
                       >
                         <div className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${
@@ -413,7 +413,7 @@ export default function PatientProfile() {
                       <span className="text-xs font-medium text-gray-600 dark:text-gray-300">Permitir aclaración de texto</span>
                     </label>
                     <div className="flex items-center gap-2">
-                      <button onClick={() => handleSaveEditHabit(habit.id)} className="p-2 text-sage-500 hover:bg-sage-50 dark:hover:bg-sage-900/20 rounded-xl">
+                      <button onClick={() => handleSaveEditHabit(habit.id)} className="p-2 text-brand-500 hover:bg-brand-50 dark:hover:bg-brand-900/20 rounded-xl">
                         <Check size={18} />
                       </button>
                       <button onClick={() => setEditingId(null)} className="p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl">
@@ -423,13 +423,13 @@ export default function PatientProfile() {
                   </>
                 ) : (
                   <div className="flex items-center gap-3">
-                    <span className="text-sage-500 bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border border-peach-100 dark:border-gray-600">
+                    <span className="text-brand-500 bg-white dark:bg-gray-800 p-2 rounded-xl shadow-sm border border-brand-100 dark:border-gray-600">
                       <IconComponent size={20} />
                     </span>
                     <div className="flex-1 min-w-0">
                       <span className="block text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">{habit.text}</span>
                       {typeLabel && (
-                        <span className="text-[10px] font-bold text-indigo-500 dark:text-indigo-400">{typeLabel}</span>
+                        <span className="text-[10px] font-bold text-pro-500 dark:text-pro-400">{typeLabel}</span>
                       )}
                       {habit.hasNote && <span className="ml-1.5 text-[10px] text-gray-400">💬 aclaración</span>}
                     </div>
@@ -442,7 +442,7 @@ export default function PatientProfile() {
                         setEditUnit(habit.unit || '')
                         setEditHasNote(habit.hasNote || false)
                       }}
-                      className="p-1.5 text-gray-400 hover:text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-xl transition-colors"
+                      className="p-1.5 text-gray-400 hover:text-pro-500 hover:bg-pro-50 dark:hover:bg-pro-900/20 rounded-xl transition-colors"
                     >
                       <Pencil size={15} />
                     </button>
@@ -519,12 +519,12 @@ export default function PatientProfile() {
             </h3>
             
             <div className="flex flex-col items-center gap-3 mb-6 p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700">
-              <div className="w-20 h-20 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center border border-indigo-200 dark:border-indigo-800 overflow-hidden">
-                <AvatarDisplay avatar={previewPsych.avatar_url} size={40} className="text-indigo-500" />
+              <div className="w-20 h-20 bg-pro-100 dark:bg-pro-900/30 rounded-full flex items-center justify-center border border-pro-200 dark:border-pro-800 overflow-hidden">
+                <AvatarDisplay avatar={previewPsych.avatar_url} size={40} className="text-pro-500" />
               </div>
               <div className="text-center">
                 <p className="font-bold text-gray-900 dark:text-white text-lg">{previewPsych.name}</p>
-                <p className="text-xs text-indigo-600 dark:text-indigo-400 font-semibold mt-1">Psicólogo/a</p>
+                <p className="text-xs text-pro-600 dark:text-pro-400 font-semibold mt-1">Psicólogo/a</p>
                 <p className="mt-2 flex items-center justify-center gap-1.5 break-all text-sm text-gray-600 dark:text-gray-300">
                   <Mail size={14} className="shrink-0" />
                   {previewPsych.email || 'Correo no disponible'}
@@ -533,8 +533,8 @@ export default function PatientProfile() {
             </div>
 
             {isViewingPsych ? (
-              <div className="bg-sage-50 dark:bg-sage-900/20 p-4 rounded-2xl mb-6 border border-sage-200 dark:border-sage-800">
-                <p className="text-sm text-sage-800 dark:text-sage-300 font-medium text-center">
+              <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-2xl mb-6 border border-brand-200 dark:border-brand-800">
+                <p className="text-sm text-brand-800 dark:text-brand-300 font-medium text-center">
                   Este profesional tiene acceso a tu estado de ánimo, tus hábitos y otra información clínica registrada en SOMA.
                 </p>
               </div>
@@ -554,7 +554,7 @@ export default function PatientProfile() {
 
             <div className="flex gap-3">
               {isViewingPsych ? (
-                <button onClick={() => setShowPreviewModal(false)} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600">
+                <button onClick={() => setShowPreviewModal(false)} className="btn-patient flex-1 bg-pro-600 text-white hover:bg-pro-700 dark:bg-pro-500 dark:hover:bg-pro-600">
                   Cerrar
                 </button>
               ) : (
@@ -562,7 +562,7 @@ export default function PatientProfile() {
                   <button onClick={() => { setShowPreviewModal(false); setLinkError('') }} className="btn-ghost flex-1" disabled={linkLoading}>
                     Cancelar
                   </button>
-                  <button onClick={confirmLink} disabled={linkLoading} className="btn-patient flex-1 bg-indigo-600 text-white hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 disabled:cursor-wait disabled:opacity-60">
+                  <button onClick={confirmLink} disabled={linkLoading} className="btn-patient flex-1 bg-pro-600 text-white hover:bg-pro-700 dark:bg-pro-500 dark:hover:bg-pro-600 disabled:cursor-wait disabled:opacity-60">
                     {linkLoading ? 'Enviando…' : 'Sí, vincularme'}
                   </button>
                 </>

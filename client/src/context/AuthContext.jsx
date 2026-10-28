@@ -326,7 +326,7 @@ function InitialLoadingScreen() {
       </div>
       <p className="mt-5 text-lg font-bold tracking-wide text-gray-800">SOMA</p>
       <div className="mt-4 flex items-center gap-2 text-sm text-gray-500" role="status" aria-live="polite">
-        <span className="h-4 w-4 animate-spin rounded-full border-2 border-sage-200 border-t-sage-500" />
+        <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-200 border-t-brand-500" />
         <span>Preparando tu espacio...</span>
       </div>
     </div>

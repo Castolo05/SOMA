@@ -166,18 +166,18 @@ export default function PatientLayout() {
     <div className="h-[100dvh] flex flex-col bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] transition-colors duration-300 overflow-hidden">
 
       {/* ── Header (all screens) ── */}
-      <header className="dark-surface-header shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-sage-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
+      <header className="dark-surface-header shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-brand-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
         <div className="flex items-center gap-2.5">
           <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
           <div className="flex flex-col leading-none">
             <span className="font-display font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
-            <span className="hidden sm:block text-[10px] font-semibold tracking-[0.18em] text-sage-600 dark:text-sage-400 uppercase">un espacio de bienestar</span>
+            <span className="hidden sm:block text-[10px] font-semibold tracking-[0.18em] text-brand-600 dark:text-brand-400 uppercase">un espacio de bienestar</span>
           </div>
         </div>
         <div className="flex items-center gap-1.5">
           <button
             onClick={() => setDarkMode(d => !d)}
-            className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-sage-50 dark:hover:bg-gray-800 transition-colors"
+            className="min-h-11 min-w-11 flex items-center justify-center rounded-xl text-gray-500 dark:text-gray-400 hover:bg-brand-50 dark:hover:bg-gray-800 transition-colors"
             aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
           >
             {darkMode ? (
@@ -195,7 +195,7 @@ export default function PatientLayout() {
       <div className="hidden md:flex flex-1 overflow-hidden">
 
         {/* Sidebar de navegación */}
-        <aside className="w-56 lg:w-64 shrink-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-r border-sage-100 dark:border-gray-800 flex flex-col py-6 px-3 overflow-y-auto">
+        <aside className="w-56 lg:w-64 shrink-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-sm border-r border-brand-100 dark:border-gray-800 flex flex-col py-6 px-3 overflow-y-auto">
           <nav className="flex-1 space-y-1">
             {navItems.map(({ to, icon, label }) => {
               const active = location.pathname === to
@@ -205,7 +205,7 @@ export default function PatientLayout() {
                   to={to}
                   className={`flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 text-sm font-medium ${
                     active
-                      ? 'text-sage-600 dark:text-sage-400 bg-sage-50 dark:bg-sage-900/25 shadow-sm'
+                      ? 'text-brand-600 dark:text-brand-400 bg-brand-50 dark:bg-brand-900/25 shadow-sm'
                       : 'text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 hover:bg-white/80 dark:hover:bg-gray-800/60'
                   }`}
                   aria-current={active ? 'page' : undefined}
@@ -218,7 +218,7 @@ export default function PatientLayout() {
           </nav>
 
           {/* Info de usuario al fondo del sidebar */}
-          <div className="mt-auto pt-4 border-t border-sage-100 dark:border-gray-800">
+          <div className="mt-auto pt-4 border-t border-brand-100 dark:border-gray-800">
             <div className="px-3 py-2">
               <div className="text-sm font-semibold text-gray-700 dark:text-gray-200 truncate">{user?.name}</div>
               <div className="text-xs text-gray-400 truncate">{user?.email}</div>
@@ -289,7 +289,7 @@ export default function PatientLayout() {
 
       {/* Bottom nav – solo en mobile */}
       <nav
-        className="md:hidden dark-surface-nav shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-sage-100 dark:border-gray-800 shadow-[0_-1px_18px_rgba(25,50,56,0.08)]"
+        className="md:hidden dark-surface-nav shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-brand-100 dark:border-gray-800 shadow-[0_-1px_18px_rgba(25,50,56,0.08)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="max-w-xl mx-auto flex justify-around items-center py-1">
@@ -299,9 +299,9 @@ export default function PatientLayout() {
               <Link
                 key={to}
                 to={to}
-                className={`flex flex-col items-center gap-0.5 min-w-[72px] min-h-11 px-3 py-2 rounded-2xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-sage-400 ${
+                className={`flex flex-col items-center gap-0.5 min-w-[72px] min-h-11 px-3 py-2 rounded-2xl transition-all duration-200 focus-visible:ring-2 focus-visible:ring-brand-400 ${
                   active
-                    ? 'text-sage-500 bg-sage-50 dark:bg-sage-900/20'
+                    ? 'text-brand-500 bg-brand-50 dark:bg-brand-900/20'
                     : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'
                 }`}
                 aria-current={active ? 'page' : undefined}

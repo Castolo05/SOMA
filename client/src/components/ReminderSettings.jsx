@@ -39,7 +39,7 @@ export default function ReminderSettings({ entries = [] }) {
   return (
     <div className="card space-y-3">
       <div className="flex items-start gap-3">
-        <span className={`p-2.5 rounded-2xl ${enabled ? 'bg-sage-100 dark:bg-sage-900/30 text-sage-600 dark:text-sage-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-400'}`}>
+        <span className={`p-2.5 rounded-2xl ${enabled ? 'bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-300' : 'bg-gray-100 dark:bg-gray-700 text-gray-400'}`}>
           {enabled ? <Bell size={20} /> : <BellOff size={20} />}
         </span>
         <div className="flex-1">
@@ -55,7 +55,7 @@ export default function ReminderSettings({ entries = [] }) {
           aria-label={enabled ? 'Desactivar recordatorios diarios' : 'Activar recordatorios diarios'}
           onClick={handleChange}
           disabled={saving}
-          className={`relative inline-flex shrink-0 w-12 h-7 rounded-full transition-colors disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-sage-400 focus-visible:ring-offset-2 ${enabled ? 'bg-sage-400' : 'bg-gray-300 dark:bg-gray-600'}`}
+          className={`relative inline-flex shrink-0 w-12 h-7 rounded-full transition-colors disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-400 focus-visible:ring-offset-2 ${enabled ? 'bg-brand-400' : 'bg-gray-300 dark:bg-gray-600'}`}
         >
           <span className={`absolute left-1 top-1 w-5 h-5 rounded-full bg-white shadow-sm transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0'}`} />
         </button>
