@@ -3,7 +3,12 @@ import { useAuth } from '../../context/AuthContext'
 import {
   CheckCircle2, Edit2, Flame, BarChart2, BookOpen, TrendingUp,
 } from 'lucide-react'
-import api from '../../lib/api'
+import {
+  createJournalEntry,
+  getHabits,
+  getJournal,
+  updateJournalEntry,
+} from '../../lib/api'
 import { MOOD_ICONS, HABIT_ICONS, entryDateKey, isEditable } from '../../lib/constants'
 import { syncDailyReminders } from '../../lib/reminders'
 import MoodIcon from '../../components/MoodIcon'
@@ -11,6 +16,7 @@ import MoodChart from '../../components/MoodChart'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 import NoteForm from '../../components/NoteForm'
+import { useToast } from '../../context/ToastContext'
 
 function todayString() {
   return new Date().toLocaleDateString('es-AR', {
@@ -41,6 +47,7 @@ function StatCard({ label, value, sub, color, icon: Icon }) {
 
 // ── Dashboard principal ──────────────────────────────────────────
 export default function PatientDashboard() {
+  const { showError } = useToast()
   usePageTitle('Mi día')
   const { user } = useAuth()
   const initialCache = getPatientCache()
@@ -59,12 +66,12 @@ export default function PatientDashboard() {
   useEffect(() => {
     setLoading(true)
     const fetches = [
-      api.get('/journal').then(r => {
+      getJournal().then(r => {
         setEntries(r.data.entries)
         updatePatientCache('entries', r.data.entries)
         syncDailyReminders(r.data.entries, { requestPermission: true }).catch(() => {})
       }).catch(() => {}),
-      api.get('/habits').then(r => { setHabits(r.data.habits); updatePatientCache('habits', r.data.habits) }).catch(() => {}),
+      getHabits().then(r => { setHabits(r.data.habits); updatePatientCache('habits', r.data.habits) }).catch(() => {}),
     ]
     Promise.all(fetches).finally(() => setLoading(false))
   }, [])
@@ -104,7 +111,7 @@ export default function PatientDashboard() {
     setSaveError('')
     setSubmitting(true)
     try {
-      const { data } = await api.post('/journal', { moodScore: mood, content, completedHabits, habitData, entryDate })
+      const { data } = await createJournalEntry({ moodScore: mood, content, completedHabits, habitData, entryDate })
       const nextEntries = [data.entry, ...entries]
       setEntries(nextEntries)
       updatePatientCache('entries', nextEntries)
@@ -126,7 +133,7 @@ export default function PatientDashboard() {
   const handleUpdate = async (entry, { mood, content, completedHabits, habitData }) => {
     setSubmitting(true)
     try {
-      const { data } = await api.put(`/journal/${entry.id}`, { moodScore: mood, content, completedHabits, habitData })
+      const { data } = await updateJournalEntry(entry.id, { moodScore: mood, content, completedHabits, habitData })
       const nextEntries = entries.map((item) => item.id === entry.id ? data.entry : item)
       setEntries(nextEntries)
       updatePatientCache('entries', nextEntries)
@@ -135,7 +142,7 @@ export default function PatientDashboard() {
       setEditMode(false)
       setYesterdayMode(false)
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al actualizar.')
+      showError(err.response?.data?.error || 'Error al actualizar.')
     } finally {
       setSubmitting(false)
     }

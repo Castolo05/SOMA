@@ -92,3 +92,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
   },
 })
+
+// Si el enlace de recuperación trae los tokens en el fragmento, supabase-js los
+// procesa al cargar la página y los borra de la URL. Se recuerda el evento para
+// que la app lleve a /reset-password aunque el enlace haya caído en otra ruta.
+let passwordRecoveryPending = false
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') passwordRecoveryPending = true
+})
+
+export function isPasswordRecoveryPending() {
+  return passwordRecoveryPending
+}
+
+export function clearPasswordRecovery() {
+  passwordRecoveryPending = false
+}

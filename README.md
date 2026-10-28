@@ -17,7 +17,6 @@ SOMA es una plataforma de bienestar emocional en producción que permite a las p
 - Revisión del historial, ánimo y hábitos registrados por cada paciente.
 - Gráficos y filtros para explorar la evolución en distintos períodos.
 - Notas privadas de sesión y objetivos terapéuticos.
-- Calendario para organizar citas.
 
 ## Plataforma
 
@@ -30,13 +29,13 @@ La aplicación web utiliza Supabase para autenticación y acceso a los datos. El
 
 ### Recuperación de contraseña
 
-El cliente envía el correo con Supabase Auth y actualiza la contraseña desde el enlace temporal de recuperación. En el proyecto de Supabase, agregá en **Authentication → URL Configuration → Redirect URLs** la URL de producción de la aplicación terminada en `/#/reset-password` (y, para desarrollo local, `http://localhost:5173/#/reset-password`). La aplicación desplegada también debe tener configuradas las variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` para ese mismo proyecto.
+El cliente envía el correo con Supabase Auth y actualiza la contraseña desde el enlace temporal de recuperación. En el proyecto de Supabase, agregá en **Authentication → URL Configuration → Redirect URLs** la URL de producción de la aplicación terminada en `/reset-password` (y, para desarrollo local, `http://localhost:5173/reset-password`). La aplicación desplegada también debe tener configuradas las variables `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` para ese mismo proyecto.
 
 ## Datos y privacidad
 
 Los datos del diario son personales. La lectura por parte de un profesional depende de que exista una vinculación autorizada entre las cuentas. Las notas de sesión del psicólogo son privadas y no se muestran al paciente.
 
-El esquema y las políticas de acceso de Supabase viven en [`supabase/migrations/`](./supabase/migrations/): `20261028000000_baseline.sql` reproduce la base de producción y cada cambio nuevo se agrega como otra migración con fecha. Los scripts anteriores quedan en [`supabase/legacy/`](./supabase/legacy/) solo como historial. Las políticas de la base de datos deben conservar las restricciones de acceso por usuario y por vínculo.
+El esquema y las políticas de acceso de Supabase viven en [`supabase/migrations/`](./supabase/migrations/): `20261028000000_baseline.sql` reproduce la base de producción y cada cambio nuevo se agrega como otra migración con fecha. Las políticas de la base de datos deben conservar las restricciones de acceso por usuario y por vínculo.
 
 ## Android
 

@@ -6,13 +6,6 @@ export default defineConfig({
   server: {
     port: 5173,
     host: true,
-    proxy: {
-      // Redirige /api/* al servidor Express en el puerto 3001
-      '/api': {
-        target: 'http://localhost:3001',
-        changeOrigin: true,
-      },
-    },
   },
   build: {
     // No exponer sourcemaps en producción

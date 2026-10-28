@@ -24,7 +24,6 @@ Este checklist refleja lo que sí está implementado en el código y la configur
 ## Stack y arquitectura
 - [x] El cliente usa React 18 + Vite + Tailwind CSS + React Router (documentado en `README.md`).
 - [x] La app usa Supabase para autenticación y datos.
-- [x] La aplicación backend/frontend está dividida en `client` y `server`.
 - [x] Hay `manifest.webmanifest` y metadata PWA móvil en `client/index.html`.
 - [x] Las páginas de autenticación, paciente, psicólogo, legal y 404 se cargan bajo demanda mediante lazy loading y code splitting.
 - [x] Los avatares se cargan de forma diferida (`loading="lazy"`) y usan decodificación asíncrona.

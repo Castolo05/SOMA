@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-import api from '../../lib/api'
+import { getPatients } from '../../lib/api'
 import { formatDateShort } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
 import AvatarDisplay from '../../components/AvatarDisplay'
@@ -16,7 +16,7 @@ export default function PatientsList() {
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    api.get('/patients')
+    getPatients()
       .then(({ data }) => setPatients(data.patients ?? []))
       .catch(() => {})
       .finally(() => setLoading(false))

@@ -77,9 +77,8 @@ directamente a Supabase para autenticación y operaciones de datos:
    `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY`.
 2. `client/src/context/AuthContext.jsx` gestiona sesión, perfil, registro,
    inicio/cierre de sesión y actualización de cuenta.
-3. `client/src/lib/api.js` expone un adaptador de estilo API (`get`, `post`,
-   `put`, `patch`, `delete`), pero ejecuta las operaciones directamente con
-   Supabase; no es un cliente HTTP que invoque la API Express.
+3. `client/src/lib/api.js` exporta una función por operación (`getJournal`,
+   `createHabit`, `getPatients`, etc.) que consulta Supabase directamente.
 4. El adaptador normaliza campos PostgreSQL `snake_case` a `camelCase` para
    mantener una interfaz uniforme con las pantallas.
 5. Supabase Row Level Security (RLS) es la autoridad de acceso a los datos.
@@ -91,25 +90,6 @@ consumen, el adaptador, el esquema real de Supabase y las políticas RLS
 relacionadas. Mantener el contrato `{ data: ... }` y el formato de error
 `err.response.data.error` que esperan las pantallas, salvo que se haga una
 migración coherente en todos los consumidores.
-
-### API Express y Prisma complementarios
-
-`server/` contiene código Express con JWT y Prisma, cuyo esquema usa SQLite.
-El cliente de producción inspeccionado no lo consume: las llamadas de
-`client/src/lib/api.js` operan sobre Supabase. No tratar el modelo Prisma como
-la definición vigente de la base de producción ni trasladar una funcionalidad
-a ese backend suponiendo que la SPA empezará a utilizarlo automáticamente.
-
-Los scripts raíz `npm run dev`, `npm run setup`, `npm run db:setup` y
-`npm run db:studio` pertenecen al flujo local/complementario, no son comandos
-de despliegue de producción. En particular, `server/prisma/seed.js` borra
-registros existentes de sus tablas antes de insertar datos de demostración.
-Nunca ejecutar `npm run setup`, `npm run db:setup`, `npm run db:seed` ni el seed
-contra una base de producción o contra una base que contenga información que
-deba conservarse.
-
-El proxy `/api` de `client/vite.config.js` apunta al servidor local Express;
-no demuestra que el cliente web en producción utilice esa API.
 
 ### Despliegue web y Android
 
@@ -127,7 +107,9 @@ no demuestra que el cliente web en producción utilice esa API.
 
 ## 3. Rutas y navegación del cliente
 
-El router está definido en `client/src/App.jsx` y usa `HashRouter`.
+El router está definido en `client/src/App.jsx` y usa `BrowserRouter`; los
+rewrites de `client/vercel.json` sirven `index.html` en cualquier ruta. Los
+enlaces viejos con `/#/ruta` se convierten a `/ruta` en `client/src/main.jsx`.
 
 ### Rutas públicas
 
@@ -168,9 +150,9 @@ navegación.
 
 ## 4. Datos del producto y reglas que deben preservarse
 
-La definición y evolución del esquema de producción están en los scripts SQL
-de Supabase bajo `client/`. Los nombres de tabla y columnas que consume el
-cliente son la referencia principal; el esquema de Prisma/SQLite es distinto.
+La definición y evolución del esquema de producción están en
+`supabase/migrations/`. Los nombres de tabla y columnas que consume el cliente
+son la referencia principal.
 
 ### Tablas principales de Supabase
 
@@ -187,9 +169,8 @@ cliente son la referencia principal; el esquema de Prisma/SQLite es distinto.
   con título, contenido y fecha de sesión.
 - **`therapy_goals`**: objetivos asociados a paciente y profesional.
 - **`appointments`**: citas asociadas a un profesional y, opcionalmente, a un
-  paciente. Hay código de componente/API, pero comprobar su integración real
-  antes de considerarlo una función visible: `AppointmentCalendar.jsx` no
-  tiene un consumidor importador en la interfaz revisada.
+  paciente. La tabla existe, pero el cliente no tiene interfaz ni operaciones
+  para citas.
 
 ### Diario y fechas
 
@@ -255,8 +236,6 @@ hábito.
     columnas de `profiles`, vínculos solo `PENDING` desde el paciente y retiro
     de la lectura pública de psicólogos. Ya aplicada en producción.
 - Todo cambio nuevo va en un archivo `supabase/migrations/<timestamp>_<nombre>.sql`.
-- `supabase/legacy/` conserva los scripts sueltos anteriores solo como
-  historial: no son una secuencia lineal y no deben volver a ejecutarse.
 
 Antes de recomendar o ejecutar SQL:
 
@@ -289,11 +268,7 @@ client/
 ├── vercel.json                  # Configuración de SPA para Vercel
 └── package.json                 # Scripts web y Android
 supabase/
-├── migrations/                  # Esquema vigente y migraciones nuevas
-└── legacy/                      # Scripts SQL históricos (no ejecutar)
-server/
-├── src/                         # API Express complementaria
-└── prisma/                      # Esquema SQLite y seed local
+└── migrations/                  # Esquema vigente y migraciones nuevas
 ```
 
 `client/src/lib/api.js` es grande y contiene tanto operaciones Supabase como
@@ -364,11 +339,9 @@ Antes de editar:
 2. Comprobar el estado de Git y no sobrescribir trabajo existente.
 3. Buscar la ruta/componente, sus consumidores, las operaciones de datos y la
    política RLS correspondiente.
-4. Distinguir el cliente Supabase de producción del backend Express/SQLite
-   complementario.
-5. Confirmar si la función realmente se muestra y se puede alcanzar desde una
+4. Confirmar si la función realmente se muestra y se puede alcanzar desde una
    ruta activa; no inferir que algo es visible por encontrar un archivo.
-6. Identificar efectos en paciente y profesional, web y Android, modo claro y
+5. Identificar efectos en paciente y profesional, web y Android, modo claro y
    oscuro, caché, fechas y permisos.
 
 Al implementar:

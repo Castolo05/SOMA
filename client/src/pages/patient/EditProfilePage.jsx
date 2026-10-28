@@ -1,15 +1,17 @@
 import { useState, useRef } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import {
-  UserRound, X, Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat
+  X, Camera,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { readAvatarFile } from '../../lib/avatarUpload'
 
 import AvatarDisplay, { ANIMAL_ICONS } from '../../components/AvatarDisplay'
+import { useToast } from '../../context/ToastContext'
 
 export default function EditProfilePage() {
+  const { showError } = useToast()
   usePageTitle('Editar Perfil')
   const { user, updateUser } = useAuth()
   const navigate = useNavigate()
@@ -33,7 +35,7 @@ export default function EditProfilePage() {
       })
       navigate('/patient/profile')
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Error al guardar perfil')
+      showError(err.response?.data?.error || err.message || 'Error al guardar perfil')
     } finally {
       setProfileSaving(false)
     }

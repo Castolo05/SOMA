@@ -68,6 +68,7 @@ export function AuthProvider({ children }) {
     const restoreSession = async () => {
       const isOAuthReturn = new URLSearchParams(window.location.search).get('auth') === OAUTH_RETURN_FLAG
       if (isOAuthReturn) {
+        // El fragmento con los tokens se deja: supabase-js lo lee y lo borra.
         window.history.replaceState(null, '', window.location.pathname + window.location.hash)
       }
 
@@ -75,7 +76,7 @@ export function AuthProvider({ children }) {
       if (isOAuthReturn && !data.session) {
         // Sin sesión: Google devolvió un error (por ejemplo, el usuario canceló).
         try { sessionStorage.setItem(OAUTH_ERROR_KEY, '1') } catch {}
-        window.history.replaceState(null, '', `${window.location.pathname}#/login`)
+        window.history.replaceState(null, '', '/login')
       }
 
       await loadProfile(data.session?.user ?? null)
@@ -139,24 +140,10 @@ export function AuthProvider({ children }) {
       await new Promise(r => setTimeout(r, attempt * 400))
     }
 
-    // Fallback: si RLS bloquea la lectura transitoriamente, construir
-    // desde los metadatos del token — la sesión es válida en cualquier caso.
-    if (!userData && data.user) {
-      const meta = data.user.user_metadata || {}
-      userIdRef.current = data.user.id
-      userData = {
-        id: data.user.id,
-        name: meta.name || data.user.email?.split('@')[0] || 'Usuario',
-        email: data.user.email,
-        role: meta.role || 'PATIENT',
-        inviteCode: null,
-        psychologistId: null,
-        avatar: null,
-      }
-      setUser(userData)
-    }
-
+    // Sin perfil no se entra: el rol se toma solo de profiles, nunca de
+    // user_metadata, que el propio usuario puede editar.
     if (!userData) {
+      await supabase.auth.signOut({ scope: 'local' })
       const err = new Error('No se pudo cargar el perfil. Intentá de nuevo.')
       err.response = { data: { error: err.message } }
       throw err

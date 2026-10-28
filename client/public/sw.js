@@ -23,8 +23,7 @@ self.addEventListener('fetch', (event) => {
   // Solo recursos estáticos del propio sitio: nunca datos de Supabase ni de terceros.
   if (
     event.request.method !== 'GET' ||
-    requestUrl.origin !== self.location.origin ||
-    requestUrl.pathname.startsWith('/api/')
+    requestUrl.origin !== self.location.origin
   ) return
 
   event.respondWith(

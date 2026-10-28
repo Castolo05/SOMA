@@ -139,6 +139,8 @@ export function registerReminderTapHandler() {
 
   LocalNotifications.addListener('localNotificationActionPerformed', ({ notification }) => {
     const route = notification.extra?.route || '/patient'
-    window.location.hash = `#${route}`
+    // react-router escucha popstate: navega sin recargar la app.
+    window.history.pushState(null, '', route)
+    window.dispatchEvent(new PopStateEvent('popstate'))
   })
 }

@@ -3,7 +3,21 @@ import { useParams, Link } from 'react-router-dom'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
-import api from '../../lib/api'
+import {
+  createGoal,
+  createSessionNote,
+  deleteGoal,
+  deleteSessionNote,
+  getGoals,
+  getHabitCorrelation,
+  getHabits,
+  getJournal,
+  getPatientInsights,
+  getPatients,
+  getSessionNotes,
+  toggleGoal,
+  updateSessionNote,
+} from '../../lib/api'
 import { MOOD_ICONS, formatDateShort } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
 import MoodChart from '../../components/MoodChart'
@@ -19,6 +33,7 @@ import HabitCorrelationCard from '../../components/HabitCorrelation'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import AvatarDisplay from '../../components/AvatarDisplay'
 import ConfirmActionModal from '../../components/ConfirmActionModal'
+import { useToast } from '../../context/ToastContext'
 
 const RGL = WidthProvider(Responsive)
 
@@ -139,6 +154,7 @@ function PreSessionCard({ insights, patient }) {
 
 // ── SessionNotes ───────────────────────────────────────────
 function SessionNotes({ patientId }) {
+  const { showError } = useToast()
   const [notes, setNotes]     = useState([])
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
@@ -152,7 +168,7 @@ function SessionNotes({ patientId }) {
   const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
 
   useEffect(() => {
-    api.get(`/session-notes/${patientId}`)
+    getSessionNotes(patientId)
       .then(({ data }) => setNotes(data.notes ?? []))
       .catch(console.error)
       .finally(() => setLoading(false))
@@ -162,35 +178,35 @@ function SessionNotes({ patientId }) {
     if (!newContent.trim()) return
     setSaving(true)
     try {
-      const { data } = await api.post(`/session-notes/${patientId}`, {
+      const { data } = await createSessionNote(patientId, {
         title: newTitle || `Sesión ${new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit' })}`,
         content: newContent,
         sessionDate: new Date().toISOString(),
       })
       setNotes(p => [data.note, ...p])
       setNewTitle(''); setNewContent(''); setCreating(false)
-    } catch { alert('Error al crear nota.') }
+    } catch { showError('Error al crear nota.') }
     finally { setSaving(false) }
   }
 
   const update = async (id) => {
     setSaving(true)
     try {
-      const { data } = await api.put(`/session-notes/note/${id}`, { title: editTitle, content: editContent })
+      const { data } = await updateSessionNote(id, { title: editTitle, content: editContent })
       setNotes(p => p.map(n => n.id === id ? data.note : n))
       setEditing(null)
-    } catch { alert('Error al actualizar.') }
+    } catch { showError('Error al actualizar.') }
     finally { setSaving(false) }
   }
 
   const confirmDel = async () => {
     if (!confirmDeleteNote) return
     try {
-      await api.delete(`/session-notes/note/${confirmDeleteNote}`)
+      await deleteSessionNote(confirmDeleteNote)
       setNotes(p => p.filter(n => n.id !== confirmDeleteNote))
       setConfirmDeleteNote(null)
     } catch {
-      alert('Error.')
+      showError('No se pudo eliminar la nota.')
     }
   }
 
@@ -285,20 +301,20 @@ function TherapyGoals({ patientId }) {
   const [adding, setAdding]   = useState(false)
 
   useEffect(() => {
-    api.get(`/goals/${patientId}`).then(({ data }) => setGoals(data.goals ?? [])).catch(console.error)
+    getGoals(patientId).then(({ data }) => setGoals(data.goals ?? [])).catch(console.error)
   }, [patientId])
 
   const add    = async () => {
     if (!newGoal.trim()) return
-    const { data } = await api.post(`/goals/${patientId}`, { text: newGoal }).catch(() => ({ data: null }))
+    const { data } = await createGoal(patientId, { text: newGoal }).catch(() => ({ data: null }))
     if (data?.goal) { setGoals(p => [...p, data.goal]); setNewGoal(''); setAdding(false) }
   }
   const toggle = async (id) => {
-    const { data } = await api.patch(`/goals/${id}/toggle`).catch(() => ({ data: null }))
+    const { data } = await toggleGoal(id).catch(() => ({ data: null }))
     if (data?.goal) setGoals(p => p.map(g => g.id === id ? data.goal : g))
   }
   const del = async (id) => {
-    await api.delete(`/goals/${id}`).catch(() => {})
+    await deleteGoal(id).catch(() => {})
     setGoals(p => p.filter(g => g.id !== id))
   }
 
@@ -518,11 +534,11 @@ export default function PatientDetail() {
     const load = async () => {
       try {
         const [pRes, jRes, iRes, hRes, lRes] = await Promise.allSettled([
-          api.get('/patients'),
-          api.get(`/journal?patientId=${id}`),
-          api.get(`/patients/${id}/insights`),
-          api.get(`/habits/correlation?patientId=${id}`),
-          api.get(`/habits?patientId=${id}`),
+          getPatients(),
+          getJournal(id),
+          getPatientInsights(id),
+          getHabitCorrelation(id),
+          getHabits(id),
         ])
         if (pRes.status === 'fulfilled') {
           setPatient(pRes.value.data.patients?.find(p => p.id === id) ?? null)

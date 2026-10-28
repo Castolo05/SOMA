@@ -1,21 +1,31 @@
 import { useState, useEffect } from 'react'
-import api from '../../lib/api'
-import { MOOD_ICONS, HABIT_ICONS, formatDate, isEditable, entryDateToDate, entryDateKey } from '../../lib/constants'
+import {
+  createJournalEntry,
+  deleteJournalEntry,
+  getHabitCorrelation,
+  getHabits,
+  getJournal,
+  updateJournalEntry,
+} from '../../lib/api'
+import { MOOD_ICONS, HABIT_ICONS, isEditable, entryDateToDate, entryDateKey } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
 import MoodCalendar from '../../components/MoodCalendar'
 import MoodChart from '../../components/MoodChart'
 import NoteForm from '../../components/NoteForm'
 import { syncDailyReminders } from '../../lib/reminders'
 import {
-  Trash2, ChevronDown, ChevronUp, Clock, TrendingUp, TrendingDown, Minus, BarChart2, Book, Calendar, Edit2, X, Check, Plus, CalendarPlus,
+  Trash2, ChevronDown, ChevronUp, Clock, TrendingUp, BarChart2, Book, Calendar,
+  Edit2, X, Check, Plus, CalendarPlus,
 } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 import HabitCorrelationCard from '../../components/HabitCorrelation'
 import ConfirmActionModal from '../../components/ConfirmActionModal'
+import { useToast } from '../../context/ToastContext'
 
 // ── Página de historial ───────────────────────────────────
 export default function HistoryPage() {
+  const { showError } = useToast()
   usePageTitle('Historial')
   const initialCache = getPatientCache()
   const [entries, setEntries] = useState(initialCache.entries || [])
@@ -36,7 +46,7 @@ export default function HistoryPage() {
   const handleUpdate = async (entryId, { mood, content, completedHabits, habitData }) => {
     setSavingEdit(true)
     try {
-      const { data } = await api.put(`/journal/${entryId}`, {
+      const { data } = await updateJournalEntry(entryId, {
         moodScore: mood,
         content,
         completedHabits,
@@ -51,7 +61,7 @@ export default function HistoryPage() {
       setTimeout(() => setFeedbackMsg(''), 4000)
     } catch (err) {
       console.error('Error al actualizar anotación:', err)
-      alert(err.response?.data?.error || err.message || 'Error al actualizar la anotación.')
+      showError(err.response?.data?.error || err.message || 'Error al actualizar la anotación.')
     } finally {
       setSavingEdit(false)
     }
@@ -62,7 +72,7 @@ export default function HistoryPage() {
     // para garantizar que los nuevos campos estén presentes (doseAnalysis, pearsonR, streak, etc.)
     if (initialCache.entries && initialCache.habits) {
       // Datos base cacheados → solo refrescar la correlación
-      api.get('/habits/correlation').then(cRes => {
+      getHabitCorrelation().then(cRes => {
         setCorrelation(cRes.data)
         updatePatientCache('correlation', cRes.data)
       }).catch(() => {})
@@ -70,9 +80,9 @@ export default function HistoryPage() {
       return
     }
     Promise.all([
-      api.get('/journal'),
-      api.get('/habits'),
-      api.get('/habits/correlation'),
+      getJournal(),
+      getHabits(),
+      getHabitCorrelation(),
     ]).then(([jRes, hRes, cRes]) => {
       setEntries(jRes.data.entries)
       setHabits(hRes.data.habits)
@@ -81,13 +91,15 @@ export default function HistoryPage() {
       updatePatientCache('habits', hRes.data.habits)
       updatePatientCache('correlation', cRes.data)
     }).catch(() => {}).finally(() => setLoading(false))
+    // Solo al montar: la caché inicial ya se leyó en el primer render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 
   const handleDelete = async (id) => {
     setDeleting(id)
     try {
-      await api.delete(`/journal/${id}`)
+      await deleteJournalEntry(id)
       setEntries((prev) => {
         const nextEntries = prev.filter((e) => e.id !== id)
         updatePatientCache('entries', nextEntries)
@@ -95,7 +107,7 @@ export default function HistoryPage() {
       })
       setConfirmDeleteEntry(null)
     } catch (err) {
-      alert(err.response?.data?.error || 'Error al eliminar.')
+      showError(err.response?.data?.error || 'Error al eliminar.')
     } finally {
       setDeleting(null)
     }
@@ -114,7 +126,7 @@ export default function HistoryPage() {
     setSavingNew(true)
     const targetDateKey = entryDateKey(targetDate)
     try {
-      const { data } = await api.post('/journal', {
+      const { data } = await createJournalEntry({
         moodScore: mood,
         content,
         completedHabits,
@@ -135,7 +147,7 @@ export default function HistoryPage() {
       setTimeout(() => setFeedbackMsg(''), 4000)
     } catch (err) {
       console.error('Error al crear anotación para el día:', err)
-      alert(err.response?.data?.error || err.message || 'Error al guardar la anotación.')
+      showError(err.response?.data?.error || err.message || 'Error al guardar la anotación.')
     } finally {
       setSavingNew(false)
     }
@@ -597,9 +609,7 @@ export default function HistoryPage() {
               {filtered.map((entry) => {
                 const canEdit = isEditable(entry.entryDate || entry.createdAt)
                 const isEditing = editingEntryId === entry.id
-                const open = true // en el gráfico siempre mostramos el detalle expandido
                 const config = MOOD_ICONS[entry.moodScore]
-                const entryHabits = habits.filter(h => (entry.completedHabits || []).includes(h.id))
                 const entryDateObj = entryDateToDate(entry.entryDate || entry.createdAt)
                 const formattedDay = entryDateObj.toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'short' })
 

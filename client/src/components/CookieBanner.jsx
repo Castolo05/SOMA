@@ -1,24 +1,20 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
-import { getCookiePreferences, setCookiePreferences, initAnalytics } from '../lib/analytics'
+import { setCookiePreferences, initAnalytics } from '../lib/analytics'
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false)
-  const [analyticsEnabled, setAnalyticsEnabled] = useState(false)
 
   // El banner se monta dentro de AuthProvider, cuando supabase-js ya sacó los
   // tokens de la URL: recién ahí puede cargarse Analytics.
   useEffect(() => {
     initAnalytics()
-    const preferences = getCookiePreferences()
-    setAnalyticsEnabled(Boolean(preferences.analytics))
     setVisible(!localStorage.getItem('soma-cookie-preferences'))
   }, [])
 
   const handleChoice = (allowAnalytics) => {
     const preferences = setCookiePreferences({ analytics: allowAnalytics })
-    setAnalyticsEnabled(Boolean(preferences.analytics))
     setVisible(false)
 
     if (preferences.analytics) {

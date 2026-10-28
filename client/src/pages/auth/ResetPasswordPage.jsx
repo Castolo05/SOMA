@@ -1,20 +1,13 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowLeft, CheckCircle2, Eye, EyeOff } from 'lucide-react'
-import { supabase } from '../../lib/supabase'
+import { clearPasswordRecovery, isPasswordRecoveryPending, supabase } from '../../lib/supabase'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import ThemeLogo from '../../components/ThemeLogo'
 
 function getRecoveryParams() {
-  const hashParts = window.location.hash.slice(1).split('#')
-  const routeQueryStart = hashParts[0].indexOf('?')
-  const routeQuery = routeQueryStart >= 0 ? hashParts[0].slice(routeQueryStart + 1) : ''
-  const fragmentParams = hashParts.slice(1).join('&')
-  const params = new URLSearchParams([
-    window.location.search.slice(1),
-    routeQuery,
-    fragmentParams,
-  ].filter(Boolean).join('&'))
+  const params = new URLSearchParams(window.location.search)
+  new URLSearchParams(window.location.hash.slice(1)).forEach((value, key) => params.set(key, value))
   return {
     code: params.get('code'),
     type: params.get('type'),
@@ -38,12 +31,22 @@ export default function ResetPasswordPage() {
   const [recoveryParams] = useState(getRecoveryParams)
 
   useEffect(() => {
-    window.history.replaceState(null, '', `${window.location.pathname}#/reset-password`)
+    window.history.replaceState(null, '', '/reset-password')
 
     const recoverSession = async () => {
       const { code, type, accessToken, refreshToken } = recoveryParams
       const hasRecoveryCode = Boolean(code) && (!type || type === 'recovery')
       const hasRecoveryTokens = type === 'recovery' && accessToken && refreshToken
+      if (!hasRecoveryCode && !hasRecoveryTokens && isPasswordRecoveryPending()) {
+        // supabase-js ya procesó el enlace al cargar la página.
+        clearPasswordRecovery()
+        const { data } = await supabase.auth.getSession()
+        if (data.session) {
+          setRecoveryReady(true)
+          setCheckingRecovery(false)
+          return
+        }
+      }
       if (!hasRecoveryCode && !hasRecoveryTokens) {
         setError('El enlace de recuperación no es válido o ya expiró. Solicitá uno nuevo.')
         setCheckingRecovery(false)
@@ -73,7 +76,7 @@ export default function ResetPasswordPage() {
     }
 
     recoverSession()
-  }, [])
+  }, [recoveryParams])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

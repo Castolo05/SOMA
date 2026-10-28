@@ -1,10 +1,10 @@
 // ============================================================
-// SOMA API adapter backed by Supabase.
-// Interfaz compatible con el api.js anterior para minimizar
-// cambios en los componentes existentes.
+// Acceso a datos de SOMA sobre Supabase: una función por operación.
+// La autorización real la aplica RLS en la base; los chequeos de rol
+// de este archivo solo evitan consultas que fallarían igual.
 // ============================================================
 import { supabase } from './supabase'
-import { addDays, entryDateKey } from './constants'
+import { entryDateKey } from './constants'
 
 // ── Obtener usuario autenticado actual ────────────────────
 // Usamos getSession() (caché local) en lugar de getUser() (llamada a red)
@@ -43,14 +43,13 @@ async function currentUser() {
     }
   }
 
-  // Fallback: el trigger handle_new_user crea el perfil; mientras tanto,
-  // construir con los metadatos del token (RLS sigue aplicando en la DB).
+  // Sin perfil todavía (el trigger handle_new_user aún no lo creó): no se
+  // adivina el rol desde user_metadata, que el propio usuario puede editar.
   if (!profile) {
-    const meta = user.user_metadata || {}
     return {
       id: user.id,
       email: user.email,
-      role: meta.role || 'PATIENT',
+      role: null,
       inviteCode: null,
       psychologistId: null,
     }
@@ -94,664 +93,494 @@ function fail(message, status = 400) {
 }
 
 // ============================================================
-// API OBJECT — misma interfaz que el api.js anterior
+// Operaciones de datos. Cada una devuelve { data } o rechaza con
+// err.response.data.error, el contrato que esperan las pantallas.
 // ============================================================
-const api = {
 
-  get: async (url) => {
-    const user = await currentUser()
-
-    // ── GET /journal ──────────────────────────────────────
-    if (url.startsWith('/journal')) {
-      const patientId = url.includes('patientId=') ? url.split('patientId=')[1] : null
-      const targetId = patientId || user?.id
-      const { data, error } = await supabase
-        .from('journal_entries')
-        .select('*')
-        .eq('patient_id', targetId)
-        .order('entry_date', { ascending: false })
-      if (error) return fail(error.message)
-      // Normalizar snake_case → camelCase para compatibilidad
-      const entries = (data || []).map(normalizeEntry)
-      return ok({ entries })
-    }
-
-    // ── GET /habits/correlation ───────────────────────────
-    if (url.startsWith('/habits/correlation')) {
-      const patientId = url.includes('patientId=') ? url.split('patientId=')[1] : null
-      const targetId = patientId || user?.id
-
-      if (patientId && user?.role !== 'PSYCHOLOGIST') {
-        return fail('No autorizado', 403)
-      }
-
-      const [habitsResult, entriesResult] = await Promise.all([
-        supabase.from('habits').select('*').eq('user_id', targetId),
-        supabase
-          .from('journal_entries')
-          .select('completed_habits, habit_data, mood_score')
-          .eq('patient_id', targetId),
-      ])
-      if (habitsResult.error) return fail(habitsResult.error.message)
-      if (entriesResult.error) return fail(entriesResult.error.message)
-      const habits = habitsResult.data || []
-      const entries = entriesResult.data || []
-      if (entries.length < 5) return ok([])
-      const result = computeCorrelation(habits.map(normalizeHabit), entries.map(normalizeEntry))
-      return ok(result)
-    }
-
-    // ── GET /habits ───────────────────────────────────────
-    if (url.startsWith('/habits') && !url.includes('/correlation')) {
-      const patientId = url.includes('patientId=') ? url.split('patientId=')[1] : null
-      const targetId = patientId || user?.id
-
-      if (patientId && user?.role !== 'PSYCHOLOGIST') {
-        return fail('No autorizado', 403)
-      }
-
-      const { data, error } = await supabase
-        .from('habits')
-        .select('*')
-        .eq('user_id', targetId)
-        .order('order', { ascending: true })
-      if (error) return fail(error.message)
-      return ok({ habits: (data || []).map(normalizeHabit) })
-    }
-
-    // ── GET /patients ─────────────────────────────────────
-    if (url === '/patients') {
-      if (!user || user.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
-      const { data: links, error: linksError } = await supabase
-        .from('patient_psychologists')
-        .select('patient_id')
-        .eq('psychologist_id', user.id)
-        .eq('status', 'ACCEPTED')
-      if (linksError) return fail(linksError.message)
-      const patientIds = [...new Set((links || []).map(link => link.patient_id))]
-      if (!patientIds.length) return ok({ patients: [] })
-
-      // Perfiles y resumen de entradas en paralelo, en lugar de una consulta por paciente
-      const [{ data: patients, error }, { data: summaries, error: summariesError }] = await Promise.all([
-        supabase
-          .from('profiles')
-          .select('id, name, role, avatar_url')
-          .in('id', patientIds)
-          .eq('role', 'PATIENT'),
-        supabase.rpc('psychologist_patient_summaries'),
-      ])
-      if (error) return fail(error.message)
-      const summaryById = summariesError
-        ? await summarizeEntriesByPatient(patientIds)
-        : new Map((summaries || []).map(s => [s.patient_id, s]))
-      if (summaryById instanceof Error) return fail(summaryById.message)
-
-      const enriched = (patients || []).map((p) => {
-        const summary = summaryById.get(p.id)
-        return {
-          id: p.id,
-          name: p.name,
-          email: '', // protegido por RLS, no exponer
-          role: p.role,
-          avatarUrl: p.avatar_url,
-          psychologistId: user.id,
-          totalEntries: Number(summary?.total_entries ?? 0),
-          lastMood: summary?.last_mood ?? null,
-          lastEntryDate: summary?.last_entry_date ?? null,
-        }
-      })
-      return ok({ patients: enriched })
-    }
-
-    // ── GET /patients/requests ────────────────────────────
-    if (url === '/patients/requests') {
-      if (!user || user.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
-      const { data: links, error: linksError } = await supabase
-        .from('patient_psychologists')
-        .select('patient_id, created_at')
-        .eq('psychologist_id', user.id)
-        .eq('status', 'PENDING')
-      if (linksError) return fail(linksError.message)
-      const patientIds = [...new Set((links || []).map(link => link.patient_id))]
-      if (!patientIds.length) return ok({ requests: [] })
-      const requestDates = new Map(links.map(link => [link.patient_id, link.created_at]))
-
-      const { data: requests, error } = await supabase
-        .from('profiles')
-        .select('id, name, avatar_url')
-        .in('id', patientIds)
-        .eq('role', 'PATIENT')
-      if (error) return fail(error.message)
-      return ok({ requests: requests
-        .map(r => ({ id: r.id, name: r.name, avatarUrl: r.avatar_url, date: requestDates.get(r.id) }))
-        .sort((a, b) => new Date(b.date) - new Date(a.date)) })
-    }
-
-    // ── GET /patients/requests/count ──────────────────────
-    if (url === '/patients/requests/count') {
-      if (!user || user.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
-      const { count, error } = await supabase
-        .from('patient_psychologists')
-        .select('id', { count: 'exact', head: true })
-        .eq('psychologist_id', user.id)
-        .eq('status', 'PENDING')
-      if (error) return fail(error.message)
-      return ok({ count: count ?? 0 })
-    }
-
-    // ── GET /patients/:id/insights ────────────────────────
-    if (url.match(/^\/patients\/.+\/insights$/)) {
-      const patientId = url.split('/')[2]
-      const { data: entries, error } = await supabase
-        .from('journal_entries')
-        .select('mood_score, completed_habits, entry_date, created_at')
-        .eq('patient_id', patientId)
-        .order('entry_date', { ascending: false })
-      if (error) return fail(error.message)
-      const normalized = (entries || []).map(normalizeEntry)
-      return ok(computeInsights(normalized))
-    }
-
-    // ── GET /appointments ─────────────────────────────────
-    if (url === '/appointments') {
-      let query = supabase.from('appointments').select('*')
-      if (user?.role === 'PSYCHOLOGIST') {
-        query = query.eq('psychologist_id', user.id)
-      } else {
-        query = query.eq('patient_id', user?.id).gte('date', new Date().toISOString())
-      }
-      const { data, error } = await query.order('date', { ascending: true })
-      if (error) return fail(error.message)
-      return ok({ appointments: (data || []).map(normalizeAppointment) })
-    }
-
-    // ── GET /session-notes/:patientId ─────────────────────
-    if (url.startsWith('/session-notes/')) {
-      const patientId = url.split('/session-notes/')[1]
-      const { data, error } = await supabase
-        .from('session_notes')
-        .select('*')
-        .eq('psychologist_id', user?.id)
-        .eq('patient_id', patientId)
-        .order('session_date', { ascending: false })
-      if (error) return fail(error.message)
-      return ok({ notes: (data || []).map(normalizeNote) })
-    }
-
-    // ── GET /goals/:patientId ─────────────────────────────
-    if (url.startsWith('/goals/')) {
-      const patientId = url.split('/goals/')[1]
-      const { data, error } = await supabase
-        .from('therapy_goals')
-        .select('*')
-        .eq('patient_id', patientId)
-        .order('created_at', { ascending: true })
-      if (error) return fail(error.message)
-      return ok({ goals: (data || []).map(normalizeGoal) })
-    }
-
-    // ── GET /auth/psychologists ────────────────────────────
-    if (url === '/auth/psychologists') {
-      const { data: links, error } = await supabase
-        .from('patient_psychologists')
-        .select('*')
-        .eq('patient_id', user.id)
-
-      if (error) {
-        if (error.code === '42P01') {
-          if (!user?.psychologistId) return ok({ psychologists: [] })
-          const { data: psych, error: psychError } = await supabase.from('profiles').select('id, name, avatar_url').eq('id', user.psychologistId).maybeSingle()
-          if (psychError) return fail(psychError.message)
-          return ok({ psychologists: psych ? [{ ...psych, status: user.psychologistStatus }] : [] })
-        }
-        return fail(error.message)
-      }
-
-      if (!links || !links.length) return ok({ psychologists: [] })
-      const psychIds = links.map(l => l.psychologist_id)
-      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id, name, avatar_url').in('id', psychIds)
-      if (profilesError) return fail(profilesError.message)
-
-      const psychologists = (profiles || []).map(p => {
-        const link = links.find(l => l.psychologist_id === p.id)
-        return { ...p, status: link.status }
-      })
-      return ok({ psychologists })
-    }
-
-    return fail(`Ruta no encontrada: GET ${url}`, 404)
-  },
-
-  // ──────────────────────────────────────────────────────────
-  post: async (url, body) => {
-    const user = await currentUser()
-
-    // ── POST /auth/login ──────────────────────────────────
-    if (url === '/auth/login') {
-      // Delegado a AuthContext - no debería llegar aquí normalmente
-      return fail('Use AuthContext para login')
-    }
-
-    // ── POST /auth/register ───────────────────────────────
-    if (url === '/auth/register') {
-      return fail('Use AuthContext para registro')
-    }
-
-    // ── POST /auth/link/preview ───────────────────────────
-    if (url === '/auth/link/preview') {
-      const { data, error } = await supabase.rpc('preview_psychologist_by_invite_code', {
-        p_invite_code: body.inviteCode?.trim().toUpperCase(),
-      })
-      if (error) return fail(error.message)
-      const psych = data?.[0]
-      if (!psych) return fail('Código de invitación inválido.')
-      return ok({ psychologist: psych })
-    }
-
-    // ── POST /auth/link ───────────────────────────────────
-    if (url === '/auth/link') {
-      if (!user || user.role !== 'PATIENT') return fail('Inicia sesión como paciente para enviar una solicitud.', 401)
-      const inviteCode = body.inviteCode?.trim().toUpperCase()
-      if (!inviteCode) return fail('Ingresa el código de invitación.')
-
-      const { data, error } = await supabase.rpc('preview_psychologist_by_invite_code', {
-        p_invite_code: inviteCode,
-      })
-      if (error) return fail(error.message)
-      const psych = data?.[0]
-      if (!psych) return fail('Código de invitación inválido.')
-      if (psych.id === user.id) return fail('No puedes vincularte con tu propia cuenta.')
-
-      const { error: insertErr } = await supabase
-        .from('patient_psychologists')
-        .insert({ patient_id: user.id, psychologist_id: psych.id, status: 'PENDING' })
-
-      if (insertErr) {
-        if (insertErr.code === '23505') {
-          return fail('Ya existe una solicitud o vinculación con este psicólogo.')
-        }
-        if (insertErr.code === '42P01') {
-          return fail('Falta configurar la tabla de vinculaciones en Supabase. Aplicá las migraciones de supabase/migrations.')
-        }
-        return fail(insertErr.message)
-      }
-      return ok({ message: `Solicitud enviada a ${psych.name}.` })
-    }
-
-    // ── POST /journal ─────────────────────────────────────
-    if (url === '/journal') {
-      const today = entryDateKey()
-      const requestedEntryDate = body.entryDate || today
-
-      // Solo bloquear fechas futuras
-      if (requestedEntryDate > today) {
-        return fail('No podés crear anotaciones para fechas futuras.', 403)
-      }
-
-      // Una entrada por día de registro.
-      const { data: existing, error: existingError } = await supabase
-        .from('journal_entries')
-        .select('id')
-        .eq('patient_id', user?.id)
-        .eq('entry_date', requestedEntryDate)
-        .limit(1)
-      if (existingError) return fail(existingError.message)
-      if (existing?.length > 0) {
-        const err = new Error(`Ya existe una entrada para esta fecha (${requestedEntryDate}).`)
-        err.response = { status: 409, data: { error: `Ya existe una entrada para esta fecha (${requestedEntryDate}).` } }
-        return Promise.reject(err)
-      }
-      // Mergear completedHabits con habitData
-      const merged = [...(body.completedHabits || [])]
-      if (body.habitData) {
-        Object.entries(body.habitData).forEach(([id, d]) => {
-          if (d.done === true && !merged.includes(id)) merged.push(id)
-        })
-      }
-      const { data, error } = await supabase
-        .from('journal_entries')
-        .insert({
-          patient_id: user?.id,
-          mood_score: body.moodScore,
-          content: body.content || '',
-          completed_habits: merged,
-          habit_data: body.habitData || {},
-          flagged_for_session: false,
-          entry_date: requestedEntryDate,
-        })
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ entry: normalizeEntry(data) })
-    }
-
-    // ── POST /habits ──────────────────────────────────────
-    if (url === '/habits') {
-      const { data: existing, error: existingError } = await supabase
-        .from('habits')
-        .select('id')
-        .eq('user_id', user?.id)
-      if (existingError) return fail(existingError.message)
-      const { data, error } = await supabase
-        .from('habits')
-        .insert({
-          user_id: user?.id,
-          text: body.text,
-          icon: body.icon || 'CheckCircle',
-          tracking_type: body.trackingType || 'toggle',
-          unit: body.unit || '',
-          has_note: body.hasNote || false,
-          order: (existing || []).length,
-        })
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ habit: normalizeHabit(data) })
-    }
-
-    // ── POST /appointments ────────────────────────────────
-    if (url === '/appointments') {
-      const { data, error } = await supabase
-        .from('appointments')
-        .insert({ psychologist_id: user?.id, ...denormalizeAppointment(body) })
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ appointment: normalizeAppointment(data) })
-    }
-
-    // ── POST /session-notes/:patientId ────────────────────
-    if (url.startsWith('/session-notes/')) {
-      const patientId = url.split('/session-notes/')[1]
-      const { data, error } = await supabase
-        .from('session_notes')
-        .insert({
-          psychologist_id: user?.id,
-          patient_id: patientId,
-          title: body.title || '',
-          content: body.content || '',
-          session_date: body.sessionDate || new Date().toISOString(),
-        })
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ note: normalizeNote(data) })
-    }
-
-    // ── POST /goals/:patientId ────────────────────────────
-    if (url.startsWith('/goals/')) {
-      const patientId = url.split('/goals/')[1]
-      const { data, error } = await supabase
-        .from('therapy_goals')
-        .insert({
-          psychologist_id: user?.id,
-          patient_id: patientId,
-          text: body.text,
-          completed: false,
-        })
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ goal: normalizeGoal(data) })
-    }
-
-    // ── POST /patients/requests/:id/accept ────────────────
-    if (url.startsWith('/patients/requests/') && url.endsWith('/accept')) {
-      const patientId = url.split('/patients/requests/')[1].replace('/accept', '')
-      const { data: acceptedLink, error } = await supabase
-        .from('patient_psychologists')
-        .update({ status: 'ACCEPTED', updated_at: new Date().toISOString() })
-        .eq('patient_id', patientId)
-        .eq('psychologist_id', user?.id)
-        .eq('status', 'PENDING')
-        .select('id')
-        .maybeSingle()
-      if (error) return fail(error.message)
-      if (!acceptedLink) return fail('La solicitud ya no está disponible.', 404)
-      return ok({ success: true })
-    }
-
-    // ── POST /patients/requests/:id/reject ────────────────
-    if (url.startsWith('/patients/requests/') && url.endsWith('/reject')) {
-      const patientId = url.split('/patients/requests/')[1].replace('/reject', '')
-      const { error } = await supabase
-        .from('patient_psychologists')
-        .delete()
-        .eq('patient_id', patientId)
-        .eq('psychologist_id', user?.id)
-        .eq('status', 'PENDING')
-      if (error) return fail(error.message)
-      return ok({ success: true })
-    }
-
-    return fail(`Ruta no encontrada: POST ${url}`, 404)
-  },
-
-  // ──────────────────────────────────────────────────────────
-  put: async (url, body) => {
-    const user = await currentUser()
-
-    // ── PUT /auth/user ────────────────────────────────────
-    if (url === '/auth/user') {
-      // Se delega a AuthContext.updateUser() normalmente
-      const updates = {}
-      if (body.name) updates.name = body.name
-      if (body.avatar !== undefined) updates.avatar_url = body.avatar
-      if (Object.keys(updates).length > 0) {
-        const { error } = await supabase.from('profiles').update(updates).eq('id', user?.id)
-        if (error) return fail(error.message)
-      }
-      if (body.password) {
-        const { error } = await supabase.auth.updateUser({ password: body.password })
-        if (error) return fail(error.message)
-      }
-      const { data: p, error: profileError } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
-      if (profileError) return fail(profileError.message)
-      return ok({ user: { id: p.id, name: p.name, role: p.role, inviteCode: p.invite_code, psychologistId: p.psychologist_id } })
-    }
-
-    // ── PUT /habits/:id ───────────────────────────────────
-    if (url.startsWith('/habits/')) {
-      const habitId = url.split('/habits/')[1]
-      const { data, error } = await supabase
-        .from('habits')
-        .update({
-          text: body.text,
-          icon: body.icon,
-          tracking_type: body.trackingType,
-          unit: body.unit,
-          has_note: body.hasNote,
-        })
-        .eq('id', habitId)
-        .eq('user_id', user?.id)
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ habit: normalizeHabit(data) })
-    }
-
-    // ── PUT /journal/:id ──────────────────────────────────
-    if (url.startsWith('/journal/')) {
-      const entryId = url.split('/journal/')[1]
-      const merged = [...(body.completedHabits || [])]
-      if (body.habitData) {
-        Object.entries(body.habitData).forEach(([id, d]) => {
-          if (d.done === true && !merged.includes(id)) merged.push(id)
-        })
-      }
-      const { data, error } = await supabase
-        .from('journal_entries')
-        .update({
-          mood_score: body.moodScore,
-          content: body.content,
-          completed_habits: merged,
-          habit_data: body.habitData || {},
-        })
-        .eq('id', entryId)
-        .eq('patient_id', user?.id)
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ entry: normalizeEntry(data) })
-    }
-
-    // ── PUT /appointments/:id ─────────────────────────────
-    if (url.startsWith('/appointments/')) {
-      const apptId = url.split('/appointments/')[1]
-      const { data, error } = await supabase
-        .from('appointments')
-        .update(denormalizeAppointment(body))
-        .eq('id', apptId)
-        .eq('psychologist_id', user?.id)
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ appointment: normalizeAppointment(data) })
-    }
-
-    // ── PUT /session-notes/note/:id ───────────────────────
-    if (url.startsWith('/session-notes/note/')) {
-      const noteId = url.split('/session-notes/note/')[1]
-      const { data, error } = await supabase
-        .from('session_notes')
-        .update({ title: body.title, content: body.content })
-        .eq('id', noteId)
-        .eq('psychologist_id', user?.id)
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ note: normalizeNote(data) })
-    }
-
-    return fail(`Ruta no encontrada: PUT ${url}`, 404)
-  },
-
-  // ──────────────────────────────────────────────────────────
-  patch: async (url) => {
-    const user = await currentUser()
-
-    // ── PATCH /goals/:id/toggle ───────────────────────────
-    if (url.includes('/toggle')) {
-      const goalId = url.split('/goals/')[1].replace('/toggle', '')
-      const { data: goal, error: goalError } = await supabase
-        .from('therapy_goals')
-        .select('completed')
-        .eq('id', goalId)
-        .single()
-      if (goalError) return fail(goalError.message)
-      const { data, error } = await supabase
-        .from('therapy_goals')
-        .update({ completed: !goal?.completed })
-        .eq('id', goalId)
-        .select()
-        .single()
-      if (error) return fail(error.message)
-      return ok({ goal: normalizeGoal(data) })
-    }
-
-    return fail(`Ruta no encontrada: PATCH ${url}`, 404)
-  },
-
-  // ──────────────────────────────────────────────────────────
-  delete: async (url) => {
-    const user = await currentUser()
-
-    // ── DELETE /auth/link/:id ─────────────────────────────
-    if (url.startsWith('/auth/link/')) {
-      const psychId = url.split('/auth/link/')[1]
-      if (!user) return fail('No autorizado', 401)
-      const { error } = await supabase
-        .from('patient_psychologists')
-        .delete()
-        .eq('patient_id', user.id)
-        .eq('psychologist_id', psychId)
-
-      if (error) return fail(error.message)
-      return ok({ ok: true })
-    }
-
-    // ── DELETE /journal/:id ───────────────────────────────
-    if (url.startsWith('/journal/')) {
-      const id = url.split('/journal/')[1]
-      const { error } = await supabase
-        .from('journal_entries')
-        .delete()
-        .eq('id', id)
-        .eq('patient_id', user?.id)
-      if (error) return fail(error.message)
-      return ok({ ok: true })
-    }
-
-    // ── DELETE /appointments/:id ──────────────────────────
-    if (url.startsWith('/appointments/')) {
-      const id = url.split('/appointments/')[1]
-      const { error } = await supabase
-        .from('appointments')
-        .delete()
-        .eq('id', id)
-        .eq('psychologist_id', user?.id)
-      if (error) return fail(error.message)
-      return ok({ ok: true })
-    }
-
-    // ── DELETE /session-notes/note/:id ────────────────────
-    if (url.startsWith('/session-notes/note/')) {
-      const id = url.split('/session-notes/note/')[1]
-      const { error } = await supabase
-        .from('session_notes')
-        .delete()
-        .eq('id', id)
-        .eq('psychologist_id', user?.id)
-      if (error) return fail(error.message)
-      return ok({ ok: true })
-    }
-
-    // ── DELETE /habits/:id ────────────────────────────────
-    if (url.startsWith('/habits/')) {
-      const id = url.split('/habits/')[1]
-      // Limpiar el hábito de las entradas de diario existentes
-      const { data: entries, error: entriesError } = await supabase
-        .from('journal_entries')
-        .select('id, completed_habits, habit_data')
-        .eq('patient_id', user?.id)
-        .contains('completed_habits', [id])
-      if (entriesError) return fail(entriesError.message)
-      if (entries?.length > 0) {
-        const results = await Promise.all(entries.map(e => supabase
-          .from('journal_entries')
-          .update({
-            completed_habits: e.completed_habits.filter(h => h !== id),
-          })
-          .eq('id', e.id)
-        ))
-        const updateError = results.find(r => r.error)?.error
-        if (updateError) return fail(updateError.message)
-      }
-      const { error } = await supabase
-        .from('habits')
-        .delete()
-        .eq('id', id)
-        .eq('user_id', user?.id)
-      if (error) return fail(error.message)
-      return ok({ ok: true })
-    }
-
-    // ── DELETE /goals/:id ─────────────────────────────────
-    if (url.startsWith('/goals/')) {
-      const id = url.split('/goals/')[1]
-      const { error } = await supabase
-        .from('therapy_goals')
-        .delete()
-        .eq('id', id)
-      if (error) return fail(error.message)
-      return ok({ ok: true })
-    }
-
-    return fail(`Ruta no encontrada: DELETE ${url}`, 404)
-  },
+// Al crear o editar una entrada, los hábitos marcados en habitData también
+// cuentan como completados.
+function mergeCompletedHabits(completedHabits, habitData) {
+  const merged = [...(completedHabits || [])]
+  Object.entries(habitData || {}).forEach(([id, d]) => {
+    if (d.done === true && !merged.includes(id)) merged.push(id)
+  })
+  return merged
 }
 
-export default api
+// ── Diario ────────────────────────────────────────────────
+
+// Sin patientId: las entradas propias. Con patientId: las de un paciente
+// vinculado (RLS solo las devuelve al psicólogo con vínculo aceptado).
+export async function getJournal(patientId) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .select('*')
+    .eq('patient_id', patientId || user?.id)
+    .order('entry_date', { ascending: false })
+  if (error) return fail(error.message)
+  return ok({ entries: (data || []).map(normalizeEntry) })
+}
+
+export async function createJournalEntry({ moodScore, content, completedHabits, habitData, entryDate }) {
+  const user = await currentUser()
+  const today = entryDateKey()
+  const requestedEntryDate = entryDate || today
+
+  if (requestedEntryDate > today) {
+    return fail('No podés crear anotaciones para fechas futuras.', 403)
+  }
+
+  // Una entrada por día de registro.
+  const { data: existing, error: existingError } = await supabase
+    .from('journal_entries')
+    .select('id')
+    .eq('patient_id', user?.id)
+    .eq('entry_date', requestedEntryDate)
+    .limit(1)
+  if (existingError) return fail(existingError.message)
+  if (existing?.length > 0) {
+    return fail(`Ya existe una entrada para esta fecha (${requestedEntryDate}).`, 409)
+  }
+
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .insert({
+      patient_id: user?.id,
+      mood_score: moodScore,
+      content: content || '',
+      completed_habits: mergeCompletedHabits(completedHabits, habitData),
+      habit_data: habitData || {},
+      flagged_for_session: false,
+      entry_date: requestedEntryDate,
+    })
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ entry: normalizeEntry(data) })
+}
+
+export async function updateJournalEntry(entryId, { moodScore, content, completedHabits, habitData }) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('journal_entries')
+    .update({
+      mood_score: moodScore,
+      content,
+      completed_habits: mergeCompletedHabits(completedHabits, habitData),
+      habit_data: habitData || {},
+    })
+    .eq('id', entryId)
+    .eq('patient_id', user?.id)
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ entry: normalizeEntry(data) })
+}
+
+export async function deleteJournalEntry(entryId) {
+  const user = await currentUser()
+  const { error } = await supabase
+    .from('journal_entries')
+    .delete()
+    .eq('id', entryId)
+    .eq('patient_id', user?.id)
+  if (error) return fail(error.message)
+  return ok({ ok: true })
+}
+
+// ── Hábitos ───────────────────────────────────────────────
+
+export async function getHabits(patientId) {
+  const user = await currentUser()
+  if (patientId && user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+
+  const { data, error } = await supabase
+    .from('habits')
+    .select('*')
+    .eq('user_id', patientId || user?.id)
+    .order('order', { ascending: true })
+  if (error) return fail(error.message)
+  return ok({ habits: (data || []).map(normalizeHabit) })
+}
+
+export async function getHabitCorrelation(patientId) {
+  const user = await currentUser()
+  if (patientId && user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+  const targetId = patientId || user?.id
+
+  const [habitsResult, entriesResult] = await Promise.all([
+    supabase.from('habits').select('*').eq('user_id', targetId),
+    supabase
+      .from('journal_entries')
+      .select('completed_habits, habit_data, mood_score')
+      .eq('patient_id', targetId),
+  ])
+  if (habitsResult.error) return fail(habitsResult.error.message)
+  if (entriesResult.error) return fail(entriesResult.error.message)
+  const habits = habitsResult.data || []
+  const entries = entriesResult.data || []
+  if (entries.length < 5) return ok([])
+  return ok(computeCorrelation(habits.map(normalizeHabit), entries.map(normalizeEntry)))
+}
+
+export async function createHabit({ text, icon, trackingType, unit, hasNote }) {
+  const user = await currentUser()
+  const { count, error: countError } = await supabase
+    .from('habits')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user?.id)
+  if (countError) return fail(countError.message)
+
+  const { data, error } = await supabase
+    .from('habits')
+    .insert({
+      user_id: user?.id,
+      text,
+      icon: icon || 'CheckCircle',
+      tracking_type: trackingType || 'toggle',
+      unit: unit || '',
+      has_note: hasNote || false,
+      order: count ?? 0,
+    })
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ habit: normalizeHabit(data) })
+}
+
+export async function updateHabit(habitId, { text, icon, trackingType, unit, hasNote }) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('habits')
+    .update({ text, icon, tracking_type: trackingType, unit, has_note: hasNote })
+    .eq('id', habitId)
+    .eq('user_id', user?.id)
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ habit: normalizeHabit(data) })
+}
+
+export async function deleteHabit(habitId) {
+  const user = await currentUser()
+  // Se quita el hábito de las entradas de diario que lo tenían completado.
+  const { data: entries, error: entriesError } = await supabase
+    .from('journal_entries')
+    .select('id, completed_habits')
+    .eq('patient_id', user?.id)
+    .contains('completed_habits', [habitId])
+  if (entriesError) return fail(entriesError.message)
+  if (entries?.length > 0) {
+    const results = await Promise.all(entries.map(e => supabase
+      .from('journal_entries')
+      .update({ completed_habits: e.completed_habits.filter(h => h !== habitId) })
+      .eq('id', e.id)
+    ))
+    const updateError = results.find(r => r.error)?.error
+    if (updateError) return fail(updateError.message)
+  }
+
+  const { error } = await supabase
+    .from('habits')
+    .delete()
+    .eq('id', habitId)
+    .eq('user_id', user?.id)
+  if (error) return fail(error.message)
+  return ok({ ok: true })
+}
+
+// ── Pacientes del psicólogo ───────────────────────────────
+
+export async function getPatients() {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+
+  const { data: links, error: linksError } = await supabase
+    .from('patient_psychologists')
+    .select('patient_id')
+    .eq('psychologist_id', user.id)
+    .eq('status', 'ACCEPTED')
+  if (linksError) return fail(linksError.message)
+  const patientIds = [...new Set((links || []).map(link => link.patient_id))]
+  if (!patientIds.length) return ok({ patients: [] })
+
+  // Perfiles y resumen de entradas en paralelo, en lugar de una consulta por paciente
+  const [{ data: patients, error }, { data: summaries, error: summariesError }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, name, role, avatar_url')
+      .in('id', patientIds)
+      .eq('role', 'PATIENT'),
+    supabase.rpc('psychologist_patient_summaries'),
+  ])
+  if (error) return fail(error.message)
+  const summaryById = summariesError
+    ? await summarizeEntriesByPatient(patientIds)
+    : new Map((summaries || []).map(s => [s.patient_id, s]))
+  if (summaryById instanceof Error) return fail(summaryById.message)
+
+  const enriched = (patients || []).map((p) => {
+    const summary = summaryById.get(p.id)
+    return {
+      id: p.id,
+      name: p.name,
+      email: '', // protegido por RLS, no exponer
+      role: p.role,
+      avatarUrl: p.avatar_url,
+      psychologistId: user.id,
+      totalEntries: Number(summary?.total_entries ?? 0),
+      lastMood: summary?.last_mood ?? null,
+      lastEntryDate: summary?.last_entry_date ?? null,
+    }
+  })
+  return ok({ patients: enriched })
+}
+
+export async function getPatientInsights(patientId) {
+  const { data: entries, error } = await supabase
+    .from('journal_entries')
+    .select('mood_score, completed_habits, entry_date, created_at')
+    .eq('patient_id', patientId)
+    .order('entry_date', { ascending: false })
+  if (error) return fail(error.message)
+  return ok(computeInsights((entries || []).map(normalizeEntry)))
+}
+
+export async function getPatientRequests() {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+
+  const { data: links, error: linksError } = await supabase
+    .from('patient_psychologists')
+    .select('patient_id, created_at')
+    .eq('psychologist_id', user.id)
+    .eq('status', 'PENDING')
+  if (linksError) return fail(linksError.message)
+  const patientIds = [...new Set((links || []).map(link => link.patient_id))]
+  if (!patientIds.length) return ok({ requests: [] })
+  const requestDates = new Map(links.map(link => [link.patient_id, link.created_at]))
+
+  const { data: requests, error } = await supabase
+    .from('profiles')
+    .select('id, name, avatar_url')
+    .in('id', patientIds)
+    .eq('role', 'PATIENT')
+  if (error) return fail(error.message)
+  return ok({ requests: (requests || [])
+    .map(r => ({ id: r.id, name: r.name, avatarUrl: r.avatar_url, date: requestDates.get(r.id) }))
+    .sort((a, b) => new Date(b.date) - new Date(a.date)) })
+}
+
+export async function getPatientRequestCount() {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+
+  const { count, error } = await supabase
+    .from('patient_psychologists')
+    .select('id', { count: 'exact', head: true })
+    .eq('psychologist_id', user.id)
+    .eq('status', 'PENDING')
+  if (error) return fail(error.message)
+  return ok({ count: count ?? 0 })
+}
+
+export async function acceptPatientRequest(patientId) {
+  const user = await currentUser()
+  const { data: acceptedLink, error } = await supabase
+    .from('patient_psychologists')
+    .update({ status: 'ACCEPTED', updated_at: new Date().toISOString() })
+    .eq('patient_id', patientId)
+    .eq('psychologist_id', user?.id)
+    .eq('status', 'PENDING')
+    .select('id')
+    .maybeSingle()
+  if (error) return fail(error.message)
+  if (!acceptedLink) return fail('La solicitud ya no está disponible.', 404)
+  return ok({ success: true })
+}
+
+export async function rejectPatientRequest(patientId) {
+  const user = await currentUser()
+  const { error } = await supabase
+    .from('patient_psychologists')
+    .delete()
+    .eq('patient_id', patientId)
+    .eq('psychologist_id', user?.id)
+    .eq('status', 'PENDING')
+  if (error) return fail(error.message)
+  return ok({ success: true })
+}
+
+// ── Notas de sesión (privadas del psicólogo) ──────────────
+
+export async function getSessionNotes(patientId) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('session_notes')
+    .select('*')
+    .eq('psychologist_id', user?.id)
+    .eq('patient_id', patientId)
+    .order('session_date', { ascending: false })
+  if (error) return fail(error.message)
+  return ok({ notes: (data || []).map(normalizeNote) })
+}
+
+export async function createSessionNote(patientId, { title, content, sessionDate }) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('session_notes')
+    .insert({
+      psychologist_id: user?.id,
+      patient_id: patientId,
+      title: title || '',
+      content: content || '',
+      session_date: sessionDate || new Date().toISOString(),
+    })
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ note: normalizeNote(data) })
+}
+
+export async function updateSessionNote(noteId, { title, content }) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('session_notes')
+    .update({ title, content })
+    .eq('id', noteId)
+    .eq('psychologist_id', user?.id)
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ note: normalizeNote(data) })
+}
+
+export async function deleteSessionNote(noteId) {
+  const user = await currentUser()
+  const { error } = await supabase
+    .from('session_notes')
+    .delete()
+    .eq('id', noteId)
+    .eq('psychologist_id', user?.id)
+  if (error) return fail(error.message)
+  return ok({ ok: true })
+}
+
+// ── Objetivos terapéuticos ────────────────────────────────
+
+export async function getGoals(patientId) {
+  const { data, error } = await supabase
+    .from('therapy_goals')
+    .select('*')
+    .eq('patient_id', patientId)
+    .order('created_at', { ascending: true })
+  if (error) return fail(error.message)
+  return ok({ goals: (data || []).map(normalizeGoal) })
+}
+
+export async function createGoal(patientId, { text }) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('therapy_goals')
+    .insert({ psychologist_id: user?.id, patient_id: patientId, text, completed: false })
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ goal: normalizeGoal(data) })
+}
+
+export async function toggleGoal(goalId) {
+  const { data: goal, error: goalError } = await supabase
+    .from('therapy_goals')
+    .select('completed')
+    .eq('id', goalId)
+    .single()
+  if (goalError) return fail(goalError.message)
+  const { data, error } = await supabase
+    .from('therapy_goals')
+    .update({ completed: !goal.completed })
+    .eq('id', goalId)
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ goal: normalizeGoal(data) })
+}
+
+export async function deleteGoal(goalId) {
+  const { error } = await supabase
+    .from('therapy_goals')
+    .delete()
+    .eq('id', goalId)
+  if (error) return fail(error.message)
+  return ok({ ok: true })
+}
+
+// ── Vínculo paciente–psicólogo ────────────────────────────
+
+export async function getMyPsychologists() {
+  const user = await currentUser()
+  const { data: links, error } = await supabase
+    .from('patient_psychologists')
+    .select('psychologist_id, status')
+    .eq('patient_id', user?.id)
+  if (error) return fail(error.message)
+  if (!links?.length) return ok({ psychologists: [] })
+
+  const statusById = new Map(links.map(l => [l.psychologist_id, l.status]))
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select('id, name, avatar_url')
+    .in('id', [...statusById.keys()])
+  if (profilesError) return fail(profilesError.message)
+  return ok({ psychologists: (profiles || []).map(p => ({ ...p, status: statusById.get(p.id) })) })
+}
+
+async function findPsychologistByInviteCode(inviteCode) {
+  const { data, error } = await supabase.rpc('preview_psychologist_by_invite_code', {
+    p_invite_code: inviteCode,
+  })
+  if (error) return { error: error.message }
+  const psychologist = data?.[0]
+  if (!psychologist) return { error: 'Código de invitación inválido.' }
+  return { psychologist }
+}
+
+export async function previewPsychologistLink(inviteCode) {
+  const { psychologist, error } = await findPsychologistByInviteCode(inviteCode?.trim().toUpperCase())
+  if (error) return fail(error)
+  return ok({ psychologist })
+}
+
+export async function requestPsychologistLink(rawInviteCode) {
+  const user = await currentUser()
+  if (user?.role !== 'PATIENT') return fail('Inicia sesión como paciente para enviar una solicitud.', 401)
+  const inviteCode = rawInviteCode?.trim().toUpperCase()
+  if (!inviteCode) return fail('Ingresa el código de invitación.')
+
+  const { psychologist, error } = await findPsychologistByInviteCode(inviteCode)
+  if (error) return fail(error)
+  if (psychologist.id === user.id) return fail('No puedes vincularte con tu propia cuenta.')
+
+  const { error: insertErr } = await supabase
+    .from('patient_psychologists')
+    .insert({ patient_id: user.id, psychologist_id: psychologist.id, status: 'PENDING' })
+  if (insertErr?.code === '23505') return fail('Ya existe una solicitud o vinculación con este psicólogo.')
+  if (insertErr) return fail(insertErr.message)
+  return ok({ message: `Solicitud enviada a ${psychologist.name}.` })
+}
+
+export async function unlinkPsychologist(psychologistId) {
+  const user = await currentUser()
+  if (!user) return fail('No autorizado', 401)
+  const { error } = await supabase
+    .from('patient_psychologists')
+    .delete()
+    .eq('patient_id', user.id)
+    .eq('psychologist_id', psychologistId)
+  if (error) return fail(error.message)
+  return ok({ ok: true })
+}
 
 // ============================================================
 // Normalizadores snake_case → camelCase
@@ -799,30 +628,6 @@ function normalizeNote(n) {
     sessionDate: n.session_date,
     createdAt: n.created_at,
     updatedAt: n.updated_at,
-  }
-}
-
-function normalizeAppointment(a) {
-  return {
-    id: a.id,
-    psychologistId: a.psychologist_id,
-    patientId: a.patient_id,
-    title: a.title,
-    date: a.date,
-    duration: a.duration,
-    notes: a.notes,
-    createdAt: a.created_at,
-    updatedAt: a.updated_at,
-  }
-}
-
-function denormalizeAppointment(body) {
-  return {
-    title: body.title,
-    date: body.date,
-    duration: body.duration,
-    notes: body.notes,
-    patient_id: body.patientId,
   }
 }
 

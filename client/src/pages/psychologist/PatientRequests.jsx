@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { UserPlus, Check, X } from 'lucide-react'
-import api from '../../lib/api'
+import { acceptPatientRequest, getPatientRequests, rejectPatientRequest } from '../../lib/api'
 import AvatarDisplay from '../../components/AvatarDisplay'
+import { useToast } from '../../context/ToastContext'
 
 export default function PatientRequests() {
+  const { showError } = useToast()
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -18,7 +20,7 @@ export default function PatientRequests() {
 
   const fetchRequests = async () => {
     try {
-      const { data } = await api.get('/patients/requests')
+      const { data } = await getPatientRequests()
       setRequests(data.requests)
       setError('')
     } catch (err) {
@@ -31,21 +33,21 @@ export default function PatientRequests() {
 
   const handleAccept = async (id) => {
     try {
-      await api.post(`/patients/requests/${id}/accept`)
+      await acceptPatientRequest(id)
       setRequests(prev => prev.filter(req => req.id !== id))
       window.dispatchEvent(new Event('soma:patient-requests-updated'))
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Error al aceptar solicitud.')
+      showError(err.response?.data?.error || err.message || 'Error al aceptar solicitud.')
     }
   }
 
   const handleReject = async (id) => {
     try {
-      await api.post(`/patients/requests/${id}/reject`)
+      await rejectPatientRequest(id)
       setRequests(prev => prev.filter(req => req.id !== id))
       window.dispatchEvent(new Event('soma:patient-requests-updated'))
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Error al rechazar solicitud.')
+      showError(err.response?.data?.error || err.message || 'Error al rechazar solicitud.')
     }
   }
 

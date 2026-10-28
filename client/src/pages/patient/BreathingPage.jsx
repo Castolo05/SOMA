@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useReducer } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ArrowLeft, Wind } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
@@ -9,38 +9,32 @@ const PHASES = [
   { label: 'Exhala', duration: 4, color: '#0d9488' },
 ]
 
+const INITIAL_BREATHING = { phase: 0, secondsLeft: PHASES[0].duration, cycles: 0 }
+
+// Cada segundo descuenta uno; al terminar una fase pasa a la siguiente y, al
+// volver a la primera, suma un ciclo.
+function breathingReducer(state, action) {
+  if (action.type === 'reset') return INITIAL_BREATHING
+  if (state.secondsLeft > 1) return { ...state, secondsLeft: state.secondsLeft - 1 }
+  const phase = (state.phase + 1) % PHASES.length
+  return {
+    phase,
+    secondsLeft: PHASES[phase].duration,
+    cycles: phase === 0 ? state.cycles + 1 : state.cycles,
+  }
+}
+
 export default function BreathingPage() {
   usePageTitle('Respiración 4-4-4')
   const navigate = useNavigate()
   const [running, setRunning] = useState(false)
-  const [phase, setPhase] = useState(0)
-  const [tick, setTick] = useState(0)
-  const [cycles, setCycles] = useState(0)
-  const [secondsLeft, setSecondsLeft] = useState(PHASES[0].duration)
+  const [{ phase, secondsLeft, cycles }, dispatch] = useReducer(breathingReducer, INITIAL_BREATHING)
 
   useEffect(() => {
     if (!running) return
-
-    const interval = setInterval(() => {
-      setTick((t) => t + 1)
-    }, 1000)
-
+    const interval = setInterval(() => dispatch({ type: 'tick' }), 1000)
     return () => clearInterval(interval)
   }, [running])
-
-  useEffect(() => {
-    if (!running) return
-
-    setSecondsLeft((prev) => {
-      if (prev <= 1) {
-        const nextPhase = (phase + 1) % PHASES.length
-        setPhase(nextPhase)
-        if (nextPhase === 0) setCycles((c) => c + 1)
-        return PHASES[nextPhase].duration
-      }
-      return prev - 1
-    })
-  }, [tick])
 
   const currentPhase = PHASES[phase]
   const progress = 1 - (secondsLeft / currentPhase.duration)
@@ -114,15 +108,8 @@ export default function BreathingPage() {
         {/* Botón */}
         <button
           onClick={() => {
-            if (running) {
-              setRunning(false)
-              setPhase(0)
-              setSecondsLeft(PHASES[0].duration)
-              setTick(0)
-            } else {
-              setRunning(true)
-              setCycles(0)
-            }
+            dispatch({ type: 'reset' })
+            setRunning(!running)
           }}
           className={`px-8 py-3 rounded-2xl font-bold text-white transition-all shadow-md ${
             running

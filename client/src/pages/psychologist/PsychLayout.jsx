@@ -4,10 +4,9 @@ import { useAuth } from '../../context/AuthContext'
 import ThemeLogo from '../../components/ThemeLogo'
 import ConfirmLogoutModal from '../../components/ConfirmLogoutModal'
 import { applyTheme } from '../../lib/theme'
-import api from '../../lib/api'
+import { getPatientRequestCount } from '../../lib/api'
 import {
-  Users, LogOut, Settings, UserPlus,
-  Menu, X, ChevronLeft, ChevronRight,
+  Users, LogOut, Settings, UserPlus, Menu, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 
 function RequestCountBadge({ count, compact = false }) {
@@ -44,7 +43,7 @@ export default function PsychLayout() {
     let active = true
     const refreshCount = async () => {
       try {
-        const { data } = await api.get('/patients/requests/count')
+        const { data } = await getPatientRequestCount()
         if (active) setPendingRequestCount(data.count)
       } catch (err) {
         console.error('Error actualizando el contador de solicitudes:', err)

@@ -1,22 +1,16 @@
 import { lazy, Suspense, useEffect, useState } from 'react'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import {
-  ArrowRight,
-  BookOpen,
-  BrainCircuit,
-  CheckCircle2,
-  HeartPulse,
-  ShieldCheck,
-  Sparkles,
-  X,
+  ArrowRight, BookOpen, BrainCircuit, CheckCircle2, HeartPulse, Sparkles, X,
 } from 'lucide-react'
 
 // Auth
 import LoginPage from './pages/auth/LoginPage'
 import CookieBanner from './components/CookieBanner'
 import { applyTheme } from './lib/theme'
+import { isPasswordRecoveryPending } from './lib/supabase'
 
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
@@ -40,34 +34,20 @@ const LegalPage = lazy(() => import('./pages/LegalPage'))
 const TUTORIAL_STORAGE_KEY = 'soma_first_visit_hidden'
 
 function InitialRoute() {
-  const params = new URLSearchParams(window.location.search)
-  const isResetPasswordPath = window.location.pathname.replace(/\/+$/, '') === '/reset-password'
+  const { search, hash } = useLocation()
+  const params = new URLSearchParams(search)
   const isRecoveryCallback = params.has('recovery') || params.has('code') || params.get('type') === 'recovery'
 
-  return (
-    <Navigate
-      to={isResetPasswordPath || isRecoveryCallback ? '/reset-password' : '/login'}
-      replace
-    />
-  )
+  // Se conservan los parámetros: ResetPasswordPage necesita el código o los tokens.
+  return <Navigate to={isRecoveryCallback ? `/reset-password${search}${hash}` : '/login'} replace />
 }
 
-function NotFoundOrRecoveryRoute() {
-  const hashParts = window.location.hash.slice(1).split('#')
-  const fragmentParams = new URLSearchParams(hashParts[hashParts.length - 1])
-  const accessToken = fragmentParams.get('access_token')
-  const refreshToken = fragmentParams.get('refresh_token')
-
-  if (fragmentParams.get('type') === 'recovery' && accessToken && refreshToken) {
-    return (
-      <Navigate
-        to={`/reset-password?${fragmentParams.toString()}`}
-        replace
-      />
-    )
-  }
-
-  return <NotFoundPage />
+// Si Supabase redirigió el enlace de recuperación a otra ruta (por ejemplo, a la
+// Site URL), supabase-js ya creó la sesión de recuperación: se completa en /reset-password.
+function PasswordRecoveryRedirect() {
+  const { pathname } = useLocation()
+  if (!isPasswordRecoveryPending() || pathname === '/reset-password') return null
+  return <Navigate to="/reset-password" replace />
 }
 
 function FirstVisitTutorial() {
@@ -248,7 +228,8 @@ export default function App() {
 
   return (
     <AuthProvider>
-      <HashRouter>
+      <BrowserRouter>
+        <PasswordRecoveryRedirect />
         <FirstVisitTutorial />
         <CookieBanner />
         <Suspense
@@ -438,10 +419,10 @@ export default function App() {
           </Route>
 
           {/* 404 */}
-            <Route path="*" element={<NotFoundOrRecoveryRoute />} />
+            <Route path="*" element={<NotFoundPage />} />
           </Routes>
         </Suspense>
-      </HashRouter>
+      </BrowserRouter>
     </AuthProvider>
   )
 }

@@ -25,12 +25,10 @@ export function isAnalyticsAllowed() {
 const UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
 
 // Las URLs de auth llevan tokens (#access_token=…, ?code=…) y las rutas del
-// psicólogo, ids de pacientes: a GA solo va la ruta del HashRouter, sin
-// parámetros y con los ids reemplazados.
+// psicólogo, ids de pacientes: a GA solo va la ruta, sin parámetros ni
+// fragmento y con los ids reemplazados.
 function safePageLocation() {
-  const route = window.location.hash.slice(1).split('#')[0].split('?')[0]
-  const safeRoute = route.startsWith('/') ? `#${route.replace(UUID_PATTERN, ':id')}` : ''
-  return `${window.location.origin}${window.location.pathname}${safeRoute}`
+  return `${window.location.origin}${window.location.pathname.replace(UUID_PATTERN, ':id')}`
 }
 
 let initialized = false

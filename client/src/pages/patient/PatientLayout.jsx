@@ -11,6 +11,8 @@ import PatientDashboard from './PatientDashboard'
 import HistoryPage from './HistoryPage'
 import PatientProfile from './PatientProfile'
 
+const baseRoutes = ['/patient', '/patient/history', '/patient/profile']
+
 export default function PatientLayout() {
   const { user } = useAuth()
   const navigate = useNavigate()
@@ -37,7 +39,6 @@ export default function PatientLayout() {
   // Touch-driven Tab Pager (transform-based, like native mobile apps)
   // Only active on mobile (hidden md:flex handles desktop)
   // ------------------------------------------------------------
-  const baseRoutes = ['/patient', '/patient/history', '/patient/profile']
   const isBaseRoute = baseRoutes.includes(location.pathname)
   const routeIdx = baseRoutes.indexOf(location.pathname)
   const activeIdx = routeIdx >= 0 ? routeIdx : 0

@@ -1,10 +1,19 @@
 import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { useAuth } from '../../context/AuthContext'
-import api from '../../lib/api'
 import {
-  UserRound, Link2, LogOut, Plus, Pencil, Trash2, Check, X, CheckCircle2,
-  Camera, Cat, Dog, Rabbit, Bird, Snail, Turtle, Fish, Rat, AlertCircle, Mail
+  createHabit,
+  deleteHabit,
+  getHabits,
+  getJournal,
+  getMyPsychologists,
+  previewPsychologistLink,
+  requestPsychologistLink,
+  unlinkPsychologist,
+  updateHabit,
+} from '../../lib/api'
+import {
+  Link2, LogOut, Plus, Pencil, Trash2, Check, X, AlertCircle, Mail,
 } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import { HABIT_ICONS } from '../../lib/constants'
@@ -15,10 +24,12 @@ import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 import AvatarDisplay from '../../components/AvatarDisplay'
 import ConfirmLogoutModal from '../../components/ConfirmLogoutModal'
 import ConfirmActionModal from '../../components/ConfirmActionModal'
+import { useToast } from '../../context/ToastContext'
 
 export default function PatientProfile() {
+  const { showError } = useToast()
   usePageTitle('Mi Perfil')
-  const { user, logout, updateUser } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [code, setCode] = useState('')
   const [linkLoading, setLinkLoading] = useState(false)
@@ -50,9 +61,11 @@ export default function PatientProfile() {
   const [editHasNote, setEditHasNote] = useState(false)
 
   useEffect(() => {
-    if (!initialCache.habits) api.get('/habits').then(({ data }) => { setHabits(data.habits); updatePatientCache('habits', data.habits) }).catch(() => {})
-    if (!initialCache.entries) api.get('/journal').then(({ data }) => { setEntries(data.entries); updatePatientCache('entries', data.entries) }).catch(() => {})
-    api.get('/auth/psychologists').then(({ data }) => setPsychologists(data.psychologists)).catch(() => {})
+    if (!initialCache.habits) getHabits().then(({ data }) => { setHabits(data.habits); updatePatientCache('habits', data.habits) }).catch(() => {})
+    if (!initialCache.entries) getJournal().then(({ data }) => { setEntries(data.entries); updatePatientCache('entries', data.entries) }).catch(() => {})
+    getMyPsychologists().then(({ data }) => setPsychologists(data.psychologists)).catch(() => {})
+    // Solo al montar: la caché inicial ya se leyó en el primer render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const handlePreviewLink = async (e) => {
@@ -62,7 +75,7 @@ export default function PatientProfile() {
     setLinkLoading(true)
     setIsViewingPsych(false)
     try {
-      const { data } = await api.post('/auth/link/preview', { inviteCode: code.trim().toUpperCase() })
+      const { data } = await previewPsychologistLink(code)
       setPreviewPsych(data.psychologist)
       setShowPreviewModal(true)
     } catch (err) {
@@ -76,12 +89,12 @@ export default function PatientProfile() {
     setLinkError('')
     setLinkLoading(true)
     try {
-      const { data } = await api.post('/auth/link', { inviteCode: code })
+      const { data } = await requestPsychologistLink(code)
       setLinkMsg(data.message)
       setCode('')
       setShowPreviewModal(false)
       try {
-        const res = await api.get('/auth/psychologists')
+        const res = await getMyPsychologists()
         setPsychologists(res.data.psychologists)
       } catch (refreshError) {
         console.error('La solicitud se envió, pero no se pudo actualizar la lista de profesionales:', refreshError)
@@ -95,11 +108,11 @@ export default function PatientProfile() {
 
   const handleUnlink = async (psychId) => {
     try {
-      await api.delete(`/auth/link/${psychId}`)
+      await unlinkPsychologist(psychId)
       setPsychologists(prev => prev.filter(p => p.id !== psychId))
       setConfirmUnlinkPsych(null)
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Error al desvincular.')
+      showError(err.response?.data?.error || err.message || 'Error al desvincular.')
     }
   }
 
@@ -116,7 +129,7 @@ export default function PatientProfile() {
   const handleAddHabit = async () => {
     if (!newText.trim()) return
     try {
-      const { data } = await api.post('/habits', {
+      const { data } = await createHabit({
         text: newText.trim(),
         icon: newIcon,
         trackingType: newTrackingType,
@@ -134,12 +147,12 @@ export default function PatientProfile() {
       setNewUnit('')
       setNewHasNote(false)
       setAdding(false)
-    } catch { alert('Error al crear hábito.') }
+    } catch { showError('Error al crear hábito.') }
   }
 
   const handleSaveEditHabit = async (id) => {
     try {
-      const { data } = await api.put(`/habits/${id}`, {
+      const { data } = await updateHabit(id, {
         text: editText,
         icon: editIcon,
         trackingType: editTrackingType,
@@ -152,19 +165,19 @@ export default function PatientProfile() {
         return nextHabits
       })
       setEditingId(null)
-    } catch { alert('Error al guardar.') }
+    } catch { showError('Error al guardar.') }
   }
 
   const handleDeleteHabit = async (id) => {
     try {
-      await api.delete(`/habits/${id}`)
+      await deleteHabit(id)
       setHabits(prev => {
         const nextHabits = prev.filter(h => h.id !== id)
         updatePatientCache('habits', nextHabits)
         return nextHabits
       })
       setConfirmDeleteHabit(null)
-    } catch { alert('Error al eliminar.') }
+    } catch { showError('Error al eliminar.') }
   }
 
   const IconSelector = ({ value, onChange }) => (

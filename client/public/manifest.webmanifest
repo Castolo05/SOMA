@@ -5,7 +5,7 @@
   "description": "Tu espacio seguro de bienestar mental.",
   "lang": "es-AR",
   "dir": "ltr",
-  "start_url": "/#/login",
+  "start_url": "/login",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

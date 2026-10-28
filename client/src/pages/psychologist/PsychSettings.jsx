@@ -1,8 +1,9 @@
 import { useState, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { Moon, Sun, User, Camera, X } from 'lucide-react'
+import { Moon, Sun, User, Camera } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { readAvatarFile } from '../../lib/avatarUpload'
+import { useToast } from '../../context/ToastContext'
 
 export function AvatarDisplay({ avatar, size = 28, className = "" }) {
   if (!avatar) return <User size={size} className={className} />
@@ -13,8 +14,9 @@ export function AvatarDisplay({ avatar, size = 28, className = "" }) {
 }
 
 export default function PsychSettings() {
+  const { showError } = useToast()
   const { darkMode, setDarkMode } = useOutletContext()
-  const { user, updateUser, logout } = useAuth()
+  const { user, updateUser } = useAuth()
   
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(user?.name || '')
@@ -38,7 +40,7 @@ export default function PsychSettings() {
       })
       setIsEditing(false)
     } catch (err) {
-      alert(err.response?.data?.error || err.message || 'Error al guardar perfil')
+      showError(err.response?.data?.error || err.message || 'Error al guardar perfil')
     } finally {
       setProfileSaving(false)
     }
