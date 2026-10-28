@@ -392,7 +392,14 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
           const open = selectedEntryId ? true : expanded === entry.id
           return (
             <div key={entry.id} className={`rounded-xl border cursor-pointer transition-all ${open ? 'border-indigo-200 dark:border-indigo-700' : 'border-gray-100 dark:border-gray-700 hover:border-gray-200 dark:hover:border-gray-600'}`}>
-              <div className="flex items-center gap-3 p-3" onClick={() => setExpanded(open ? null : entry.id)}>
+              <div
+                className="flex items-center gap-3 p-3"
+                role="button"
+                tabIndex={0}
+                aria-expanded={open}
+                onClick={() => setExpanded(open ? null : entry.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(open ? null : entry.id) } }}
+              >
                 <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0" style={{ backgroundColor: cfg?.bg }}>
                   <MoodIcon score={entry.moodScore} size={16} />
                   <span className="text-[10px] font-black" style={{ color: cfg?.color }}>{entry.moodScore}</span>

@@ -423,7 +423,14 @@ export default function HistoryPage() {
 
                       return (
                         <div key={entry.id} className="card cursor-pointer hover:shadow-md transition-all duration-200">
-                          <div className="flex items-center gap-3" onClick={() => setExpanded(open ? null : entry.id)}>
+                          <div
+                className="flex items-center gap-3"
+                role="button"
+                tabIndex={0}
+                aria-expanded={open}
+                onClick={() => setExpanded(open ? null : entry.id)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setExpanded(open ? null : entry.id) } }}
+              >
                             <div
                               className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-sm"
                               style={{ backgroundColor: config?.color, border: `1px solid ${config?.color}40` }}

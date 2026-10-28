@@ -138,7 +138,13 @@ function FirstVisitTutorial() {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/65 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-md overflow-hidden rounded-[30px] border border-[#c8b3b0] bg-[#f9e2da] shadow-2xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="first-visit-tutorial-title"
+        onKeyDown={(e) => { if (e.key === 'Escape') handleClose() }}
+        className="w-full max-w-md overflow-hidden rounded-[30px] border border-[#c8b3b0] bg-[#f9e2da] shadow-2xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]"
+      >
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-sage-600 dark:text-sage-400">
             <Sparkles size={14} />
@@ -147,6 +153,7 @@ function FirstVisitTutorial() {
           <button
             type="button"
             onClick={handleClose}
+            autoFocus
             className="rounded-full p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-slate-800 dark:hover:text-gray-200"
             aria-label="Cerrar tutorial"
           >
@@ -159,7 +166,7 @@ function FirstVisitTutorial() {
             <Icon size={30} />
           </div>
 
-          <h2 className="text-center text-2xl font-bold text-gray-800 dark:text-white">{current.title}</h2>
+          <h2 id="first-visit-tutorial-title" className="text-center text-2xl font-bold text-gray-800 dark:text-white">{current.title}</h2>
           <p className="mt-3 text-center text-sm leading-6 text-gray-600 dark:text-gray-300">{current.description}</p>
 
           <ul className="mt-5 space-y-2.5">
