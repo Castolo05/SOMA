@@ -125,15 +125,18 @@ const api = {
         return fail('No autorizado', 403)
       }
 
-      const { data: habits } = await supabase
-        .from('habits')
-        .select('*')
-        .eq('user_id', targetId)
-      const { data: entries } = await supabase
-        .from('journal_entries')
-        .select('completed_habits, habit_data, mood_score')
-        .eq('patient_id', targetId)
-      if (!habits || !entries || entries.length < 5) return ok([])
+      const [habitsResult, entriesResult] = await Promise.all([
+        supabase.from('habits').select('*').eq('user_id', targetId),
+        supabase
+          .from('journal_entries')
+          .select('completed_habits, habit_data, mood_score')
+          .eq('patient_id', targetId),
+      ])
+      if (habitsResult.error) return fail(habitsResult.error.message)
+      if (entriesResult.error) return fail(entriesResult.error.message)
+      const habits = habitsResult.data || []
+      const entries = entriesResult.data || []
+      if (entries.length < 5) return ok([])
       const result = computeCorrelation(habits.map(normalizeHabit), entries.map(normalizeEntry))
       return ok(result)
     }
@@ -239,11 +242,12 @@ const api = {
     // ── GET /patients/:id/insights ────────────────────────
     if (url.match(/^\/patients\/.+\/insights$/)) {
       const patientId = url.split('/')[2]
-        const { data: entries } = await supabase
-          .from('journal_entries')
-          .select('mood_score, completed_habits, entry_date, created_at')
-          .eq('patient_id', patientId)
-          .order('entry_date', { ascending: false })
+      const { data: entries, error } = await supabase
+        .from('journal_entries')
+        .select('mood_score, completed_habits, entry_date, created_at')
+        .eq('patient_id', patientId)
+        .order('entry_date', { ascending: false })
+      if (error) return fail(error.message)
       const normalized = (entries || []).map(normalizeEntry)
       return ok(computeInsights(normalized))
     }
@@ -296,7 +300,8 @@ const api = {
       if (error) {
         if (error.code === '42P01') {
           if (!user?.psychologistId) return ok({ psychologists: [] })
-          const { data: psych } = await supabase.from('profiles').select('id, name, avatar_url').eq('id', user.psychologistId).single()
+          const { data: psych, error: psychError } = await supabase.from('profiles').select('id, name, avatar_url').eq('id', user.psychologistId).maybeSingle()
+          if (psychError) return fail(psychError.message)
           return ok({ psychologists: psych ? [{ ...psych, status: user.psychologistStatus }] : [] })
         }
         return fail(error.message)
@@ -304,8 +309,9 @@ const api = {
 
       if (!links || !links.length) return ok({ psychologists: [] })
       const psychIds = links.map(l => l.psychologist_id)
-      const { data: profiles } = await supabase.from('profiles').select('id, name, avatar_url').in('id', psychIds)
-      
+      const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id, name, avatar_url').in('id', psychIds)
+      if (profilesError) return fail(profilesError.message)
+
       const psychologists = (profiles || []).map(p => {
         const link = links.find(l => l.psychologist_id === p.id)
         return { ...p, status: link.status }
@@ -383,12 +389,13 @@ const api = {
       }
 
       // Una entrada por día de registro.
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('journal_entries')
         .select('id')
         .eq('patient_id', user?.id)
         .eq('entry_date', requestedEntryDate)
         .limit(1)
+      if (existingError) return fail(existingError.message)
       if (existing?.length > 0) {
         const err = new Error(`Ya existe una entrada para esta fecha (${requestedEntryDate}).`)
         err.response = { status: 409, data: { error: `Ya existe una entrada para esta fecha (${requestedEntryDate}).` } }
@@ -420,10 +427,11 @@ const api = {
 
     // ── POST /habits ──────────────────────────────────────
     if (url === '/habits') {
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('habits')
         .select('id')
         .eq('user_id', user?.id)
+      if (existingError) return fail(existingError.message)
       const { data, error } = await supabase
         .from('habits')
         .insert({
@@ -530,10 +538,15 @@ const api = {
       if (body.name) updates.name = body.name
       if (body.avatar !== undefined) updates.avatar_url = body.avatar
       if (Object.keys(updates).length > 0) {
-        await supabase.from('profiles').update(updates).eq('id', user?.id)
+        const { error } = await supabase.from('profiles').update(updates).eq('id', user?.id)
+        if (error) return fail(error.message)
       }
-      if (body.password) await supabase.auth.updateUser({ password: body.password })
-      const { data: p } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
+      if (body.password) {
+        const { error } = await supabase.auth.updateUser({ password: body.password })
+        if (error) return fail(error.message)
+      }
+      const { data: p, error: profileError } = await supabase.from('profiles').select('*').eq('id', user?.id).single()
+      if (profileError) return fail(profileError.message)
       return ok({ user: { id: p.id, name: p.name, role: p.role, inviteCode: p.invite_code, psychologistId: p.psychologist_id } })
     }
 
@@ -620,11 +633,12 @@ const api = {
     // ── PATCH /goals/:id/toggle ───────────────────────────
     if (url.includes('/toggle')) {
       const goalId = url.split('/goals/')[1].replace('/toggle', '')
-      const { data: goal } = await supabase
+      const { data: goal, error: goalError } = await supabase
         .from('therapy_goals')
         .select('completed')
         .eq('id', goalId)
         .single()
+      if (goalError) return fail(goalError.message)
       const { data, error } = await supabase
         .from('therapy_goals')
         .update({ completed: !goal?.completed })
@@ -696,19 +710,22 @@ const api = {
     if (url.startsWith('/habits/')) {
       const id = url.split('/habits/')[1]
       // Limpiar el hábito de las entradas de diario existentes
-      const { data: entries } = await supabase
+      const { data: entries, error: entriesError } = await supabase
         .from('journal_entries')
         .select('id, completed_habits, habit_data')
         .eq('patient_id', user?.id)
         .contains('completed_habits', [id])
+      if (entriesError) return fail(entriesError.message)
       if (entries?.length > 0) {
-        await Promise.all(entries.map(e => supabase
+        const results = await Promise.all(entries.map(e => supabase
           .from('journal_entries')
           .update({
             completed_habits: e.completed_habits.filter(h => h !== id),
           })
           .eq('id', e.id)
         ))
+        const updateError = results.find(r => r.error)?.error
+        if (updateError) return fail(updateError.message)
       }
       const { error } = await supabase
         .from('habits')

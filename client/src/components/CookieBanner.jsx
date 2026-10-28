@@ -7,7 +7,10 @@ export default function CookieBanner() {
   const [visible, setVisible] = useState(false)
   const [analyticsEnabled, setAnalyticsEnabled] = useState(false)
 
+  // El banner se monta dentro de AuthProvider, cuando supabase-js ya sacó los
+  // tokens de la URL: recién ahí puede cargarse Analytics.
   useEffect(() => {
+    initAnalytics()
     const preferences = getCookiePreferences()
     setAnalyticsEnabled(Boolean(preferences.analytics))
     setVisible(!localStorage.getItem('soma-cookie-preferences'))

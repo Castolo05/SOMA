@@ -17,7 +17,6 @@ import {
 import LoginPage from './pages/auth/LoginPage'
 import CookieBanner from './components/CookieBanner'
 import { applyTheme } from './lib/theme'
-import { initAnalytics } from './lib/analytics'
 
 const RegisterPage = lazy(() => import('./pages/auth/RegisterPage'))
 const ForgotPasswordPage = lazy(() => import('./pages/auth/ForgotPasswordPage'))
@@ -245,7 +244,6 @@ export default function App() {
     const patientTheme = localStorage.getItem('nexo_dark') === 'true'
     const isDark = psychTheme || patientTheme
     applyTheme(isDark, false)
-    initAnalytics()
   }, [])
 
   return (

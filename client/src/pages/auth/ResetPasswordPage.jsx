@@ -33,10 +33,15 @@ export default function ResetPasswordPage() {
   const [recoveryReady, setRecoveryReady] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
+  // Se leen una sola vez: el efecto borra los tokens de la URL para que no
+  // queden en el historial ni lleguen a Analytics.
+  const [recoveryParams] = useState(getRecoveryParams)
 
   useEffect(() => {
+    window.history.replaceState(null, '', `${window.location.pathname}#/reset-password`)
+
     const recoverSession = async () => {
-      const { code, type, accessToken, refreshToken } = getRecoveryParams()
+      const { code, type, accessToken, refreshToken } = recoveryParams
       const hasRecoveryCode = Boolean(code) && (!type || type === 'recovery')
       const hasRecoveryTokens = type === 'recovery' && accessToken && refreshToken
       if (!hasRecoveryCode && !hasRecoveryTokens) {

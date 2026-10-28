@@ -22,9 +22,23 @@ export function isAnalyticsAllowed() {
   return getCookiePreferences().analytics
 }
 
+const UUID_PATTERN = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
+
+// Las URLs de auth llevan tokens (#access_token=…, ?code=…) y las rutas del
+// psicólogo, ids de pacientes: a GA solo va la ruta del HashRouter, sin
+// parámetros y con los ids reemplazados.
+function safePageLocation() {
+  const route = window.location.hash.slice(1).split('#')[0].split('?')[0]
+  const safeRoute = route.startsWith('/') ? `#${route.replace(UUID_PATTERN, ':id')}` : ''
+  return `${window.location.origin}${window.location.pathname}${safeRoute}`
+}
+
+let initialized = false
+
 export function initAnalytics() {
   const measurementId = import.meta.env.VITE_GA_ID
-  if (!measurementId || !isAnalyticsAllowed()) return
+  if (initialized || !measurementId || !isAnalyticsAllowed()) return
+  initialized = true
 
   const existing = document.getElementById('google-analytics-script')
   if (!existing) {
@@ -41,5 +55,5 @@ export function initAnalytics() {
   }
   window.gtag = gtag
   gtag('js', new Date())
-  gtag('config', measurementId, { anonymize_ip: true })
+  gtag('config', measurementId, { anonymize_ip: true, page_location: safePageLocation() })
 }
