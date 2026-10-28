@@ -298,7 +298,7 @@ export default function App() {
                     heading: '4. Derechos del usuario',
                     text: [
                       'El usuario puede solicitar acceso, corrección o eliminación de sus datos personales dentro de los límites legales y de la operativa de la aplicación.',
-                      'Para consultas relacionadas con privacidad, podés escribir a hola@soma-app.vercel.app.',
+                      'Para consultas relacionadas con privacidad, podés escribir a faustoguidou@gmail.com.',
                     ],
                   },
                 ]}
@@ -335,7 +335,7 @@ export default function App() {
                     heading: '4. Contacto y responsabilidades',
                     text: [
                       'El equipo de SOMA puede actualizar estos términos con fines de mejora del servicio o cumplimiento de regulaciones.',
-                      'Para consultas, podés escribir a hola@soma-app.vercel.app.',
+                      'Para consultas, podés escribir a faustoguidou@gmail.com.',
                     ],
                   },
                 ]}
@@ -372,7 +372,7 @@ export default function App() {
                     heading: '4. Administración',
                     text: [
                       'El usuario puede rechazar o aceptar cookies desde el banner de consentimiento visible en la interfaz.',
-                      'También podés contactarnos en hola@soma-app.vercel.app para consultas sobre privacidad y cookies.',
+                      'También podés contactarnos en faustoguidou@gmail.com para consultas sobre privacidad y cookies.',
                     ],
                   },
                 ]}
@@ -389,7 +389,7 @@ export default function App() {
                   {
                     heading: 'Contacto directo',
                     text: [
-                      'Email: hola@soma-app.vercel.app',
+                      'Email: faustoguidou@gmail.com',
                       'Horario de atención: según disponibilidad del equipo de SOMA.',
                       'Si necesitás ayuda con tu cuenta o con el acceso al servicio, indicá tu correo de registro y una descripción breve del problema.',
                     ],

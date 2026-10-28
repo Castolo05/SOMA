@@ -8,7 +8,7 @@ Este sitio no expone una API pública ni servicios de IA directos para terceros.
 
 ## Uso de contenido
 
-- La información publicada en https://soma-app.vercel.app/ tiene fines informativos y de producto.
+- La información publicada en https://tansoma.vercel.app/ tiene fines informativos y de producto.
 - No se debe extraer, reutilizar ni redistribuir el contenido sin autorización expresa.
 - No se garantiza la exactitud, integridad o vigencia de cualquier contenido generado por IA o redactado por terceros.
 
@@ -16,5 +16,5 @@ Este sitio no expone una API pública ni servicios de IA directos para terceros.
 
 Para consultas sobre contenido, privacidad o uso del sitio:
 
-- Email: hola@soma-app.vercel.app
-- Sitio: https://soma-app.vercel.app/
+- Email: faustoguidou@gmail.com
+- Sitio: https://tansoma.vercel.app/

@@ -17,4 +17,4 @@ Allow: /
 User-agent: PerplexityBot
 Allow: /
 
-Sitemap: https://soma-app.vercel.app/sitemap.xml
+Sitemap: https://tansoma.vercel.app/sitemap.xml

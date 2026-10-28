@@ -33,7 +33,7 @@ Español latinoamericano (es-AR)
 
 ## URL
 
-https://soma-app.vercel.app/
+https://tansoma.vercel.app/
 
 ## Contacto
 

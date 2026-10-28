@@ -1,7 +1,6 @@
-Contact: mailto:hola@soma-app.vercel.app
-Contact: https://soma-app.vercel.app/#/legal/contact
-Encryption: https://soma-app.vercel.app/
-Acknowledgments: https://soma-app.vercel.app/
-Policy: https://soma-app.vercel.app/#/legal/privacy-policy
+Contact: mailto:faustoguidou@gmail.com
+Contact: https://tansoma.vercel.app/#/legal/contact
+Expires: 2027-10-27T00:00:00.000Z
+Policy: https://tansoma.vercel.app/#/legal/privacy-policy
 Preferred-Languages: es, en
-Canonical: https://soma-app.vercel.app/security.txt
+Canonical: https://tansoma.vercel.app/.well-known/security.txt

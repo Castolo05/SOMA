@@ -6,7 +6,7 @@ Este checklist refleja lo que sí está implementado en el código y la configur
 - [x] La app tiene idioma definido en español con `lang="es"` en `client/index.html`.
 - [x] Tiene `title` custom: `SOMA — Tu espacio seguro`.
 - [x] Tiene meta description definida.
-- [x] Tiene `canonical` configurado a la URL pública `https://soma-app.vercel.app/`.
+- [x] Tiene `canonical` configurado a la URL pública `https://tansoma.vercel.app/`.
 - [x] Tiene Open Graph y Twitter Cards definidos.
 - [x] Tiene favicon custom (`/logo-light.png`).
 - [x] Tiene schema JSON-LD de tipo `WebApplication`.

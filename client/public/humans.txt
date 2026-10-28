@@ -2,8 +2,8 @@ SOMA
 
 Project: Plataforma de bienestar emocional para pacientes y profesionales.
 
-Site: https://soma-app.vercel.app/
-Contact: hola@soma-app.vercel.app
+Site: https://tansoma.vercel.app/
+Contact: faustoguidou@gmail.com
 
 Team:
 - Product and care design: SOMA Team
