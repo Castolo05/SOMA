@@ -39,6 +39,18 @@ export function clearSavedSession() {
   localStorage.removeItem(SESSION_STORAGE_KEY)
 }
 
+// Consulta qué proveedores tiene activos Supabase Auth, así el botón de Google
+// aparece solo cuando el proveedor está habilitado, sin necesidad de redeploy.
+let authProvidersPromise = null
+export function isGoogleAuthEnabled() {
+  if (!authProvidersPromise) {
+    authProvidersPromise = fetch(`${supabaseUrl}/auth/v1/settings`, { headers: { apikey: supabaseAnonKey } })
+      .then((res) => (res.ok ? res.json() : null))
+      .catch(() => null)
+  }
+  return authProvidersPromise.then((settings) => Boolean(settings?.external?.google))
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: false,

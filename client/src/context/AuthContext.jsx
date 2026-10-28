@@ -9,6 +9,8 @@ import {
 import ThemeLogo from '../components/ThemeLogo'
 
 const AuthContext = createContext(null)
+const OAUTH_RETURN_FLAG = 'oauth'
+export const OAUTH_ERROR_KEY = 'soma-oauth-error'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
@@ -59,6 +61,23 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     // Restaurar manualmente la sesión guardada en el almacenamiento local del APK.
     const restoreSession = async () => {
+      // Regreso de Google: supabase-js ya tomó los tokens del fragmento de la URL
+      // (detectSessionInUrl); getSession() espera a que termine de hacerlo.
+      if (new URLSearchParams(window.location.search).get('auth') === OAUTH_RETURN_FLAG) {
+        window.history.replaceState(null, '', window.location.pathname + window.location.hash)
+        const { data } = await supabase.auth.getSession()
+        if (data.session) {
+          if (localStorage.getItem('nexo_trusted_device') !== 'false') saveSession(data.session)
+          await loadProfile(data.session.user)
+          initializedRef.current = true
+          setLoading(false)
+          return
+        }
+        // Sin sesión: Google devolvió un error (por ejemplo, el usuario canceló).
+        try { sessionStorage.setItem(OAUTH_ERROR_KEY, '1') } catch {}
+        window.history.replaceState(null, '', `${window.location.pathname}#/login`)
+      }
+
       const savedSession = loadSavedSession()
       if (!savedSession) {
         initializedRef.current = true
@@ -97,6 +116,20 @@ export function AuthProvider({ children }) {
     return () => subscription.unsubscribe()
   }, [])
 
+
+  // Redirige a Google; al volver, restoreSession() completa el inicio de sesión.
+  const loginWithGoogle = async (shouldTrustDevice = true) => {
+    await setSessionPersistence(shouldTrustDevice)
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: `${window.location.origin}/?auth=${OAUTH_RETURN_FLAG}` },
+    })
+    if (error) {
+      const err = new Error(error.message)
+      err.response = { data: { error: 'No se pudo iniciar sesión con Google. Intentá de nuevo.' } }
+      throw err
+    }
+  }
 
   const login = async (email, password, shouldTrustDevice = true) => {
     await setSessionPersistence(shouldTrustDevice)
@@ -298,7 +331,7 @@ export function AuthProvider({ children }) {
   if (loading) return <InitialLoadingScreen />
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )

@@ -244,8 +244,10 @@ html[data-theme='light'] .text-gray-800,
 html[data-theme='light'] .text-gray-900 { color: var(--ref-light-plum) !important; }
 html[data-theme='light'] .text-gray-400,
 html[data-theme='light'] .text-gray-500 { color: #806f70 !important; }
-html[data-theme='light'] .btn-patient,
 html[data-theme='light'] .react-grid-item.react-grid-placeholder { background-color: var(--ref-light-coral) !important; }
+/* Botón principal en ciruela: el coral sobre fondo coral con texto crema no tenía contraste legible */
+html[data-theme='light'] .btn-patient { background-color: var(--ref-light-plum) !important; }
+html[data-theme='light'] .btn-patient:hover:not(:disabled) { background-color: #463a3a !important; }
 html[data-theme='light'] .btn-psych { background-color: var(--ref-light-plum) !important; }
 html[data-theme='light'] .btn-ghost { border-color: var(--ref-light-taupe) !important; color: var(--ref-light-plum) !important; }
 html[data-theme='light'] .tag { background-color: var(--ref-light-rose) !important; border-color: var(--ref-light-taupe) !important; color: var(--ref-light-plum) !important; }
