@@ -16,7 +16,7 @@ export default function AuthLayout({ children, maxWidth = 'max-w-md', showFooter
   return (
     <div className="min-h-screen bg-[var(--theme-canvas)] dark:bg-[var(--theme-canvas)] lg:grid lg:h-dvh lg:grid-cols-[1.05fr_1fr] lg:overflow-hidden">
       {/* Panel de marca (escritorio) */}
-      <aside className="relative hidden overflow-hidden bg-[#3f2519] p-12 text-[#f7e6da] short:p-10 lg:flex lg:flex-col lg:justify-between">
+      <aside className="relative hidden overflow-hidden bg-[#3f2519] dark:bg-[#0b0e16] p-12 text-[#f7e6da] short:p-10 lg:flex lg:flex-col lg:justify-between">
         {/* La figura del logo, grande y recortada por el borde: el único gesto decorativo */}
         <img
           src="/logo-light.png"

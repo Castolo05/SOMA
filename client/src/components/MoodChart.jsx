@@ -43,7 +43,7 @@ const CustomDot = (props) => {
       cy={cy}
       r={5}
       fill={MOOD_CHART_COLOR(payload.mood)}
-      stroke={isDark ? '#211915' : '#ffffff'}
+      stroke={isDark ? '#1a2030' : '#ffffff'}
       strokeWidth={2}
     />
   )
@@ -89,9 +89,9 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
     else setInternalDays(d)
   }
   const isDark = useIsDarkTheme()
-  const lineColor = isDark ? '#f7ece4' : '#6e402c'
-  const gridColor = isDark ? 'rgba(247, 236, 228, 0.1)' : 'rgba(58, 36, 26, 0.1)'
-  const axisColor = isDark ? '#c3ac9e' : '#7a5e50'
+  const lineColor = isDark ? '#eef1f6' : '#6e402c'
+  const gridColor = isDark ? 'rgba(238, 241, 246, 0.1)' : 'rgba(58, 36, 26, 0.1)'
+  const axisColor = isDark ? '#a3adbf' : '#7a5e50'
 
   // Filtrar entradas por período seleccionado
   const chartData = useMemo(() => {
@@ -193,7 +193,7 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
               stroke={lineColor}
               strokeWidth={2.5}
               dot={chartData.length <= 15 ? <CustomDot isDark={isDark} /> : false}
-              activeDot={{ r: 7, fill: lineColor, stroke: isDark ? '#211915' : '#ffffff', strokeWidth: 2, cursor: onDayClick ? 'pointer' : 'default' }}
+              activeDot={{ r: 7, fill: lineColor, stroke: isDark ? '#1a2030' : '#ffffff', strokeWidth: 2, cursor: onDayClick ? 'pointer' : 'default' }}
             />
           </LineChart>
         </ResponsiveContainer>

@@ -103,41 +103,41 @@ html[data-theme='light'] {
 html.dark,
 html[data-theme='dark'] {
   color-scheme: dark;
-  /* Noche cacao: el mismo marrón del wordmark llevado a fondo. Las acciones son
-     cacao como en el tema claro y el acento es el durazno suave del logo. */
-  --theme-canvas: #17110e;
-  --theme-header: #1c1512;
-  --theme-nav: #15100d;
-  --theme-surface: #211915;
-  --theme-raised: #2a201b;
-  --theme-inset: #1e1713;
-  --theme-border: #3b2e27;
-  --theme-border-strong: #4f3f36;
-  --theme-text: #f7ece4;
-  --theme-muted: #c3ac9e;
-  --theme-primary: #8a5640;
-  --theme-primary-hover: #965f47;
-  --theme-on-primary: #fff6f0;
-  --theme-accent: #e8b89e;
-  --theme-accent-hover: #f2cdb7;
-  --theme-highlight: #d29a7c;
-  --theme-focus: rgba(232, 184, 158, 0.55);
-  --theme-shadow: rgba(0, 0, 0, 0.4);
-  --theme-chart: #f7ece4;
-  --theme-chart-grid: rgba(247, 236, 228, 0.1);
-  --theme-selection: #5c3b2b;
-  --theme-wordmark: #f3dccb;
+  /* Azul noche: un fondo frío y tranquilo sobre el que el durazno y el naranja
+     del logo resaltan. Las acciones son durazno con texto oscuro. */
+  --theme-canvas: #11151f;
+  --theme-header: #151a26;
+  --theme-nav: #10141d;
+  --theme-surface: #1a2030;
+  --theme-raised: #212839;
+  --theme-inset: #161b28;
+  --theme-border: #2a3346;
+  --theme-border-strong: #3a4560;
+  --theme-text: #eef1f6;
+  --theme-muted: #a3adbf;
+  --theme-primary: #f2b48c;
+  --theme-primary-hover: #f6c4a2;
+  --theme-on-primary: #2a1a12;
+  --theme-accent: #f5c3a0;
+  --theme-accent-hover: #f9d4b9;
+  --theme-highlight: #f2b48c;
+  --theme-focus: rgba(242, 180, 140, 0.55);
+  --theme-shadow: rgba(0, 0, 0, 0.45);
+  --theme-chart: #eef1f6;
+  --theme-chart-grid: rgba(238, 241, 246, 0.1);
+  --theme-selection: #3d4a66;
+  --theme-wordmark: #f5dccb;
 
-  --ok-bg: #1d2a1b;
-  --ok-solid: #4f9a48;
-  --ok-text: #97cf8c;
-  --ok-border: #35512f;
-  --danger-bg: #3a201d;
-  --danger-text: #f2a097;
-  --danger-border: #6e3d37;
-  --warn-bg: #352812;
+  --ok-bg: #18291f;
+  --ok-solid: #4f9a68;
+  --ok-text: #93d0a6;
+  --ok-border: #2f5040;
+  --danger-bg: #351c24;
+  --danger-text: #f2a0a4;
+  --danger-border: #6a3542;
+  --warn-bg: #30291a;
   --warn-text: #f0c47a;
-  --warn-border: #6a5226;
+  --warn-border: #63522c;
 
   --mood-1-text: #f67d75;
   --mood-2-text: #f58063;
@@ -156,29 +156,29 @@ html[data-theme='dark'] {
   --text-muted: var(--theme-muted);
   --track-bg: var(--theme-border);
 
-  --brand-50: 44 32 27;
-  --brand-100: 54 39 32;
-  --brand-200: 84 60 48;
-  --brand-300: 150 104 82;
-  --brand-400: 170 112 86;
-  --brand-500: 138 86 64;
-  --brand-600: 150 95 71;
-  --brand-700: 232 184 158;
-  --brand-800: 54 39 32;
-  --brand-900: 40 30 25;
-  --brand-950: 33 25 21;
+  --brand-50: 35 40 56;
+  --brand-100: 42 48 66;
+  --brand-200: 58 66 90;
+  --brand-300: 180 140 115;
+  --brand-400: 242 180 140;
+  --brand-500: 242 180 140;
+  --brand-600: 246 196 162;
+  --brand-700: 245 195 160;
+  --brand-800: 42 48 66;
+  --brand-900: 30 36 52;
+  --brand-950: 24 29 42;
 
-  --pro-50: 42 32 27;
-  --pro-100: 51 39 31;
-  --pro-200: 74 57 46;
-  --pro-300: 217 185 165;
-  --pro-400: 226 195 175;
-  --pro-500: 184 138 112;
-  --pro-600: 160 115 90;
-  --pro-700: 140 90 65;
-  --pro-800: 58 44 36;
-  --pro-900: 42 32 27;
-  --pro-950: 33 25 21;
+  --pro-50: 30 36 52;
+  --pro-100: 38 45 64;
+  --pro-200: 58 69 96;
+  --pro-300: 200 210 228;
+  --pro-400: 214 222 236;
+  --pro-500: 150 165 195;
+  --pro-600: 120 135 165;
+  --pro-700: 95 110 140;
+  --pro-800: 42 50 70;
+  --pro-900: 30 36 52;
+  --pro-950: 24 29 42;
 
   background: var(--theme-canvas);
 }
@@ -479,6 +479,13 @@ html.dark .bg-pro-600 { background-color: var(--theme-primary) !important; }
 :root .bg-brand-600 { background-color: var(--theme-primary) !important; }
 :root .hover\:bg-brand-600:hover,
 :root .hover\:bg-pro-700:hover { background-color: var(--theme-primary-hover) !important; }
+
+/* En oscuro el color de acción es claro (durazno): el texto encima pasa a oscuro */
+html.dark :is(.bg-brand-400, .bg-brand-500, .bg-brand-600, .bg-pro-500, .bg-pro-600),
+html.dark :is(.bg-brand-400, .bg-brand-500, .bg-brand-600, .bg-pro-500, .bg-pro-600) .text-white,
+html.dark :is(.bg-brand-400, .bg-brand-500, .bg-brand-600, .bg-pro-500, .bg-pro-600).text-white {
+  color: var(--theme-on-primary) !important;
+}
 
 /* Gráficos */
 html.dark .recharts-cartesian-grid line { stroke: var(--theme-chart-grid) !important; }
