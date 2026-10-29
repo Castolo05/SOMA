@@ -11,6 +11,7 @@ import {
 } from '../../lib/api'
 import { MOOD_ICONS, HABIT_ICONS, entryDateKey, isEditable } from '../../lib/constants'
 import { syncDailyReminders } from '../../lib/reminders'
+import { computeInsights } from '../../lib/stats'
 import MoodIcon from '../../components/MoodIcon'
 import MoodChart from '../../components/MoodChart'
 import { usePageTitle } from '../../hooks/usePageTitle'
@@ -83,29 +84,9 @@ export default function PatientDashboard() {
   const wroteToday = !!todayEntry
   const canEditToday = wroteToday && isEditable(todayEntry?.entryDate)
 
-  // Stats para desktop
-  const last14 = entries.filter(e => {
-    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 14); cutoff.setHours(0,0,0,0)
-    return new Date(e.createdAt) >= cutoff
-  })
-  const avgMood = last14.length
-    ? Math.round((last14.reduce((s, e) => s + e.moodScore, 0) / last14.length) * 10) / 10
-    : null
-
-  // Racha de días consecutivos
-  const streak = (() => {
-    if (!entries.length) return 0
-    let count = 0
-    let cursor = new Date(); cursor.setHours(0,0,0,0)
-    const keys = new Set(entries.map(e => e.entryDate))
-    while (true) {
-      const key = entryDateKey(cursor)
-      if (!keys.has(key)) break
-      count++
-      cursor.setDate(cursor.getDate() - 1)
-    }
-    return count
-  })()
+  // Mismas métricas que ve el psicólogo (racha y promedio por día de entrada)
+  const { streakDays: streak, avgLast14 } = computeInsights(entries)
+  const avgMood = avgLast14 ? parseFloat(avgLast14) : null
 
   const handleCreate = async ({ mood, content, completedHabits, habitData }, entryDate = todayDate) => {
     setSaveError('')

@@ -100,7 +100,8 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
     if (currentDays !== 'all') {
       const now = new Date()
       const cutoff = new Date(now)
-      cutoff.setDate(now.getDate() - currentDays)
+      // N días = hoy y los N-1 anteriores
+      cutoff.setDate(now.getDate() - (currentDays - 1))
       cutoff.setHours(0, 0, 0, 0)
       // Usar entryDate (clave canónica YYYY-MM-DD) para respetar el día local correcto
       filtered = filtered.filter((e) => {

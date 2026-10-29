@@ -6,6 +6,7 @@ import {
   ResponsiveContainer,
 } from 'recharts'
 import { MOOD_ICONS, HABIT_ICONS } from '../lib/constants'
+import { MIN_DAYS_PER_GROUP, MIN_POINTS_FOR_R } from '../lib/stats'
 
 // ── Tooltip personalizado para el scatter chart ────────────────
 function ScatterTooltip({ active, payload, unit }) {
@@ -51,27 +52,7 @@ function HabitScatterChart({ scatterPoints, trend, pearsonR, unit }) {
     : '#806f70'
 
   const trendPoints = (() => {
-    let t = trend
-    if (!t && scatterPoints && scatterPoints.length >= 3) {
-      const n = scatterPoints.length
-      const mx = scatterPoints.reduce((s, p) => s + p.qty, 0) / n
-      const my = scatterPoints.reduce((s, p) => s + p.mood, 0) / n
-      let num = 0, den = 0
-      for (const p of scatterPoints) {
-        num += (p.qty - mx) * (p.mood - my)
-        den += (p.qty - mx) ** 2
-      }
-      if (den > 0) {
-        const slope = num / den
-        const intercept = my - slope * mx
-        const xMin = Math.min(...scatterPoints.map(p => p.qty))
-        const xMax = Math.max(...scatterPoints.map(p => p.qty))
-        t = [
-          { qty: xMin, mood: slope * xMin + intercept },
-          { qty: xMax, mood: slope * xMax + intercept },
-        ]
-      }
-    }
+    const t = trend
     if (!t || t.length < 2 || t[0].qty === t[1].qty) return null
 
     const [t0, t1] = t
@@ -162,6 +143,11 @@ function HabitScatterChart({ scatterPoints, trend, pearsonR, unit }) {
             </p>
           </div>
         )}
+        {r === null && scatterPoints.length < MIN_POINTS_FOR_R && (
+          <p className="text-[11px] text-gray-400 text-center mt-2">
+            Se necesitan al menos {MIN_POINTS_FOR_R} registros para estimar la relación (hay {scatterPoints.length}).
+          </p>
+        )}
         {r !== null && Math.abs(r) < 0.15 && (
           <div className="flex items-center justify-center gap-2 mt-2">
             <span
@@ -199,7 +185,7 @@ export default function HabitCorrelationCard({ data }) {
           </h2>
         </div>
         <p className="text-xs text-gray-400">
-          Cómo cada hábito se relaciona con el ánimo. Los hábitos con cantidad muestran cada registro como un punto: eje X = cantidad, eje Y = ánimo de ese día. En los hábitos cuantificables, los días no cumplidos o sin cantidad registrada cuentan como 0.
+          Cómo cada hábito se relaciona con el ánimo. Los hábitos con cantidad muestran cada registro como un punto: eje X = cantidad, eje Y = ánimo de ese día. En los hábitos de sí/no con cantidad, los días no cumplidos cuentan como 0; los días sin cantidad registrada no se incluyen.
         </p>
       </div>
 
@@ -324,7 +310,13 @@ export default function HabitCorrelationCard({ data }) {
               </p>
             )}
 
-            {!narrative && Math.abs(impact) <= 0.2 && (
+            {item.impact === null && (
+              <p className="text-xs text-gray-400 mt-2">
+                — Faltan datos para comparar: se necesitan al menos {MIN_DAYS_PER_GROUP} días con y {MIN_DAYS_PER_GROUP} sin este hábito ({item.countWith} con / {item.countWithout} sin).
+              </p>
+            )}
+
+            {!narrative && item.impact !== null && Math.abs(impact) <= 0.2 && (
               <p className="text-xs text-gray-400 mt-2">
                 — Este hábito no muestra un efecto claro en el ánimo con los datos actuales.
               </p>
@@ -334,7 +326,7 @@ export default function HabitCorrelationCard({ data }) {
       })}
 
       <div className="text-xs text-gray-400 text-center space-y-1 px-1">
-        <p>* Se muestran hábitos con al menos 3 días de datos registrados.</p>
+        <p>* Se muestran hábitos con al menos 3 días de datos registrados, contados desde que se creó cada hábito. Las comparaciones requieren {MIN_DAYS_PER_GROUP} días en cada grupo.</p>
         <p>** Los datos no implican causalidad clínica.</p>
       </div>
     </div>
