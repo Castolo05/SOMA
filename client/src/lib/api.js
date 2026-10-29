@@ -807,12 +807,14 @@ function computeCorrelation(habits, entries) {
 
 // ── Patient insights ────────────────────────────────────
 function computeInsights(entries) {
-  const now = new Date()
-  const weekAgo = new Date(now); weekAgo.setDate(now.getDate() - 7)
-  const twoWeeksAgo = new Date(now); twoWeeksAgo.setDate(now.getDate() - 14)
-  const thisWeek = entries.filter(e => new Date(e.createdAt) >= weekAgo)
-  const lastWeek = entries.filter(e => new Date(e.createdAt) >= twoWeeksAgo && new Date(e.createdAt) < weekAgo)
-  const last14 = entries.filter(e => new Date(e.createdAt) >= twoWeeksAgo)
+  // Las ventanas se miden por día de entrada (entryDate), no por instante:
+  // "esta semana" son hoy y los 6 días anteriores.
+  const daysAgoKey = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return entryDateKey(d) }
+  const weekStart = daysAgoKey(6)
+  const prevWeekStart = daysAgoKey(13)
+  const thisWeek = entries.filter(e => e.entryDate >= weekStart)
+  const lastWeek = entries.filter(e => e.entryDate >= prevWeekStart && e.entryDate < weekStart)
+  const last14 = entries.filter(e => e.entryDate >= prevWeekStart)
   const avg = arr => arr.length ? (arr.reduce((s, e) => s + e.moodScore, 0) / arr.length).toFixed(1) : null
   const avgThisWeek = avg(thisWeek)
   const avgLastWeek = avg(lastWeek)
@@ -820,19 +822,12 @@ function computeInsights(entries) {
   const habitCount = {}
   last14.forEach(e => (e.completedHabits || []).forEach(h => { habitCount[h] = (habitCount[h] || 0) + 1 }))
   const topHabits = Object.entries(habitCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([habitId, count]) => ({ habitId, count }))
-  // Racha de días consecutivos
+  // Racha: días consecutivos con registro que terminan hoy, o ayer si hoy
+  // todavía no registró. Si el último registro es más viejo, la racha es 0.
+  const days = new Set(entries.map(e => e.entryDate))
   let streakDays = 0
-  if (entries.length > 0) {
-    const sorted = [...entries].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    const todayKey = sorted[0]?.entryDate
-    let prevKey = todayKey
-    for (const e of sorted) {
-      if (e.entryDate === prevKey) { streakDays++; continue }
-      const diff = (new Date(prevKey) - new Date(e.entryDate)) / 86400000
-      if (diff <= 1) { streakDays++; prevKey = e.entryDate }
-      else break
-    }
-  }
+  let offset = days.has(daysAgoKey(0)) ? 0 : 1
+  while (days.has(daysAgoKey(offset))) { streakDays++; offset++ }
   const totalEntries = entries.length
   const bestMood = entries.length ? Math.max(...entries.map(e => e.moodScore)) : null
   const worstMood = entries.length ? Math.min(...entries.map(e => e.moodScore)) : null

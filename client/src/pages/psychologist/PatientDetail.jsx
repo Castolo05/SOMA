@@ -111,7 +111,7 @@ function PreSessionCard({ insights, patient }) {
 
   const stats = [
     {
-      label: 'Promedio esta semana',
+      label: 'Promedio últimos 7 días',
       main: avgThisWeek ?? '—',
       sub: avgThisWeek ? <MoodIcon score={Math.round(parseFloat(avgThisWeek))} size={14} /> : null,
     },
@@ -170,9 +170,9 @@ function SessionNotes({ patientId }) {
   useEffect(() => {
     getSessionNotes(patientId)
       .then(({ data }) => setNotes(data.notes ?? []))
-      .catch(console.error)
+      .catch(() => showError('No se pudieron cargar las notas de sesión.'))
       .finally(() => setLoading(false))
-  }, [patientId])
+  }, [patientId, showError])
 
   const create = async () => {
     if (!newContent.trim()) return
@@ -296,26 +296,35 @@ function SessionNotes({ patientId }) {
 
 // ── TherapyGoals ───────────────────────────────────────────
 function TherapyGoals({ patientId }) {
+  const { showError } = useToast()
   const [goals, setGoals] = useState([])
   const [newGoal, setNewGoal] = useState('')
   const [adding, setAdding]   = useState(false)
 
   useEffect(() => {
-    getGoals(patientId).then(({ data }) => setGoals(data.goals ?? [])).catch(console.error)
-  }, [patientId])
+    getGoals(patientId)
+      .then(({ data }) => setGoals(data.goals ?? []))
+      .catch(() => showError('No se pudieron cargar los objetivos.'))
+  }, [patientId, showError])
 
   const add    = async () => {
     if (!newGoal.trim()) return
-    const { data } = await createGoal(patientId, { text: newGoal }).catch(() => ({ data: null }))
-    if (data?.goal) { setGoals(p => [...p, data.goal]); setNewGoal(''); setAdding(false) }
+    try {
+      const { data } = await createGoal(patientId, { text: newGoal })
+      setGoals(p => [...p, data.goal]); setNewGoal(''); setAdding(false)
+    } catch { showError('No se pudo crear el objetivo.') }
   }
   const toggle = async (id) => {
-    const { data } = await toggleGoal(id).catch(() => ({ data: null }))
-    if (data?.goal) setGoals(p => p.map(g => g.id === id ? data.goal : g))
+    try {
+      const { data } = await toggleGoal(id)
+      setGoals(p => p.map(g => g.id === id ? data.goal : g))
+    } catch { showError('No se pudo actualizar el objetivo.') }
   }
   const del = async (id) => {
-    await deleteGoal(id).catch(() => {})
-    setGoals(p => p.filter(g => g.id !== id))
+    try {
+      await deleteGoal(id)
+      setGoals(p => p.filter(g => g.id !== id))
+    } catch { showError('No se pudo eliminar el objetivo.') }
   }
 
   const done = goals.filter(g => g.completed).length
@@ -581,9 +590,8 @@ export default function PatientDetail() {
   )
 
   const lastEntry = entries[0]?.createdAt
-  const avgMood   = entries.length
-    ? (entries.slice(0, 7).reduce((s, e) => s + e.moodScore, 0) / Math.min(entries.length, 7)).toFixed(1)
-    : null
+  // Mismo cálculo que la ficha pre-sesión: entradas de los últimos 7 días.
+  const avgMood   = insights?.avgThisWeek ?? null
 
   return (
     <div className="animate-fade-in pb-16">
@@ -613,7 +621,7 @@ export default function PatientDetail() {
                   <span style={{ color: MOOD_ICONS[patient.lastMood]?.color }}>{MOOD_ICONS[patient.lastMood]?.label}</span>
                 </span>
               )}
-              {avgMood && <span className="flex items-center gap-1"><TrendingUp size={11} /> Prom. 7d: <strong>{avgMood}</strong></span>}
+              {avgMood && <span className="flex items-center gap-1"><TrendingUp size={11} /> Prom. 7 días: <strong>{avgMood}</strong></span>}
             </div>
           </div>
         </div>
@@ -734,7 +742,8 @@ export default function PatientDetail() {
                     ) : (
                       <div className="grid gap-2">
                         {habitsList.map(h => {
-                          const habitEntries = entries.filter(e => e.completedHabits?.includes(h.id) || (e.habitData && e.habitData[h.id] !== undefined))
+                          // Mismo criterio que el historial: completado, marcado o con cantidad cargada.
+                          const habitEntries = entries.filter(e => e.completedHabits?.includes(h.id) || e.habitData?.[h.id]?.done === true || e.habitData?.[h.id]?.qty !== undefined)
                           const totalTimes = habitEntries.length
                           
                           let totalQty = null

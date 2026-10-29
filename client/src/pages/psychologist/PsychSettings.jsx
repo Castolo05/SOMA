@@ -1,17 +1,10 @@
 import { useState, useRef } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { Moon, Sun, User, Camera } from 'lucide-react'
+import { Moon, Sun, Camera } from 'lucide-react'
 import { useAuth } from '../../context/AuthContext'
 import { readAvatarFile } from '../../lib/avatarUpload'
 import { useToast } from '../../context/ToastContext'
-
-export function AvatarDisplay({ avatar, size = 28, className = "" }) {
-  if (!avatar) return <User size={size} className={className} />
-  if (avatar.startsWith('data:image')) {
-    return <img src={avatar} alt="Avatar de usuario" loading="lazy" decoding="async" className="w-full h-full object-cover" />
-  }
-  return <User size={size} className={className} />
-}
+import AvatarDisplay from '../../components/AvatarDisplay'
 
 export default function PsychSettings() {
   const { showError } = useToast()

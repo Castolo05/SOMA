@@ -14,11 +14,12 @@ export default function PatientsList() {
   const [patients, setPatients] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
+  const [error, setError] = useState('')
 
   useEffect(() => {
     getPatients()
       .then(({ data }) => setPatients(data.patients ?? []))
-      .catch(() => {})
+      .catch(err => setError(err.response?.data?.error || err.message || 'No se pudieron cargar los pacientes.'))
       .finally(() => setLoading(false))
   }, [])
 
@@ -32,7 +33,7 @@ export default function PatientsList() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white tracking-tight">Bienvenido, {user?.name}</h1>
-        <p className="text-gray-400 mt-1">{patients.length} paciente{patients.length !== 1 ? 's' : ''} vinculado{patients.length !== 1 ? 's' : ''}</p>
+        {!error && <p className="text-gray-400 mt-1">{patients.length} paciente{patients.length !== 1 ? 's' : ''} vinculado{patients.length !== 1 ? 's' : ''}</p>}
       </div>
 
       {/* Search */}
@@ -53,6 +54,11 @@ export default function PatientsList() {
           <div className="divide-y divide-gray-50 dark:divide-gray-700/50 animate-pulse">
             {[...Array(5)].map((_, i) => <div key={i} className="h-[72px] px-6 py-4"><div className="h-6 bg-gray-100 dark:bg-gray-700 rounded-lg w-48" /></div>)}
           </div>
+        </div>
+      ) : error ? (
+        <div role="alert" className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-center py-16 px-6">
+          <p className="font-semibold text-gray-900 dark:text-white mb-1">No se pudieron cargar los pacientes</p>
+          <p className="text-red-600 dark:text-red-400 text-sm">{error}</p>
         </div>
       ) : filtered.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 text-center py-16">

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { UserPlus, Check, X } from 'lucide-react'
 import { acceptPatientRequest, getPatientRequests, rejectPatientRequest } from '../../lib/api'
 import AvatarDisplay from '../../components/AvatarDisplay'
+import ConfirmActionModal from '../../components/ConfirmActionModal'
 import { useToast } from '../../context/ToastContext'
 
 export default function PatientRequests() {
@@ -9,6 +10,9 @@ export default function PatientRequests() {
   const [requests, setRequests] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  // Solicitud con una acción en curso: evita aceptar o rechazar dos veces.
+  const [busyId, setBusyId] = useState(null)
+  const [confirmReject, setConfirmReject] = useState(null)
 
   useEffect(() => {
     fetchRequests()
@@ -32,22 +36,32 @@ export default function PatientRequests() {
   }
 
   const handleAccept = async (id) => {
+    if (busyId) return
+    setBusyId(id)
     try {
       await acceptPatientRequest(id)
       setRequests(prev => prev.filter(req => req.id !== id))
       window.dispatchEvent(new Event('soma:patient-requests-updated'))
     } catch (err) {
       showError(err.response?.data?.error || err.message || 'Error al aceptar solicitud.')
+    } finally {
+      setBusyId(null)
     }
   }
 
-  const handleReject = async (id) => {
+  const handleReject = async () => {
+    const id = confirmReject?.id
+    setConfirmReject(null)
+    if (!id || busyId) return
+    setBusyId(id)
     try {
       await rejectPatientRequest(id)
       setRequests(prev => prev.filter(req => req.id !== id))
       window.dispatchEvent(new Event('soma:patient-requests-updated'))
     } catch (err) {
       showError(err.response?.data?.error || err.message || 'Error al rechazar solicitud.')
+    } finally {
+      setBusyId(null)
     }
   }
 
@@ -63,6 +77,15 @@ export default function PatientRequests() {
           Usuarios que ingresaron tu código y esperan tu aprobación para ser monitoreados.
         </p>
       </div>
+
+      <ConfirmActionModal
+        isOpen={!!confirmReject}
+        onClose={() => setConfirmReject(null)}
+        onConfirm={handleReject}
+        title="¿Rechazar solicitud?"
+        description={`${confirmReject?.name ?? 'Esta persona'} no quedará vinculada. Podrá volver a enviarte una solicitud con tu código.`}
+        confirmLabel="Rechazar"
+      />
 
       <div className="bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-sm border border-gray-100 dark:border-[var(--theme-border)] overflow-hidden">
         {error ? (
@@ -90,10 +113,10 @@ export default function PatientRequests() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => handleAccept(req.id)} className="p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40 transition-colors border border-green-100 dark:border-green-800" title="Aceptar">
+                    <button onClick={() => handleAccept(req.id)} disabled={!!busyId} aria-label={`Aceptar solicitud de ${req.name}`} className="disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-lg bg-green-50 text-green-600 hover:bg-green-100 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/40 transition-colors border border-green-100 dark:border-green-800" title="Aceptar">
                       <Check size={18} />
                     </button>
-                    <button onClick={() => handleReject(req.id)} className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-800" title="Rechazar">
+                    <button onClick={() => setConfirmReject(req)} disabled={!!busyId} aria-label={`Rechazar solicitud de ${req.name}`} className="disabled:opacity-50 disabled:cursor-not-allowed p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/40 transition-colors border border-red-100 dark:border-red-800" title="Rechazar">
                       <X size={18} />
                     </button>
                   </div>
