@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import {
   createJournalEntry,
   deleteJournalEntry,
-  getHabitCorrelation,
   getHabits,
   getJournal,
   updateJournalEntry,
@@ -30,7 +29,6 @@ export default function HistoryPage() {
   const initialCache = getPatientCache()
   const [entries, setEntries] = useState(initialCache.entries || [])
   const [habits, setHabits] = useState(initialCache.habits || [])
-  const [correlation, setCorrelation] = useState(initialCache.correlation || [])
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -68,28 +66,19 @@ export default function HistoryPage() {
   }
 
   useEffect(() => {
-    // La correlación siempre se recalcula (es cómputo local, no una llamada de red costosa)
-    // para garantizar que los nuevos campos estén presentes (doseAnalysis, pearsonR, streak, etc.)
+    // La correlación se calcula en el componente a partir de entradas y hábitos.
     if (initialCache.entries && initialCache.habits) {
-      // Datos base cacheados → solo refrescar la correlación
-      getHabitCorrelation().then(cRes => {
-        setCorrelation(cRes.data)
-        updatePatientCache('correlation', cRes.data)
-      }).catch(() => {})
       setLoading(false)
       return
     }
     Promise.all([
       getJournal(),
       getHabits(),
-      getHabitCorrelation(),
-    ]).then(([jRes, hRes, cRes]) => {
+    ]).then(([jRes, hRes]) => {
       setEntries(jRes.data.entries)
       setHabits(hRes.data.habits)
-      setCorrelation(cRes.data)
       updatePatientCache('entries', jRes.data.entries)
       updatePatientCache('habits', hRes.data.habits)
-      updatePatientCache('correlation', cRes.data)
     }).catch(() => {}).finally(() => setLoading(false))
     // Solo al montar: la caché inicial ya se leyó en el primer render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -238,15 +227,7 @@ export default function HistoryPage() {
 
       {/* TAB: Correlación */}
       {tab === 'correlation' && (
-        correlation.length > 0
-          ? <HabitCorrelationCard data={correlation} />
-          : (
-            <div className="text-center py-12 text-gray-400">
-              <BarChart2 size={40} className="mx-auto mb-3 text-gray-300" />
-              <p className="font-medium">Sin datos suficientes aún</p>
-              <p className="text-sm mt-1">Necesitás al menos 5 entradas con hábitos para ver correlaciones.</p>
-            </div>
-          )
+        <HabitCorrelationCard habits={habits} entries={entries} audience="patient" />
       )}
 
       {/* TAB: Gráfico */}

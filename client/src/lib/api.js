@@ -5,7 +5,7 @@
 // ============================================================
 import { supabase } from './supabase'
 import { entryDateKey } from './constants'
-import { computeCorrelation, computeInsights, daysAgoKey, weeklyMood } from './stats'
+import { computeInsights, daysAgoKey, weeklyMood } from './stats'
 
 // ── Obtener usuario autenticado actual ────────────────────
 // Usamos getSession() (caché local) en lugar de getUser() (llamada a red)
@@ -205,26 +205,6 @@ export async function getHabits(patientId) {
   return ok({ habits: (data || []).map(normalizeHabit) })
 }
 
-export async function getHabitCorrelation(patientId) {
-  const user = await currentUser()
-  if (patientId && user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
-  const targetId = patientId || user?.id
-
-  const [habitsResult, entriesResult] = await Promise.all([
-    supabase.from('habits').select('*').eq('user_id', targetId),
-    supabase
-      .from('journal_entries')
-      .select('completed_habits, habit_data, mood_score, entry_date, created_at')
-      .eq('patient_id', targetId),
-  ])
-  if (habitsResult.error) return fail(habitsResult.error.message)
-  if (entriesResult.error) return fail(entriesResult.error.message)
-  const habits = habitsResult.data || []
-  const entries = entriesResult.data || []
-  if (entries.length < 5) return ok([])
-  return ok(computeCorrelation(habits.map(normalizeHabit), entries.map(normalizeEntry)))
-}
-
 export async function createHabit({ text, icon, trackingType, unit, hasNote }) {
   const user = await currentUser()
   const { count, error: countError } = await supabase
@@ -387,7 +367,8 @@ export async function getArchivedPatients() {
 }
 
 // Ficha de un paciente vinculado: perfil, entradas y hábitos se piden una sola
-// vez, y las estadísticas y la correlación se calculan sobre esos mismos datos.
+// vez, y las estadísticas se calculan sobre esos mismos datos (la correlación
+// la calcula HabitCorrelation con el período elegido).
 // RLS solo devuelve el perfil si el vínculo está ACCEPTED.
 export async function getPatientDetail(patientId) {
   const user = await currentUser()
@@ -431,7 +412,6 @@ export async function getPatientDetail(patientId) {
     entries,
     habits,
     insights: computeInsights(entries),
-    correlation: computeCorrelation(habits, entries),
   })
 }
 

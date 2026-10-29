@@ -562,7 +562,6 @@ export default function PatientDetail() {
   const [confirmUnlink, setConfirmUnlink] = useState(false)
   const [entries,  setEntries]  = useState([])
   const [insights, setInsights] = useState(null)
-  const [habitsCorr, setHabitsCorr] = useState([])
   const [habitsList, setHabitsList] = useState([])
   const [loading,  setLoading]  = useState(true)
   const [loadError, setLoadError] = useState('')
@@ -631,7 +630,6 @@ export default function PatientDetail() {
         setPatient(data.patient)
         setEntries(data.entries)
         setInsights(data.insights)
-        setHabitsCorr(data.correlation)
         setHabitsList(data.habits)
       })
       .catch(async err => {
@@ -923,7 +921,7 @@ export default function PatientDetail() {
                     <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
                       Análisis de Correlación
                     </h3>
-                    <HabitCorrelationCard data={habitsCorr} />
+                    <HabitCorrelationCard habits={habitsList} entries={entries} audience="psychologist" />
                   </div>
                 </div>
               </PanelWrapper>
