@@ -103,7 +103,8 @@ html[data-theme='light'] {
 html.dark,
 html[data-theme='dark'] {
   color-scheme: dark;
-  /* Noche cacao: el mismo marrón del wordmark llevado a fondo, con ámbar de acento */
+  /* Noche cacao: el mismo marrón del wordmark llevado a fondo. Las acciones son
+     cacao como en el tema claro y el acento es el durazno suave del logo. */
   --theme-canvas: #17110e;
   --theme-header: #1c1512;
   --theme-nav: #15100d;
@@ -114,17 +115,17 @@ html[data-theme='dark'] {
   --theme-border-strong: #4f3f36;
   --theme-text: #f7ece4;
   --theme-muted: #c3ac9e;
-  --theme-primary: #a65a16;
-  --theme-primary-hover: #b86a22;
+  --theme-primary: #8a5640;
+  --theme-primary-hover: #965f47;
   --theme-on-primary: #fff6f0;
-  --theme-accent: #f7b866;
-  --theme-accent-hover: #fbc98a;
-  --theme-highlight: #f2a33a;
-  --theme-focus: rgba(247, 184, 102, 0.6);
+  --theme-accent: #e8b89e;
+  --theme-accent-hover: #f2cdb7;
+  --theme-highlight: #d29a7c;
+  --theme-focus: rgba(232, 184, 158, 0.55);
   --theme-shadow: rgba(0, 0, 0, 0.4);
   --theme-chart: #f7ece4;
   --theme-chart-grid: rgba(247, 236, 228, 0.1);
-  --theme-selection: #6b3c0c;
+  --theme-selection: #5c3b2b;
   --theme-wordmark: #f3dccb;
 
   --ok-bg: #1d2a1b;
@@ -155,17 +156,17 @@ html[data-theme='dark'] {
   --text-muted: var(--theme-muted);
   --track-bg: var(--theme-border);
 
-  --brand-50: 46 33 22;
-  --brand-100: 58 42 27;
-  --brand-200: 90 64 38;
-  --brand-300: 154 106 51;
-  --brand-400: 196 120 40;
-  --brand-500: 166 90 22;
-  --brand-600: 150 82 20;
-  --brand-700: 247 184 102;
-  --brand-800: 58 42 27;
-  --brand-900: 42 31 22;
-  --brand-950: 33 25 19;
+  --brand-50: 44 32 27;
+  --brand-100: 54 39 32;
+  --brand-200: 84 60 48;
+  --brand-300: 150 104 82;
+  --brand-400: 170 112 86;
+  --brand-500: 138 86 64;
+  --brand-600: 150 95 71;
+  --brand-700: 232 184 158;
+  --brand-800: 54 39 32;
+  --brand-900: 40 30 25;
+  --brand-950: 33 25 21;
 
   --pro-50: 42 32 27;
   --pro-100: 51 39 31;
