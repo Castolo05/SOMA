@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import {
-  BarChart2, TrendingUp, TrendingDown, Minus, Sparkles, Hourglass,
+  BarChart2, TrendingUp, TrendingDown, Minus, Sparkles, Hourglass, MessageCircle,
 } from 'lucide-react'
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -39,59 +39,63 @@ const fmt = (v, digits = 1) => Number(v).toFixed(digits)
 const signed = (v, digits = 1) => `${v > 0 ? '+' : ''}${fmt(v, digits)}`
 const moodColor = v => MOOD_ICONS[Math.min(10, Math.max(1, Math.round(v)))]?.color
 
-function toneOf(headline, audience) {
+function toneOf(headline) {
   if (!headline || STRENGTH_RANK[headline.strength] < STRENGTH_RANK.moderate || headline.direction === 0) {
     return TONES.neutral
   }
   if (headline.direction > 0) return TONES.positive
-  return audience === 'patient' ? TONES.negativeSoft : TONES.negative
+  return TONES.negative
 }
 
-// ── Textos ─────────────────────────────────────────────────────
-function narrative(item, audience) {
+// ── Textos para el psicólogo ───────────────────────────────────
+function narrative(item) {
   const h = item.headline
   const c = h.nextDay ? item.compareNextDay : item.compare
   const d = h.nextDay ? item.doseNextDay : item.dose
-  const unit = item.unit ? ` (${item.unit})` : ''
 
   if (h.strength === 'none') {
-    if (item.compare?.explainedByTrend) {
-      return audience === 'patient'
-        ? 'La diferencia que se ve coincide más con cómo venía tu ánimo esas semanas que con este hábito.'
-        : `La diferencia cruda (${signed(item.compare.impact)}) casi desaparece al ajustar por la tendencia semanal (${signed(item.compare.adjustedImpact)}): probablemente refleja la evolución general del ánimo.`
-    }
-    return audience === 'patient'
-      ? 'Por ahora no se ve una relación clara entre este hábito y tu ánimo.'
+    return item.compare?.explainedByTrend
+      ? `La diferencia cruda (${signed(item.compare.impact)}) casi desaparece al ajustar por la tendencia semanal (${signed(item.compare.adjustedImpact)}): probablemente refleja la evolución general del ánimo.`
       : 'Sin efecto claro con los datos actuales.'
   }
 
-  const positive = h.direction > 0
-  let text
-  if (audience === 'patient') {
-    if (h.source === 'compare') {
-      text = positive
-        ? (h.nextDay
-          ? `El día después de hacer este hábito tu ánimo suele estar mejor (${c.avgWith} vs ${c.avgWithout}).`
-          : `Los días que hacés este hábito tu ánimo suele estar mejor (${c.avgWith} vs ${c.avgWithout}).`)
-        : (h.nextDay
-          ? 'El día después de este hábito tu ánimo suele estar algo más bajo. Puede ser útil comentarlo en sesión.'
-          : 'Este hábito aparece más en días difíciles. Quizás es algo que te ayuda a sostenerte cuando estás peor; vale la pena charlarlo en sesión.')
-    } else {
-      text = positive
-        ? `Cuando registrás más cantidad${unit}, tu ánimo${h.nextDay ? ' del día siguiente' : ''} suele estar mejor.`
-        : `Cuando registrás más cantidad${unit}, tu ánimo${h.nextDay ? ' del día siguiente' : ''} suele estar más bajo. Puede ser útil comentarlo en sesión.`
-    }
-    if (h.strength === 'weak') text += ' Todavía es una pista, no una conclusión.'
+  if (h.source === 'compare') {
+    let text = `${h.nextDay ? 'Ánimo del día siguiente' : 'Ánimo'} con el hábito ${c.avgWith} vs ${c.avgWithout} sin él (${signed(c.impact)}; ajustado por tendencia ${signed(c.adjustedImpact ?? c.impact)}).`
+    if (h.direction < 0 && !h.nextDay) text += ' Posible conducta reactiva o de afrontamiento: se realiza en días de ánimo bajo.'
     return text
   }
+  return `Cantidad vs. ánimo${h.nextDay ? ' del día siguiente' : ''}: r = ${signed(d.r, 2)} (n = ${d.n}).`
+}
 
+// ── Textos para el paciente: sin números técnicos ni jerga ─────
+const plain = v => Number(v).toLocaleString('es-AR', { maximumFractionDigits: 1 })
+
+function patientSentence(item) {
+  const h = item.headline
+  const positive = h.direction > 0
   if (h.source === 'compare') {
-    text = `${h.nextDay ? 'Ánimo del día siguiente' : 'Ánimo'} con el hábito ${c.avgWith} vs ${c.avgWithout} sin él (${signed(c.impact)}; ajustado por tendencia ${signed(c.adjustedImpact ?? c.impact)}).`
-    if (!positive && !h.nextDay) text += ' Posible conducta reactiva o de afrontamiento: se realiza en días de ánimo bajo.'
-  } else {
-    text = `Cantidad vs. ánimo${h.nextDay ? ' del día siguiente' : ''}: r = ${signed(d.r, 2)} (n = ${d.n}).`
+    if (h.nextDay) {
+      return positive
+        ? 'El día después de hacerlo, tu ánimo suele estar mejor.'
+        : 'El día después de hacerlo, tu ánimo suele estar más bajo.'
+    }
+    return positive
+      ? 'Los días que lo hacés, tu ánimo suele estar mejor.'
+      : 'Aparece más en los días en que estás más bajo. Quizás es algo que te ayuda a sostenerte.'
   }
-  return text
+  const more = item.unit || 'cantidad'
+  return `Cuando registrás más ${more}, tu ánimo${h.nextDay ? ' del día siguiente' : ''} suele estar ${positive ? 'mejor' : 'más bajo'}.`
+}
+
+function patientDetail(item) {
+  const h = item.headline
+  if (h.source !== 'compare') return null
+  const c = h.nextDay ? item.compareNextDay : item.compare
+  return {
+    label: h.nextDay ? 'Ánimo del día siguiente' : 'Ánimo promedio',
+    withValue: c.avgWith,
+    withoutValue: c.avgWithout,
+  }
 }
 
 // ── Comparación con / sin en escala acotada ───────────────────
@@ -164,10 +168,10 @@ function ScatterTooltip({ active, payload, unit }) {
 }
 
 // ── Scatter chart cantidad vs ánimo ───────────────────────────
-function HabitScatterChart({ dose, unit, onlyDoneDays, audience }) {
+function HabitScatterChart({ dose, unit, onlyDoneDays }) {
   const { points, trend, r, strength } = dose
 
-  const tone = toneOf(r !== null ? { strength, direction: Math.sign(r) } : null, audience)
+  const tone = toneOf(r !== null ? { strength, direction: Math.sign(r) } : null)
 
   const trendPoints = (() => {
     if (!trend || trend.length < 2 || trend[0].qty === trend[1].qty) return null
@@ -194,7 +198,7 @@ function HabitScatterChart({ dose, unit, onlyDoneDays, audience }) {
         <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
           <BarChart2 size={11} /> Cantidad vs. ánimo{onlyDoneDays ? ' (días cumplidos)' : ''}
         </p>
-        {audience === 'psychologist' && r !== null && (
+        {r !== null && (
           <span className="text-[10px] font-bold" style={{ color: tone.color }}>
             r = {signed(r, 2)} · n = {points.length}
           </span>
@@ -257,9 +261,9 @@ function HabitScatterChart({ dose, unit, onlyDoneDays, audience }) {
 }
 
 // ── Tarjeta de un hábito analizado ─────────────────────────────
-function HabitCard({ item, audience }) {
+function HabitCard({ item }) {
   const h = item.headline
-  const tone = toneOf(h, audience)
+  const tone = toneOf(h)
   const Arrow = STRENGTH_RANK[h.strength] < STRENGTH_RANK.weak || h.direction === 0
     ? Minus
     : h.direction > 0 ? TrendingUp : TrendingDown
@@ -294,7 +298,7 @@ function HabitCard({ item, audience }) {
       </div>
 
       <p className="text-xs font-medium leading-relaxed" style={{ color: h.strength === 'none' ? 'var(--theme-muted)' : tone.color }}>
-        {narrative(item, audience)}
+        {narrative(item)}
       </p>
 
       {item.compare?.ready && (
@@ -314,7 +318,6 @@ function HabitCard({ item, audience }) {
           dose={item.dose}
           unit={item.unit}
           onlyDoneDays={item.trackingType === 'toggle+qty'}
-          audience={audience}
         />
       )}
     </div>
@@ -372,20 +375,17 @@ function CollectingList({ items }) {
   )
 }
 
-// ── Resumen: lo que más se asocia con buenos y malos días ──────
-function Summary({ analyzed, audience }) {
-  const notable = analyzed.filter(i => STRENGTH_RANK[i.headline.strength] >= STRENGTH_RANK.moderate)
-  const good = notable.filter(i => i.headline.direction > 0)
-  const bad = notable.filter(i => i.headline.direction < 0)
+// ── Resumen para el psicólogo ─────────────────────────────────
+const isNotable = i => i.headline && STRENGTH_RANK[i.headline.strength] >= STRENGTH_RANK.moderate
+
+function Summary({ analyzed }) {
+  const good = analyzed.filter(i => isNotable(i) && i.headline.direction > 0)
+  const bad = analyzed.filter(i => isNotable(i) && i.headline.direction < 0)
 
   if (!good.length && !bad.length) {
     return (
       <div className="card">
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          {audience === 'patient'
-            ? 'Todavía no aparecen patrones claros entre tus hábitos y tu ánimo. Seguí registrando: con más días las relaciones se ven mejor.'
-            : 'Sin asociaciones moderadas o claras en este período.'}
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Sin asociaciones moderadas o claras en este período.</p>
       </div>
     )
   }
@@ -399,22 +399,108 @@ function Summary({ analyzed, audience }) {
       </div>
       {good.length > 0 && (
         <p className="text-sm" style={{ color: TONES.positive.color }}>
-          {audience === 'patient' ? 'Lo que más acompaña tus buenos días: ' : 'Asociados a mejor ánimo: '}
-          <strong>{names(good)}</strong>
+          Asociados a mejor ánimo: <strong>{names(good)}</strong>
         </p>
       )}
       {bad.length > 0 && (
-        <p className="text-sm" style={{ color: (audience === 'patient' ? TONES.negativeSoft : TONES.negative).color }}>
-          {audience === 'patient' ? 'Aparecen más en días difíciles: ' : 'Asociados a peor ánimo: '}
-          <strong>{names(bad)}</strong>
+        <p className="text-sm" style={{ color: TONES.negative.color }}>
+          Asociados a peor ánimo: <strong>{names(bad)}</strong>
         </p>
       )}
     </div>
   )
 }
 
-// audience: 'patient' usa lenguaje cotidiano; 'psychologist' agrega r, n y
-// la diferencia ajustada por tendencia.
+// ── Vista del paciente ───────────────────────────────────────
+// Lo esencial agrupado: lo que le hace bien, lo que conviene charlar en
+// sesión y lo que todavía no está claro. Sin gráficos ni estadística: los
+// detalles técnicos quedan en la vista del psicólogo.
+function PatientHabitRow({ item }) {
+  const IconComp = HABIT_ICONS[item.icon] || HABIT_ICONS.CheckCircle
+  const detail = patientDetail(item)
+  return (
+    <li className="flex gap-3">
+      <span className="p-2 h-fit rounded-xl bg-brand-50 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 border border-brand-100 dark:border-brand-800 shrink-0">
+        <IconComp size={16} />
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-bold text-gray-800 dark:text-white break-words">{item.text}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300 leading-snug mt-0.5">{patientSentence(item)}</p>
+        {detail && (
+          <p className="text-xs text-gray-400 mt-1">
+            {detail.label}:{' '}
+            <strong style={{ color: moodColor(detail.withValue) }}>{plain(detail.withValue)}</strong> cuando lo hacés
+            {' · '}
+            <strong>{plain(detail.withoutValue)}</strong> cuando no
+          </p>
+        )}
+      </div>
+    </li>
+  )
+}
+
+function PatientGroup({ title, hint, icon: Icon, tone, items }) {
+  return (
+    <div className="card">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="p-1.5 rounded-lg" style={{ color: tone.color, backgroundColor: tone.bg }}>
+          <Icon size={14} />
+        </span>
+        <h3 className="text-sm font-bold" style={{ color: tone.color }}>{title}</h3>
+      </div>
+      {hint && <p className="text-xs text-gray-400 mb-3">{hint}</p>}
+      <ul className={`space-y-4 ${hint ? '' : 'mt-3'}`}>
+        {items.map(item => <PatientHabitRow key={item.habitId} item={item} />)}
+      </ul>
+    </div>
+  )
+}
+
+function PatientView({ items }) {
+  const good = items.filter(i => isNotable(i) && i.headline.direction > 0)
+  const talk = items.filter(i => isNotable(i) && i.headline.direction < 0)
+  const unclear = items.filter(i => i.headline && !isNotable(i))
+  const collecting = items.filter(i => !i.headline)
+
+  return (
+    <>
+      {good.length > 0 && (
+        <PatientGroup title="Lo que te hace bien" icon={TrendingUp} tone={TONES.positive} items={good} />
+      )}
+      {talk.length > 0 && (
+        <PatientGroup
+          title="Para charlar en sesión"
+          hint="No es algo malo: son patrones que vale la pena mirar con tu psicólogo/a."
+          icon={MessageCircle}
+          tone={TONES.negativeSoft}
+          items={talk}
+        />
+      )}
+      {!good.length && !talk.length && (
+        <div className="card">
+          <p className="text-sm text-gray-600 dark:text-gray-300">
+            Todavía no aparecen patrones claros entre tus hábitos y tu ánimo. Seguí registrando: con más días se ven mejor.
+          </p>
+        </div>
+      )}
+      {unclear.length > 0 && (
+        <div className="card">
+          <div className="flex items-center gap-2 mb-1">
+            <Minus size={14} className="text-gray-400" />
+            <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Sin relación clara por ahora</h3>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-300">{unclear.map(i => i.text).join(', ')}</p>
+          <p className="text-xs text-gray-400 mt-1">Puede que te sirvan igual: solo que con estos datos no se nota en tu ánimo.</p>
+        </div>
+      )}
+      {collecting.length > 0 && <CollectingList items={collecting} />}
+    </>
+  )
+}
+
+// audience: 'patient' muestra solo conclusiones en lenguaje cotidiano;
+// 'psychologist' ve tarjetas completas con gráficos, r, n y la diferencia
+// ajustada por tendencia.
 export default function HabitCorrelationCard({ habits, entries, audience = 'patient' }) {
   const [periodDays, setPeriodDays] = useState(null)
 
@@ -449,6 +535,7 @@ export default function HabitCorrelationCard({ habits, entries, audience = 'pati
               Hábitos y estado de ánimo
             </h2>
           </div>
+          {audience === 'psychologist' && (
           <div className="flex gap-1 bg-gray-100 dark:bg-gray-700 p-0.5 rounded-xl" role="group" aria-label="Período">
             {PERIODS.map(p => (
               <button
@@ -465,19 +552,24 @@ export default function HabitCorrelationCard({ habits, entries, audience = 'pati
               </button>
             ))}
           </div>
+          )}
         </div>
         <p className="text-xs text-gray-400">
           {audience === 'patient'
-            ? 'Compara tu ánimo en los días que hacés cada hábito con los días que no, y también el día siguiente.'
+            ? 'Lo que tus registros muestran sobre cómo tus hábitos acompañan tu ánimo.'
             : 'Diferencia de ánimo con / sin cada hábito (mismo día y día siguiente) y, en hábitos con cantidad, correlación entre cantidad y ánimo en los días registrados. La fuerza de la señal se calcula sobre el ánimo ajustado por la tendencia de ±3 días.'}
         </p>
       </div>
 
-      <Summary analyzed={analyzed} audience={audience} />
-
-      {analyzed.map(item => <HabitCard key={item.habitId} item={item} audience={audience} />)}
-
-      {collecting.length > 0 && <CollectingList items={collecting} />}
+      {audience === 'patient' ? (
+        <PatientView items={items} />
+      ) : (
+        <>
+          <Summary analyzed={analyzed} />
+          {analyzed.map(item => <HabitCard key={item.habitId} item={item} />)}
+          {collecting.length > 0 && <CollectingList items={collecting} />}
+        </>
+      )}
 
       <div className="text-xs text-gray-400 text-center space-y-1 px-1">
         {audience === 'patient' ? (
