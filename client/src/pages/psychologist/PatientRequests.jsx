@@ -16,10 +16,9 @@ export default function PatientRequests() {
 
   useEffect(() => {
     fetchRequests()
-    const intervalId = window.setInterval(() => {
-      if (document.visibilityState === 'visible') fetchRequests()
-    }, 15000)
-    return () => window.clearInterval(intervalId)
+    // PsychLayout consulta el contador y avisa cuando cambia.
+    window.addEventListener('soma:patient-request-count-changed', fetchRequests)
+    return () => window.removeEventListener('soma:patient-request-count-changed', fetchRequests)
   }, [])
 
   const fetchRequests = async () => {

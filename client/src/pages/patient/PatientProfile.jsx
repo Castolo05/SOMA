@@ -7,6 +7,7 @@ import {
   getHabits,
   getJournal,
   getMyPsychologists,
+  getMySharedGoals,
   previewPsychologistLink,
   requestPsychologistLink,
   unlinkPsychologist,
@@ -14,10 +15,12 @@ import {
 } from '../../lib/api'
 import {
   Link2, LogOut, Plus, Pencil, Trash2, Check, X, AlertCircle, Mail,
+  Target, CheckCircle2, Circle,
 } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { HABIT_ICONS } from '../../lib/constants'
 import { usePageTitle } from '../../hooks/usePageTitle'
+import { clearPendingInvite, normalizeInviteCode, peekPendingInvite } from '../../lib/pendingInvite'
 import ReminderSettings from '../../components/ReminderSettings'
 import { getPatientCache, updatePatientCache } from '../../lib/patientCache'
 
@@ -31,7 +34,10 @@ export default function PatientProfile() {
   usePageTitle('Mi Perfil')
   const { user, logout } = useAuth()
   const navigate = useNavigate()
-  const [code, setCode] = useState('')
+  // ?codigo=XXXX llega desde la invitación que comparte el psicólogo.
+  const [searchParams] = useSearchParams()
+  const [code, setCode] = useState(() => normalizeInviteCode(searchParams.get('codigo')) || peekPendingInvite())
+  useEffect(() => { clearPendingInvite() }, [])
   const [linkLoading, setLinkLoading] = useState(false)
   const [linkMsg, setLinkMsg] = useState('')
   const [linkError, setLinkError] = useState('')
@@ -39,6 +45,8 @@ export default function PatientProfile() {
   const [showPreviewModal, setShowPreviewModal] = useState(false)
   const [isViewingPsych, setIsViewingPsych] = useState(false)
   const [psychologists, setPsychologists] = useState([])
+  // Objetivos que algún psicólogo decidió compartir; los privados no llegan (RLS).
+  const [sharedGoals, setSharedGoals] = useState([])
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [confirmUnlinkPsych, setConfirmUnlinkPsych] = useState(null)
   const [confirmDeleteHabit, setConfirmDeleteHabit] = useState(null)
@@ -64,6 +72,9 @@ export default function PatientProfile() {
     if (!initialCache.habits) getHabits().then(({ data }) => { setHabits(data.habits); updatePatientCache('habits', data.habits) }).catch(() => {})
     if (!initialCache.entries) getJournal().then(({ data }) => { setEntries(data.entries); updatePatientCache('entries', data.entries) }).catch(() => {})
     getMyPsychologists().then(({ data }) => setPsychologists(data.psychologists)).catch(() => {})
+    getMySharedGoals()
+      .then(({ data }) => setSharedGoals(data.goals))
+      .catch(err => console.error('Error cargando objetivos compartidos:', err))
     // Solo al montar: la caché inicial ya se leyó en el primer render.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -308,6 +319,28 @@ export default function PatientProfile() {
             {linkMsg && <p className="text-green-600 dark:text-green-400 text-sm mt-2 font-medium">{linkMsg}</p>}
             {linkError && <p className="text-red-500 text-sm mt-2 font-medium">{linkError}</p>}
           </div>
+
+          {/* Objetivos compartidos por el psicólogo */}
+          {sharedGoals.length > 0 && (
+            <div className="card">
+              <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-1 flex items-center gap-2">
+                <Target size={18} /> Objetivos con tu psicólogo
+              </h2>
+              <p className="text-xs text-gray-400 mb-3">
+                {sharedGoals.filter(g => g.completed).length} de {sharedGoals.length} cumplidos
+              </p>
+              <ul className="space-y-2">
+                {sharedGoals.map(g => (
+                  <li key={g.id} className="flex items-start gap-2.5 text-sm">
+                    {g.completed
+                      ? <CheckCircle2 size={18} className="text-emerald-500 shrink-0 mt-0.5" aria-label="Cumplido" />
+                      : <Circle size={18} className="text-gray-300 shrink-0 mt-0.5" aria-label="Pendiente" />}
+                    <span className={g.completed ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}>{g.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           {/* Gestión de hábitos */}
           <div className="card space-y-3">

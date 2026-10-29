@@ -1,8 +1,10 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { savePendingInvite } from '../lib/pendingInvite'
 
 export function ProtectedRoute({ children, requiredRole }) {
   const { user, loading } = useAuth()
+  const { search } = useLocation()
 
   if (loading) {
     return (
@@ -15,7 +17,11 @@ export function ProtectedRoute({ children, requiredRole }) {
     )
   }
 
-  if (!user) return <Navigate to="/login" replace />
+  if (!user) {
+    // Invitación abierta sin sesión: se retoma después del login.
+    savePendingInvite(new URLSearchParams(search).get('codigo'))
+    return <Navigate to="/login" replace />
+  }
   if (requiredRole && user.role !== requiredRole) {
     return <Navigate to={user.role === 'PATIENT' ? '/patient' : '/psych/patients'} replace />
   }

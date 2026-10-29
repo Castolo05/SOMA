@@ -3,6 +3,7 @@ import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeLogo from '../../components/ThemeLogo'
 import ConfirmLogoutModal from '../../components/ConfirmLogoutModal'
+import InviteCodeCard from '../../components/InviteCodeCard'
 import { applyTheme } from '../../lib/theme'
 import { getPatientRequestCount } from '../../lib/api'
 import {
@@ -41,10 +42,18 @@ export default function PsychLayout() {
     }
 
     let active = true
+    let lastCount = null
+    // Única consulta periódica de solicitudes: si el número cambia, avisa a la
+    // pantalla de Solicitudes para que recargue la lista.
     const refreshCount = async () => {
       try {
         const { data } = await getPatientRequestCount()
-        if (active) setPendingRequestCount(data.count)
+        if (!active) return
+        setPendingRequestCount(data.count)
+        if (lastCount !== null && lastCount !== data.count) {
+          window.dispatchEvent(new Event('soma:patient-request-count-changed'))
+        }
+        lastCount = data.count
       } catch (err) {
         console.error('Error actualizando el contador de solicitudes:', err)
       }
@@ -76,6 +85,16 @@ export default function PsychLayout() {
   // Close all drawers on navigation
   useEffect(() => { setMobileOpen(false); setDrawerOpen(false) }, [location.pathname])
 
+  // Escape cierra el menú lateral abierto
+  useEffect(() => {
+    if (!drawerOpen && !mobileOpen) return
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') { setDrawerOpen(false); setMobileOpen(false) }
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [drawerOpen, mobileOpen])
+
   const navItems = [
     { to: '/psych/patients', icon: Users,    label: 'Pacientes'   },
     { to: '/psych/requests', icon: UserPlus, label: 'Solicitudes' },
@@ -101,6 +120,7 @@ export default function PsychLayout() {
         <span className="font-bold text-gray-900 dark:text-white text-lg">SOMA</span>
         <button
           onClick={onClose}
+          aria-label="Cerrar menú"
           className="ml-auto p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           <ChevronLeft size={16} />
@@ -136,9 +156,8 @@ export default function PsychLayout() {
       {/* Footer */}
       <div className="border-t border-gray-200 dark:border-gray-700 pt-4 space-y-1">
         {user?.inviteCode && (
-          <div className="bg-pro-50 dark:bg-pro-900/20 border border-pro-100 dark:border-pro-800 rounded-xl px-3 py-2.5 mb-3">
-            <div className="text-[10px] font-bold text-pro-400 uppercase tracking-widest mb-0.5">Código de invitación</div>
-            <div className="font-mono font-bold text-pro-700 dark:text-pro-300 tracking-widest text-sm">{user.inviteCode}</div>
+          <div className="mb-3">
+            <InviteCodeCard code={user.inviteCode} compact />
           </div>
         )}
         <div className="px-1 py-1 mb-1">
@@ -173,6 +192,7 @@ export default function PsychLayout() {
           onClick={() => setDrawerOpen(true)}
           className="p-2.5 rounded-xl text-gray-400 hover:text-pro-600 hover:bg-pro-50 dark:hover:bg-pro-900/20 transition-colors"
           title="Abrir menú"
+          aria-label="Abrir menú"
         >
           <ChevronRight size={17} />
         </button>
@@ -208,6 +228,7 @@ export default function PsychLayout() {
           <Link
             to="/psych/settings"
             title="Configuración"
+            aria-label="Configuración"
             className="p-2.5 rounded-xl text-gray-400 hover:text-pro-600 hover:bg-pro-50 dark:hover:bg-pro-900/20 transition-colors"
           >
             <Settings size={17} />
@@ -215,6 +236,7 @@ export default function PsychLayout() {
           <button
             onClick={() => setShowLogoutModal(true)}
             title="Cerrar sesión"
+            aria-label="Cerrar sesión"
             className="p-2.5 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             <LogOut size={17} />
@@ -262,7 +284,7 @@ export default function PsychLayout() {
         {/* Mobile topbar */}
         <header className="lg:hidden bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
           <div className="flex items-center gap-3">
-            <button onClick={() => setMobileOpen(true)} className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
+            <button onClick={() => setMobileOpen(true)} aria-label="Abrir menú" className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
               <Menu size={20} />
             </button>
             <ThemeLogo alt="SOMA" className="w-7 h-7 rounded-lg" />
@@ -285,10 +307,10 @@ export default function PsychLayout() {
                 </Link>
               )
             })}
-            <Link to="/psych/settings" className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 min-w-10 min-h-10 flex items-center justify-center">
+            <Link to="/psych/settings" aria-label="Configuración" className="p-2 rounded-lg text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 min-w-10 min-h-10 flex items-center justify-center">
               <Settings size={18} />
             </Link>
-            <button onClick={() => setShowLogoutModal(true)} className="p-2 rounded-lg text-gray-400 hover:text-red-500 min-w-10 min-h-10 flex items-center justify-center">
+            <button onClick={() => setShowLogoutModal(true)} aria-label="Cerrar sesión" className="p-2 rounded-lg text-gray-400 hover:text-red-500 min-w-10 min-h-10 flex items-center justify-center">
               <LogOut size={18} />
             </button>
           </div>

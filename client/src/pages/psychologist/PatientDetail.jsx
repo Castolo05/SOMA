@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, Link, useNavigate } from 'react-router-dom'
 import { Responsive, WidthProvider } from 'react-grid-layout'
 import 'react-grid-layout/css/styles.css'
 import 'react-resizable/css/styles.css'
@@ -8,17 +8,16 @@ import {
   createSessionNote,
   deleteGoal,
   deleteSessionNote,
+  getArchivedPatients,
   getGoals,
-  getHabitCorrelation,
-  getHabits,
-  getJournal,
-  getPatientInsights,
-  getPatients,
+  getPatientDetail,
   getSessionNotes,
+  setGoalVisibility,
   toggleGoal,
+  unlinkPatient,
   updateSessionNote,
 } from '../../lib/api'
-import { MOOD_ICONS, formatDateShort } from '../../lib/constants'
+import { MOOD_ICONS, entryDateKey, entryDateToDate, formatDateShort } from '../../lib/constants'
 import MoodIcon from '../../components/MoodIcon'
 import MoodChart from '../../components/MoodChart'
 import {
@@ -27,13 +26,14 @@ import {
   ChevronDown, ChevronUp, Pencil, Calendar,
   BookOpen, User, FileText,
   Activity, BarChart2, MessageSquare, Eye, EyeOff,
-  LayoutGrid, RotateCcw, GripHorizontal,
+  LayoutGrid, RotateCcw, GripHorizontal, UserMinus, Archive,
 } from 'lucide-react'
 import HabitCorrelationCard from '../../components/HabitCorrelation'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import AvatarDisplay from '../../components/AvatarDisplay'
 import ConfirmActionModal from '../../components/ConfirmActionModal'
 import { useToast } from '../../context/ToastContext'
+import { useAuth } from '../../context/AuthContext'
 
 const RGL = WidthProvider(Responsive)
 
@@ -42,9 +42,9 @@ const PANELS = [
   { i: 'pre',      label: 'Ficha Pre-Sesión',       icon: BarChart2  },
   { i: 'chart',    label: 'Evolución del Ánimo',    icon: Activity   },
   { i: 'entries',  label: 'Historial del Paciente', icon: BookOpen   },
-  { i: 'goals',    label: 'Objetivos',              icon: Target     },
+  { i: 'goals',    label: 'Objetivos Terapéuticos', icon: Target     },
   { i: 'notes',    label: 'Notas de Sesión',        icon: FileText   },
-  { i: 'habits',   label: 'Análisis de Hábitos',    icon: Activity   },
+  { i: 'habits',   label: 'Hábitos del Paciente',   icon: Activity   },
 ]
 
 const DEFAULT_LG = [
@@ -61,37 +61,53 @@ const DEFAULT_LG = [
   { i: 'notes',   x: 6, y: 22, w: 6,  h: 8,  minW: 3, minH: 4 },
 ]
 
-const lsLayout  = () => `psych_layout_global_v1`
-const lsVisible = () => `psych_vis_global_v1`
+// Una disposición por profesional: varios pueden compartir el mismo equipo.
+// Si no hay una propia, se toma la global anterior para no perder la existente.
+const lsLayout  = (userId) => `psych_layout_${userId}_v1`
+const lsVisible = (userId) => `psych_vis_${userId}_v1`
+const LEGACY_LAYOUT  = 'psych_layout_global_v1'
+const LEGACY_VISIBLE = 'psych_vis_global_v1'
 
-const readLayout = () => {
-  try { const s = JSON.parse(localStorage.getItem(lsLayout())); return Array.isArray(s) && s.length ? s : DEFAULT_LG.map(l => ({...l})) }
-  catch { return DEFAULT_LG.map(l => ({...l})) }
+const readStored = (key, legacyKey) => {
+  try { return JSON.parse(localStorage.getItem(key) ?? localStorage.getItem(legacyKey)) }
+  catch { return null }
 }
-const readVisible = () => {
-  try { const s = JSON.parse(localStorage.getItem(lsVisible())); return Array.isArray(s) ? s : PANELS.map(p => p.i) }
-  catch { return PANELS.map(p => p.i) }
+const writeStored = (key, value) => {
+  try { localStorage.setItem(key, JSON.stringify(value)) } catch { /* almacenamiento no disponible */ }
+}
+const readLayout = (userId) => {
+  const s = readStored(lsLayout(userId), LEGACY_LAYOUT)
+  return Array.isArray(s) && s.length ? s : DEFAULT_LG.map(l => ({...l}))
+}
+const readVisible = (userId) => {
+  const s = readStored(lsVisible(userId), LEGACY_VISIBLE)
+  return Array.isArray(s) ? s : PANELS.map(p => p.i)
 }
 
 // ── PanelWrapper ───────────────────────────────────────────
 function PanelWrapper({ title, icon: Icon, onHide, scrollable = false, children }) {
+  // Sin onHide el panel es fijo (vista de archivado): sin arrastre ni ocultar.
+  const movable = !!onHide
   return (
     <div className="h-full flex flex-col bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 overflow-hidden shadow-sm group">
       {/* Drag handle */}
-      <div className="psych-panel-handle select-none cursor-grab active:cursor-grabbing flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shrink-0 transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/80">
+      <div className={`${movable ? 'psych-panel-handle select-none cursor-grab active:cursor-grabbing hover:bg-gray-100 dark:hover:bg-gray-700/80' : ''} flex items-center justify-between px-4 py-2.5 bg-gray-50 dark:bg-gray-800 border-b border-gray-100 dark:border-gray-700 shrink-0 transition-colors`}>
         <div className="flex items-center gap-2">
-          <GripHorizontal size={14} className="text-gray-400 group-hover:text-pro-400 transition-colors shrink-0" />
+          {movable && <GripHorizontal size={14} className="text-gray-400 group-hover:text-pro-400 transition-colors shrink-0" />}
           {Icon && <Icon size={14} className="text-pro-500 dark:text-pro-400 shrink-0" />}
           <span className="text-sm font-bold text-gray-700 dark:text-gray-200 truncate">{title}</span>
         </div>
-        <button
-          onMouseDown={e => e.stopPropagation()}
-          onClick={onHide}
-          className="p-1 text-gray-300 hover:text-red-500 transition-colors rounded-md shrink-0"
-          title="Ocultar panel"
-        >
-          <EyeOff size={12} />
-        </button>
+        {movable && (
+          <button
+            onMouseDown={e => e.stopPropagation()}
+            onClick={onHide}
+            className="p-1 text-gray-300 hover:text-red-500 transition-colors rounded-md shrink-0"
+            title="Ocultar panel"
+            aria-label={`Ocultar panel ${title}`}
+          >
+            <EyeOff size={12} />
+          </button>
+        )}
       </div>
       {/* Scrollable body */}
       <div className={`flex-1 min-h-0 p-4 ${scrollable ? 'overflow-y-auto' : 'overflow-hidden flex flex-col'}`} style={{ scrollbarWidth: 'thin' }}>
@@ -153,7 +169,11 @@ function PreSessionCard({ insights, patient }) {
 }
 
 // ── SessionNotes ───────────────────────────────────────────
-function SessionNotes({ patientId }) {
+// La sesión se guarda al mediodía local del día elegido, como las entradas del diario.
+const sessionDateToISO = (dayKey) => entryDateToDate(dayKey).toISOString()
+const sortBySessionDate = (notes) => [...notes].sort((a, b) => new Date(b.sessionDate) - new Date(a.sessionDate))
+
+function SessionNotes({ patientId, readOnly = false }) {
   const { showError } = useToast()
   const [notes, setNotes]     = useState([])
   const [loading, setLoading] = useState(true)
@@ -162,8 +182,10 @@ function SessionNotes({ patientId }) {
   const [editing, setEditing]   = useState(null)
   const [editTitle, setEditTitle]     = useState('')
   const [editContent, setEditContent] = useState('')
+  const [editDate, setEditDate]       = useState('')
   const [newTitle, setNewTitle]       = useState('')
   const [newContent, setNewContent]   = useState('')
+  const [newDate, setNewDate]         = useState(() => entryDateKey())
   const [saving, setSaving] = useState(false)
   const [confirmDeleteNote, setConfirmDeleteNote] = useState(null)
 
@@ -179,21 +201,22 @@ function SessionNotes({ patientId }) {
     setSaving(true)
     try {
       const { data } = await createSessionNote(patientId, {
-        title: newTitle || `Sesión ${new Date().toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit' })}`,
+        title: newTitle.trim() || `Sesión ${entryDateToDate(newDate).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'2-digit' })}`,
         content: newContent,
-        sessionDate: new Date().toISOString(),
+        sessionDate: sessionDateToISO(newDate),
       })
-      setNotes(p => [data.note, ...p])
-      setNewTitle(''); setNewContent(''); setCreating(false)
+      setNotes(p => sortBySessionDate([data.note, ...p]))
+      setNewTitle(''); setNewContent(''); setNewDate(entryDateKey()); setCreating(false)
     } catch { showError('Error al crear nota.') }
     finally { setSaving(false) }
   }
 
   const update = async (id) => {
+    if (!editContent.trim() || !editDate) return
     setSaving(true)
     try {
-      const { data } = await updateSessionNote(id, { title: editTitle, content: editContent })
-      setNotes(p => p.map(n => n.id === id ? data.note : n))
+      const { data } = await updateSessionNote(id, { title: editTitle, content: editContent, sessionDate: sessionDateToISO(editDate) })
+      setNotes(p => sortBySessionDate(p.map(n => n.id === id ? data.note : n)))
       setEditing(null)
     } catch { showError('Error al actualizar.') }
     finally { setSaving(false) }
@@ -214,20 +237,26 @@ function SessionNotes({ patientId }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <span className="text-sm font-bold text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full">{notes.length}</span>
-        <button onMouseDown={e => e.stopPropagation()} onClick={() => setCreating(v => !v)} className="flex items-center gap-1 text-sm font-bold text-pro-600 dark:text-pro-400 hover:underline">
-          <Plus size={14} /> Nueva nota
-        </button>
+        {!readOnly && (
+          <button onMouseDown={e => e.stopPropagation()} onClick={() => setCreating(v => !v)} className="flex items-center gap-1 text-sm font-bold text-pro-600 dark:text-pro-400 hover:underline">
+            <Plus size={14} /> Nueva nota
+          </button>
+        )}
       </div>
 
       {creating && (
         <div className="bg-pro-50 dark:bg-pro-900/10 border border-pro-200 dark:border-pro-800/40 rounded-xl p-3 space-y-2">
-          <input className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pro-500"
-            placeholder="Título" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+          <div className="flex gap-2">
+            <input className="flex-1 min-w-0 text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500 placeholder-gray-400"
+              aria-label="Título de la nota" placeholder="Título" value={newTitle} onChange={e => setNewTitle(e.target.value)} />
+            <input type="date" className="shrink-0 text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500"
+              aria-label="Fecha de la sesión" max={entryDateKey()} value={newDate} onChange={e => setNewDate(e.target.value)} />
+          </div>
           <textarea className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pro-500 resize-none h-24"
-            placeholder="Contenido de la sesión..." value={newContent} onChange={e => setNewContent(e.target.value)} autoFocus />
+            aria-label="Contenido de la nota" placeholder="Contenido de la sesión..." value={newContent} onChange={e => setNewContent(e.target.value)} autoFocus />
           <div className="flex gap-2 justify-end">
             <button onClick={() => setCreating(false)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500 hover:bg-gray-50 dark:hover:bg-gray-700">Cancelar</button>
-            <button onClick={create} disabled={saving || !newContent.trim()} className="text-sm px-3 py-1.5 rounded-lg bg-pro-600 text-white font-semibold disabled:opacity-50">
+            <button onClick={create} disabled={saving || !newContent.trim() || !newDate} className="text-sm px-3 py-1.5 rounded-lg bg-pro-600 text-white font-semibold disabled:opacity-50">
               {saving ? '...' : 'Guardar'}
             </button>
           </div>
@@ -261,10 +290,12 @@ function SessionNotes({ patientId }) {
                   <p className="text-xs text-gray-400">{new Date(note.sessionDate).toLocaleDateString('es-AR', { day:'2-digit', month:'short', year:'numeric' })}</p>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); setEditing(note.id); setEditTitle(note.title); setEditContent(note.content); setExpanded(note.id) }}
-                    className="p-1.5 text-gray-400 hover:text-pro-500 rounded"><Pencil size={14} /></button>
+                  {!readOnly && <>
+                  <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); setEditing(note.id); setEditTitle(note.title); setEditContent(note.content); setEditDate(entryDateKey(note.sessionDate)); setExpanded(note.id) }}
+                    aria-label={`Editar nota ${note.title || 'sin título'}`} className="p-1.5 text-gray-400 hover:text-pro-500 rounded"><Pencil size={14} /></button>
                   <button onMouseDown={e => e.stopPropagation()} onClick={e => { e.stopPropagation(); setConfirmDeleteNote(note.id) }}
-                    className="p-1.5 text-gray-400 hover:text-red-500 rounded"><Trash2 size={14} /></button>
+                    aria-label={`Eliminar nota ${note.title || 'sin título'}`} className="p-1.5 text-gray-400 hover:text-red-500 rounded"><Trash2 size={14} /></button>
+                  </>}
                   {open ? <ChevronUp size={14} className="text-gray-400" /> : <ChevronDown size={14} className="text-gray-400" />}
                 </div>
               </div>
@@ -272,13 +303,17 @@ function SessionNotes({ patientId }) {
                 <div className="px-4 py-3 border-t border-gray-100 dark:border-gray-700">
                   {ed ? (
                     <div className="space-y-3">
-                      <input className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500"
-                        value={editTitle} onChange={e => setEditTitle(e.target.value)} />
+                      <div className="flex gap-2">
+                        <input className="flex-1 min-w-0 text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500"
+                          aria-label="Título de la nota" value={editTitle} onChange={e => setEditTitle(e.target.value)} />
+                        <input type="date" className="shrink-0 text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500"
+                          aria-label="Fecha de la sesión" max={entryDateKey()} value={editDate} onChange={e => setEditDate(e.target.value)} />
+                      </div>
                       <textarea className="w-full text-sm px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-pro-500 resize-none h-32"
-                        value={editContent} onChange={e => setEditContent(e.target.value)} />
+                        aria-label="Contenido de la nota" value={editContent} onChange={e => setEditContent(e.target.value)} />
                       <div className="flex gap-2 justify-end">
                         <button onClick={() => setEditing(null)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 text-gray-500">Cancelar</button>
-                        <button onClick={() => update(note.id)} disabled={saving} className="text-sm px-3 py-1.5 rounded-lg bg-pro-600 text-white font-semibold">Guardar</button>
+                        <button onClick={() => update(note.id)} disabled={saving || !editContent.trim() || !editDate} className="text-sm px-3 py-1.5 rounded-lg bg-pro-600 text-white font-semibold disabled:opacity-50">Guardar</button>
                       </div>
                     </div>
                   ) : (
@@ -295,11 +330,12 @@ function SessionNotes({ patientId }) {
 }
 
 // ── TherapyGoals ───────────────────────────────────────────
-function TherapyGoals({ patientId }) {
+function TherapyGoals({ patientId, readOnly = false }) {
   const { showError } = useToast()
   const [goals, setGoals] = useState([])
   const [newGoal, setNewGoal] = useState('')
   const [adding, setAdding]   = useState(false)
+  const [confirmDeleteGoal, setConfirmDeleteGoal] = useState(null)
 
   useEffect(() => {
     getGoals(patientId)
@@ -320,7 +356,16 @@ function TherapyGoals({ patientId }) {
       setGoals(p => p.map(g => g.id === id ? data.goal : g))
     } catch { showError('No se pudo actualizar el objetivo.') }
   }
-  const del = async (id) => {
+  const toggleVisibility = async (goal) => {
+    try {
+      const { data } = await setGoalVisibility(goal.id, !goal.visibleToPatient)
+      setGoals(p => p.map(g => g.id === goal.id ? data.goal : g))
+    } catch { showError('No se pudo cambiar la visibilidad del objetivo.') }
+  }
+  const del = async () => {
+    const id = confirmDeleteGoal?.id
+    setConfirmDeleteGoal(null)
+    if (!id) return
     try {
       await deleteGoal(id)
       setGoals(p => p.filter(g => g.id !== id))
@@ -335,10 +380,17 @@ function TherapyGoals({ patientId }) {
         {goals.length > 0
           ? <span className="text-sm font-bold text-gray-400 bg-gray-100 dark:bg-gray-700 px-2.5 py-1 rounded-full">{done}/{goals.length}</span>
           : <span />}
-        <button onMouseDown={e => e.stopPropagation()} onClick={() => setAdding(v => !v)} className="flex items-center gap-1 text-sm font-bold text-pro-600 dark:text-pro-400 hover:underline">
-          <Plus size={14} /> Añadir
-        </button>
+        {!readOnly && (
+          <button onMouseDown={e => e.stopPropagation()} onClick={() => setAdding(v => !v)} className="flex items-center gap-1 text-sm font-bold text-pro-600 dark:text-pro-400 hover:underline">
+            <Plus size={14} /> Añadir
+          </button>
+        )}
       </div>
+      {!readOnly && (
+        <p className="text-xs text-gray-400">
+          Los objetivos son privados. Usá el ojo para compartir uno con el paciente en su app.
+        </p>
+      )}
 
       {adding && (
         <div className="flex gap-2">
@@ -347,6 +399,15 @@ function TherapyGoals({ patientId }) {
           <button onMouseDown={e => e.stopPropagation()} onClick={add} className="text-sm px-3 py-2 rounded-lg bg-pro-600 text-white font-semibold">Ok</button>
         </div>
       )}
+
+      <ConfirmActionModal
+        isOpen={!!confirmDeleteGoal}
+        onClose={() => setConfirmDeleteGoal(null)}
+        onConfirm={del}
+        title="¿Eliminar objetivo?"
+        description={confirmDeleteGoal ? `"${confirmDeleteGoal.text}" se quitará de los objetivos del paciente.` : ''}
+        confirmLabel="Eliminar"
+      />
 
       {goals.length === 0 && !adding && (
         <div className="text-center py-8"><Target size={24} className="text-gray-300 mx-auto mb-2" /><p className="text-sm text-gray-400">Sin objetivos</p></div>
@@ -366,11 +427,23 @@ function TherapyGoals({ patientId }) {
           <div key={g.id} className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border transition-all ${
             g.completed ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800' : 'bg-white dark:bg-gray-700/50 border-gray-100 dark:border-gray-600'
           }`}>
-            <button onMouseDown={e => e.stopPropagation()} onClick={() => toggle(g.id)} className="shrink-0 mt-0.5">
+            <button onMouseDown={e => e.stopPropagation()} onClick={() => toggle(g.id)} disabled={readOnly} aria-pressed={g.completed} aria-label={`Marcar "${g.text}" como ${g.completed ? 'pendiente' : 'cumplido'}`} className="shrink-0 mt-0.5 disabled:cursor-default">
               {g.completed ? <CheckCircle2 size={18} className="text-emerald-500" /> : <Circle size={18} className="text-gray-300" />}
             </button>
             <span className={`text-sm flex-1 leading-relaxed ${g.completed ? 'line-through text-gray-400' : 'text-gray-700 dark:text-gray-200'}`}>{g.text}</span>
-            <button onMouseDown={e => e.stopPropagation()} onClick={() => del(g.id)} className="shrink-0 text-gray-300 hover:text-red-500 transition-colors mt-0.5"><Trash2 size={16} /></button>
+            {!readOnly && <>
+              <button
+                onMouseDown={e => e.stopPropagation()}
+                onClick={() => toggleVisibility(g)}
+                aria-pressed={g.visibleToPatient}
+                aria-label={g.visibleToPatient ? `Dejar de compartir "${g.text}" con el paciente` : `Compartir "${g.text}" con el paciente`}
+                title={g.visibleToPatient ? 'Visible para el paciente' : 'Privado'}
+                className={`shrink-0 transition-colors mt-0.5 ${g.visibleToPatient ? 'text-pro-500 hover:text-pro-700' : 'text-gray-300 hover:text-pro-500'}`}
+              >
+                {g.visibleToPatient ? <Eye size={16} /> : <EyeOff size={16} />}
+              </button>
+              <button onMouseDown={e => e.stopPropagation()} onClick={() => setConfirmDeleteGoal(g)} aria-label={`Eliminar objetivo "${g.text}"`} className="shrink-0 text-gray-300 hover:text-red-500 transition-colors mt-0.5"><Trash2 size={16} /></button>
+            </>}
           </div>
         ))}
       </div>
@@ -479,24 +552,32 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
 // ── PatientDetail (main) ───────────────────────────────────
 export default function PatientDetail() {
   const { id } = useParams()
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { showError } = useToast()
+  const userId = user?.id ?? 'anon'
   const [patient,  setPatient]  = useState(null)
+  // Paciente desvinculado con notas u objetivos propios: se muestra en solo lectura.
+  const [archived, setArchived] = useState(null)
+  const [confirmUnlink, setConfirmUnlink] = useState(false)
   const [entries,  setEntries]  = useState([])
   const [insights, setInsights] = useState(null)
   const [habitsCorr, setHabitsCorr] = useState([])
   const [habitsList, setHabitsList] = useState([])
   const [loading,  setLoading]  = useState(true)
+  const [loadError, setLoadError] = useState('')
   const [selectedEntryId, setSelectedEntryId] = useState(null)
-  usePageTitle(patient ? patient.name : 'Paciente')
+  usePageTitle(patient?.name ?? archived?.name ?? 'Paciente')
 
   // Grid state
-  const [layout,  setLayout]  = useState(() => readLayout())
-  const [visible, setVisible] = useState(() => readVisible())
+  const [layout,  setLayout]  = useState(() => readLayout(userId))
+  const [visible, setVisible] = useState(() => readVisible(userId))
   const [panelMenu, setPanelMenu] = useState(false)
 
   const togglePanel = (panelId) => {
     setVisible(prev => {
       const next = prev.includes(panelId) ? prev.filter(p => p !== panelId) : [...prev, panelId]
-      localStorage.setItem(lsVisible(), JSON.stringify(next))
+      writeStored(lsVisible(userId), next)
       return next
     })
   }
@@ -515,7 +596,7 @@ export default function PatientDetail() {
       if (JSON.stringify(prev) === JSON.stringify(merged)) {
         return prev;
       }
-      localStorage.setItem(lsLayout(), JSON.stringify(merged))
+      writeStored(lsLayout(userId), merged)
       return merged
     })
   }
@@ -525,8 +606,8 @@ export default function PatientDetail() {
     const allPanels = PANELS.map(p => p.i)
     setLayout(fresh)
     setVisible(allPanels)
-    localStorage.setItem(lsLayout(),  JSON.stringify(fresh))
-    localStorage.setItem(lsVisible(), JSON.stringify(allPanels))
+    writeStored(lsLayout(userId),  fresh)
+    writeStored(lsVisible(userId), allPanels)
   }
 
   const activeLayout = useMemo(
@@ -539,27 +620,35 @@ export default function PatientDetail() {
   const responsiveSm = useMemo(() => activeLayout.map(i => ({ ...i, w: 1, x: 0 })), [activeLayout])
 
   useEffect(() => {
+    let active = true
     setSelectedEntryId(null)
-    const load = async () => {
-      try {
-        const [pRes, jRes, iRes, hRes, lRes] = await Promise.allSettled([
-          getPatients(),
-          getJournal(id),
-          getPatientInsights(id),
-          getHabitCorrelation(id),
-          getHabits(id),
-        ])
-        if (pRes.status === 'fulfilled') {
-          setPatient(pRes.value.data.patients?.find(p => p.id === id) ?? null)
+    setLoading(true)
+    setLoadError('')
+    setArchived(null)
+    getPatientDetail(id)
+      .then(({ data }) => {
+        if (!active) return
+        setPatient(data.patient)
+        setEntries(data.entries)
+        setInsights(data.insights)
+        setHabitsCorr(data.correlation)
+        setHabitsList(data.habits)
+      })
+      .catch(async err => {
+        if (!active) return
+        setPatient(null)
+        // 404: sin vínculo aceptado. Puede ser un paciente archivado.
+        if (err.response?.status !== 404) {
+          setLoadError(err.response?.data?.error || err.message || 'No se pudo cargar el paciente.')
+          return
         }
-        if (jRes.status === 'fulfilled') setEntries(jRes.value.data.entries ?? [])
-        if (iRes.status === 'fulfilled') setInsights(iRes.value.data)
-        if (hRes.status === 'fulfilled') setHabitsCorr(hRes.value.data)
-        if (lRes.status === 'fulfilled') setHabitsList(lRes.value.data.habits ?? [])
-      } catch {}
-      finally { setLoading(false) }
-    }
-    load()
+        try {
+          const { data } = await getArchivedPatients()
+          if (active) setArchived(data.patients.find(p => p.id === id) ?? null)
+        } catch { /* sin archivados: queda "Paciente no encontrado" */ }
+      })
+      .finally(() => { if (active) setLoading(false) })
+    return () => { active = false }
   }, [id])
 
   useEffect(() => {
@@ -579,12 +668,51 @@ export default function PatientDetail() {
     </div>
   )
 
+  const handleUnlink = async () => {
+    setConfirmUnlink(false)
+    try {
+      await unlinkPatient(id)
+      navigate('/psych/patients')
+    } catch (err) {
+      showError(err.response?.data?.error || err.message || 'No se pudo desvincular al paciente.')
+    }
+  }
+
+  if (!patient && archived) return (
+    <div className="animate-fade-in space-y-6 pb-16">
+      <div className="flex items-center gap-3">
+        <Link to="/psych/patients" aria-label="Volver a la lista de pacientes" className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors shrink-0">
+          <ArrowLeft size={18} className="text-gray-500 dark:text-gray-400" />
+        </Link>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden font-bold text-base shrink-0 bg-gray-100 dark:bg-gray-800 text-gray-500">
+          {archived.avatarUrl ? <AvatarDisplay avatar={archived.avatarUrl} size={28} className="text-current" /> : archived.name.charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0">
+          <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{archived.name}</h1>
+          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"><Archive size={11} /> Desvinculado · solo lectura</p>
+        </div>
+      </div>
+      <p className="text-sm text-gray-500 dark:text-gray-400">
+        Ya no tenés acceso al diario de este paciente. Conservás tus notas de sesión y objetivos.
+      </p>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <PanelWrapper title="Notas de Sesión" icon={FileText} scrollable>
+          <SessionNotes patientId={id} readOnly />
+        </PanelWrapper>
+        <PanelWrapper title="Objetivos Terapéuticos" icon={Target} scrollable>
+          <TherapyGoals patientId={id} readOnly />
+        </PanelWrapper>
+      </div>
+    </div>
+  )
+
   if (!patient) return (
     <div className="text-center py-20">
       <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-2xl flex items-center justify-center mx-auto mb-4">
         <User size={28} className="text-gray-400" />
       </div>
-      <p className="font-semibold text-gray-900 dark:text-white mb-2">Paciente no encontrado</p>
+      <p className="font-semibold text-gray-900 dark:text-white mb-2">{loadError ? 'No se pudo cargar el paciente' : 'Paciente no encontrado'}</p>
+      {loadError && <p role="alert" className="text-sm text-red-600 dark:text-red-400 mb-2">{loadError}</p>}
       <Link to="/psych/patients" className="text-pro-600 dark:text-pro-400 text-sm hover:underline">← Volver a la lista</Link>
     </div>
   )
@@ -624,8 +752,24 @@ export default function PatientDetail() {
               {avgMood && <span className="flex items-center gap-1"><TrendingUp size={11} /> Prom. 7 días: <strong>{avgMood}</strong></span>}
             </div>
           </div>
+          <button
+            onClick={() => setConfirmUnlink(true)}
+            className="shrink-0 flex items-center gap-1.5 text-xs font-semibold px-3 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400 hover:text-red-600 hover:border-red-200 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+          >
+            <UserMinus size={14} /> <span className="hidden sm:inline">Desvincular</span>
+            <span className="sr-only sm:hidden">Desvincular paciente</span>
+          </button>
         </div>
       </div>
+
+      <ConfirmActionModal
+        isOpen={confirmUnlink}
+        onClose={() => setConfirmUnlink(false)}
+        onConfirm={handleUnlink}
+        title={`¿Desvincular a ${patient.name}?`}
+        description="Dejarás de ver su diario y sus hábitos. Tus notas y objetivos se conservan en Pacientes archivados. Para volver a vincularse, el paciente tendrá que enviarte una nueva solicitud."
+        confirmLabel="Desvincular"
+      />
 
       {/* ── Toolbar ────────────────────────────────── */}
       <div className="flex items-center gap-2 mb-5 flex-wrap">

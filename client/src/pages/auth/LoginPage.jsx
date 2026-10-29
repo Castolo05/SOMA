@@ -6,6 +6,7 @@ import { Eye, EyeOff, ArrowRight } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { isGoogleAuthEnabled } from '../../lib/supabase'
 import AuthLayout from '../../components/AuthLayout'
+import { hasPendingInvite } from '../../lib/pendingInvite'
 
 function GoogleIcon() {
   return (
@@ -16,6 +17,12 @@ function GoogleIcon() {
       <path fill="#EA4335" d="M12 4.75c1.76 0 3.34.6 4.59 1.8l3.44-3.44A11.97 11.97 0 0 0 12 0 12 12 0 0 0 1.28 6.6l4.01 3.1C6.23 6.86 8.88 4.75 12 4.75z" />
     </svg>
   )
+}
+
+// El paciente con una invitación pendiente va directo a su perfil para confirmarla.
+const homeFor = (user) => {
+  if (user?.role !== 'PATIENT') return '/psych/patients'
+  return hasPendingInvite() ? '/patient/profile' : '/patient'
 }
 
 export default function LoginPage() {
@@ -32,7 +39,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!authLoading && user) {
-      navigate(user.role === 'PATIENT' ? '/patient' : '/psych/patients', { replace: true })
+      navigate(homeFor(user), { replace: true })
     }
   }, [authLoading, navigate, user])
 
@@ -56,7 +63,7 @@ export default function LoginPage() {
     setLoading(true)
     try {
       const user = await login(form.email, form.password, trustDevice)
-      navigate(user?.role === 'PATIENT' ? '/patient' : '/psych/patients', { replace: true })
+      navigate(homeFor(user), { replace: true })
     } catch (err) {
       setError(err.response?.data?.error || 'Error al iniciar sesión.')
     } finally {

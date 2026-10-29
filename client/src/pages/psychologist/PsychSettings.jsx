@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext'
 import { readAvatarFile } from '../../lib/avatarUpload'
 import { useToast } from '../../context/ToastContext'
 import AvatarDisplay from '../../components/AvatarDisplay'
+import InviteCodeCard from '../../components/InviteCodeCard'
 
 export default function PsychSettings() {
   const { showError } = useToast()
@@ -83,11 +84,15 @@ export default function PsychSettings() {
                   {darkMode ? <Moon size={20} /> : <Sun size={20} />}
                 </div>
                 <div>
-                  <h3 className="font-medium text-gray-900 dark:text-white">Modo Oscuro</h3>
+                  <h3 id="psych-dark-mode-label" className="font-medium text-gray-900 dark:text-white">Modo Oscuro</h3>
                   <p className="text-sm text-gray-500 dark:text-gray-400">Cambiar entre tema claro y oscuro</p>
                 </div>
               </div>
               <button
+                type="button"
+                role="switch"
+                aria-checked={darkMode}
+                aria-labelledby="psych-dark-mode-label"
                 onClick={() => setDarkMode(d => !d)}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-pro-500 focus:ring-offset-2 ${
                   darkMode ? 'bg-pro-600' : 'bg-gray-200 dark:bg-gray-700'
@@ -102,6 +107,18 @@ export default function PsychSettings() {
             </div>
           </div>
         </div>
+
+        {/* Invitación de pacientes */}
+        {user?.inviteCode && (
+          <div className="bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-sm border border-gray-100 dark:border-[var(--theme-border)] overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 dark:border-[var(--theme-border)]">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Invitar pacientes</h2>
+            </div>
+            <div className="p-6">
+              <InviteCodeCard code={user.inviteCode} />
+            </div>
+          </div>
+        )}
 
         {/* Perfil Profesional */}
         <div className="bg-white dark:bg-[var(--theme-surface)] rounded-2xl shadow-sm border border-gray-100 dark:border-[var(--theme-border)] overflow-hidden">
@@ -149,16 +166,20 @@ export default function PsychSettings() {
 
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre y Apellido</label>
-                    <input 
+                    <label htmlFor="psychologist-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre y Apellido</label>
+                    <input
+                      id="psychologist-name"
+                      autoComplete="name"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-pro-500 dark:bg-gray-700 dark:text-white" 
                       value={editName} 
                       onChange={e => setEditName(e.target.value)} 
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
-                    <input 
+                    <label htmlFor="psychologist-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                    <input
+                      id="psychologist-email"
+                      autoComplete="email"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-pro-500 dark:bg-gray-700 dark:text-white" 
                       type="email" 
                       value={editEmail} 
@@ -177,8 +198,10 @@ export default function PsychSettings() {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nueva Contraseña (opcional)</label>
-                    <input 
+                    <label htmlFor="psychologist-new-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nueva Contraseña (opcional)</label>
+                    <input
+                      id="psychologist-new-password"
+                      autoComplete="new-password"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pro-500 focus:border-pro-500 dark:bg-gray-700 dark:text-white" 
                       type="password" 
                       placeholder="Dejar en blanco para no cambiar" 

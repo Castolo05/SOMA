@@ -305,16 +305,29 @@ export async function getPatients() {
   const patientIds = [...new Set((links || []).map(link => link.patient_id))]
   if (!patientIds.length) return ok({ patients: [] })
 
-  // Perfiles y resumen de entradas en paralelo, en lugar de una consulta por paciente
-  const [{ data: patients, error }, { data: summaries, error: summariesError }] = await Promise.all([
+  // Perfiles, resumen de entradas y ánimo de las últimas dos semanas en
+  // paralelo, en lugar de una consulta por paciente.
+  const [{ data: patients, error }, { data: summaries, error: summariesError }, { data: recent, error: recentError }] = await Promise.all([
     supabase
       .from('profiles')
       .select('id, name, role, avatar_url')
       .in('id', patientIds)
       .eq('role', 'PATIENT'),
     supabase.rpc('psychologist_patient_summaries'),
+    supabase
+      .from('journal_entries')
+      .select('patient_id, mood_score, entry_date')
+      .in('patient_id', patientIds)
+      .gte('entry_date', daysAgoKey(13)),
   ])
   if (error) return fail(error.message)
+  if (recentError) return fail(recentError.message)
+  const recentById = new Map()
+  for (const e of recent || []) {
+    const list = recentById.get(e.patient_id) || []
+    list.push({ moodScore: e.mood_score, entryDate: e.entry_date })
+    recentById.set(e.patient_id, list)
+  }
   const summaryById = summariesError
     ? await summarizeEntriesByPatient(patientIds)
     : new Map((summaries || []).map(s => [s.patient_id, s]))
@@ -322,6 +335,7 @@ export async function getPatients() {
 
   const enriched = (patients || []).map((p) => {
     const summary = summaryById.get(p.id)
+    const { avgThisWeek, trend } = weeklyMood(recentById.get(p.id) || [])
     return {
       id: p.id,
       name: p.name,
@@ -332,19 +346,92 @@ export async function getPatients() {
       totalEntries: Number(summary?.total_entries ?? 0),
       lastMood: summary?.last_mood ?? null,
       lastEntryDate: summary?.last_entry_date ?? null,
+      avgThisWeek,
+      trend,
     }
   })
   return ok({ patients: enriched })
 }
 
-export async function getPatientInsights(patientId) {
-  const { data: entries, error } = await supabase
-    .from('journal_entries')
-    .select('mood_score, completed_habits, entry_date, created_at')
+// El psicólogo termina el vínculo con un paciente. Conserva sus notas y
+// objetivos, que pasan a verse como paciente archivado.
+export async function unlinkPatient(patientId) {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+  const { error } = await supabase
+    .from('patient_psychologists')
+    .delete()
     .eq('patient_id', patientId)
-    .order('entry_date', { ascending: false })
+    .eq('psychologist_id', user.id)
   if (error) return fail(error.message)
-  return ok(computeInsights((entries || []).map(normalizeEntry)))
+  return ok({ ok: true })
+}
+
+// Pacientes desvinculados sobre los que el psicólogo tiene notas u objetivos.
+export async function getArchivedPatients() {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+  const { data, error } = await supabase.rpc('psychologist_archived_patients')
+  if (error) return fail(error.message)
+  return ok({ patients: (data || [])
+    .map(p => ({
+      id: p.patient_id,
+      name: p.name,
+      avatarUrl: p.avatar_url,
+      notesCount: Number(p.notes_count),
+      goalsCount: Number(p.goals_count),
+      lastRecordAt: p.last_record_at,
+    }))
+    .sort((a, b) => new Date(b.lastRecordAt) - new Date(a.lastRecordAt)) })
+}
+
+// Ficha de un paciente vinculado: perfil, entradas y hábitos se piden una sola
+// vez, y las estadísticas y la correlación se calculan sobre esos mismos datos.
+// RLS solo devuelve el perfil si el vínculo está ACCEPTED.
+export async function getPatientDetail(patientId) {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+
+  const [profileResult, entriesResult, habitsResult] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('id, name, avatar_url')
+      .eq('id', patientId)
+      .eq('role', 'PATIENT')
+      .maybeSingle(),
+    supabase
+      .from('journal_entries')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('entry_date', { ascending: false }),
+    supabase
+      .from('habits')
+      .select('*')
+      .eq('user_id', patientId)
+      .order('order', { ascending: true }),
+  ])
+  if (profileResult.error) return fail(profileResult.error.message)
+  if (!profileResult.data) return fail('Paciente no encontrado.', 404)
+  if (entriesResult.error) return fail(entriesResult.error.message)
+  if (habitsResult.error) return fail(habitsResult.error.message)
+
+  const entries = (entriesResult.data || []).map(normalizeEntry)
+  const habits = (habitsResult.data || []).map(normalizeHabit)
+  const p = profileResult.data
+  return ok({
+    patient: {
+      id: p.id,
+      name: p.name,
+      avatarUrl: p.avatar_url,
+      totalEntries: entries.length,
+      lastMood: entries[0]?.moodScore ?? null,
+      lastEntryDate: entries[0]?.entryDate ?? null,
+    },
+    entries,
+    habits,
+    insights: computeInsights(entries),
+    correlation: computeCorrelation(habits, entries),
+  })
 }
 
 export async function getPatientRequests() {
@@ -443,11 +530,11 @@ export async function createSessionNote(patientId, { title, content, sessionDate
   return ok({ note: normalizeNote(data) })
 }
 
-export async function updateSessionNote(noteId, { title, content }) {
+export async function updateSessionNote(noteId, { title, content, sessionDate }) {
   const user = await currentUser()
   const { data, error } = await supabase
     .from('session_notes')
-    .update({ title, content })
+    .update({ title, content, ...(sessionDate ? { session_date: sessionDate } : {}) })
     .eq('id', noteId)
     .eq('psychologist_id', user?.id)
     .select()
@@ -479,11 +566,11 @@ export async function getGoals(patientId) {
   return ok({ goals: (data || []).map(normalizeGoal) })
 }
 
-export async function createGoal(patientId, { text }) {
+export async function createGoal(patientId, { text, visibleToPatient = false }) {
   const user = await currentUser()
   const { data, error } = await supabase
     .from('therapy_goals')
-    .insert({ psychologist_id: user?.id, patient_id: patientId, text, completed: false })
+    .insert({ psychologist_id: user?.id, patient_id: patientId, text, completed: false, visible_to_patient: visibleToPatient })
     .select()
     .single()
   if (error) return fail(error.message)
@@ -505,6 +592,31 @@ export async function toggleGoal(goalId) {
     .single()
   if (error) return fail(error.message)
   return ok({ goal: normalizeGoal(data) })
+}
+
+export async function setGoalVisibility(goalId, visibleToPatient) {
+  const { data, error } = await supabase
+    .from('therapy_goals')
+    .update({ visible_to_patient: visibleToPatient })
+    .eq('id', goalId)
+    .select()
+    .single()
+  if (error) return fail(error.message)
+  return ok({ goal: normalizeGoal(data) })
+}
+
+// Objetivos que los psicólogos compartieron con el paciente (RLS solo
+// devuelve los marcados como visibles).
+export async function getMySharedGoals() {
+  const user = await currentUser()
+  if (user?.role !== 'PATIENT') return fail('No autorizado', 403)
+  const { data, error } = await supabase
+    .from('therapy_goals')
+    .select('id, text, completed, psychologist_id, created_at')
+    .eq('patient_id', user.id)
+    .order('created_at', { ascending: true })
+  if (error) return fail(error.message)
+  return ok({ goals: (data || []).map(normalizeGoal) })
 }
 
 export async function deleteGoal(goalId) {
@@ -638,6 +750,7 @@ function normalizeGoal(g) {
     patientId: g.patient_id,
     text: g.text,
     completed: g.completed,
+    visibleToPatient: g.visible_to_patient ?? false,
     createdAt: g.created_at,
     updatedAt: g.updated_at,
   }
@@ -806,19 +919,29 @@ function computeCorrelation(habits, entries) {
 }
 
 // ── Patient insights ────────────────────────────────────
-function computeInsights(entries) {
-  // Las ventanas se miden por día de entrada (entryDate), no por instante:
-  // "esta semana" son hoy y los 6 días anteriores.
-  const daysAgoKey = (n) => { const d = new Date(); d.setDate(d.getDate() - n); return entryDateKey(d) }
+// Las ventanas se miden por día de entrada (entryDate), no por instante:
+// "esta semana" son hoy y los 6 días anteriores.
+function daysAgoKey(n) {
+  const d = new Date()
+  d.setDate(d.getDate() - n)
+  return entryDateKey(d)
+}
+
+function weeklyMood(entries) {
   const weekStart = daysAgoKey(6)
   const prevWeekStart = daysAgoKey(13)
   const thisWeek = entries.filter(e => e.entryDate >= weekStart)
   const lastWeek = entries.filter(e => e.entryDate >= prevWeekStart && e.entryDate < weekStart)
-  const last14 = entries.filter(e => e.entryDate >= prevWeekStart)
   const avg = arr => arr.length ? (arr.reduce((s, e) => s + e.moodScore, 0) / arr.length).toFixed(1) : null
   const avgThisWeek = avg(thisWeek)
   const avgLastWeek = avg(lastWeek)
   const trend = avgThisWeek && avgLastWeek ? (parseFloat(avgThisWeek) - parseFloat(avgLastWeek)).toFixed(1) : null
+  return { thisWeek, avgThisWeek, avgLastWeek, trend }
+}
+
+function computeInsights(entries) {
+  const { thisWeek, avgThisWeek, avgLastWeek, trend } = weeklyMood(entries)
+  const last14 = entries.filter(e => e.entryDate >= daysAgoKey(13))
   const habitCount = {}
   last14.forEach(e => (e.completedHabits || []).forEach(h => { habitCount[h] = (habitCount[h] || 0) + 1 }))
   const topHabits = Object.entries(habitCount).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([habitId, count]) => ({ habitId, count }))
