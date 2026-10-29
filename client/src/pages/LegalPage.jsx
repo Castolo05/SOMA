@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom'
+import Wordmark from '../components/Wordmark'
 
 export default function LegalPage({
   title,
@@ -6,21 +7,21 @@ export default function LegalPage({
   sections,
 }) {
   return (
-    <div className="min-h-screen bg-[#f5eee9] px-4 py-10 text-gray-800 dark:bg-[var(--theme-canvas)] dark:text-gray-100">
+    <div className="min-h-screen bg-[var(--theme-canvas)] px-4 py-10 text-gray-800 dark:bg-[var(--theme-canvas)] dark:text-gray-100">
       <div className="mx-auto max-w-4xl">
-        <div className="mb-6">
+        <div className="mb-6 flex items-center justify-between gap-4">
+          <Link to="/login" aria-label="Ir a SOMA" className="rounded-md">
+            <Wordmark className="h-[16px] text-[var(--theme-wordmark)]" />
+          </Link>
           <Link
             to="/login"
-            className="inline-flex items-center gap-2 rounded-full border border-[#c8b3b0] bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-slate-50 dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] dark:text-gray-200"
+            className="inline-flex items-center rounded-full border border-[var(--theme-border)] bg-white px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-[var(--theme-inset)] dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] dark:text-gray-200"
           >
-            ← Volver a SOMA
+            Volver a SOMA
           </Link>
         </div>
 
-        <article className="rounded-[28px] border border-[#c8b3b0] bg-[#fffaf8] p-6 shadow-[0_18px_60px_rgba(90,75,75,0.08)] dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] md:p-10">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.22em] text-brand-600 dark:text-brand-400">
-            Información legal
-          </p>
+        <article className="rounded-[22px] border border-[var(--theme-border)] bg-[var(--theme-surface)] p-6 shadow-[0_1px_2px_var(--theme-shadow)] dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)] md:p-10">
           <h1 className="text-3xl font-bold tracking-tight md:text-4xl">{title}</h1>
           <p className="mt-4 text-base leading-7 text-gray-600 dark:text-gray-300">{description}</p>
 

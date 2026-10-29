@@ -5,7 +5,7 @@ export default function NotFoundPage() {
   usePageTitle('Página no encontrada')
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-[var(--theme-canvas)] dark:bg-[var(--theme-canvas)] p-4 relative overflow-hidden">
       <div className="w-full max-w-sm text-center animate-fade-in">
         {/* Número 404 grande */}
         <div className="relative mb-6">

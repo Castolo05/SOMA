@@ -167,30 +167,30 @@ export default function PatientDashboard() {
         {/* ── Hero: saludo + stats ── */}
         <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center">
           <div>
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest capitalize">
+            <p className="text-xs font-semibold text-gray-400 capitalize">
               {todayString()}
             </p>
             <h1 className="font-display text-3xl font-bold text-gray-800 dark:text-white mt-0.5">
-              {greeting}, {user?.name?.split(' ')[0]} 👋
+              {greeting}, {user?.name?.split(' ')[0]}
             </h1>
           </div>
           <StatCard
             label="Racha actual"
             value={`${streak} día${streak !== 1 ? 's' : ''}`}
-            color="#b4533e"
+            color="#b86812"
             icon={Flame}
           />
           <StatCard
             label="Ánimo promedio"
             value={avgMood ? `${avgMood}/10` : '—'}
             sub="Últimos 14 días"
-            color="#b04f87"
+            color="#b86812"
             icon={TrendingUp}
           />
           <StatCard
             label="Entradas totales"
             value={entries.length}
-            color="#ad682b"
+            color="#b86812"
             icon={BookOpen}
           />
         </div>
@@ -202,7 +202,7 @@ export default function PatientDashboard() {
           <div className="col-span-3">
             {!wroteToday ? (
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">
+                <p className="text-xs font-bold text-gray-400 mb-3 px-1">
                   ¿Cómo te sentís hoy?
                 </p>
                 <NoteForm
@@ -213,7 +213,7 @@ export default function PatientDashboard() {
               </div>
             ) : editMode ? (
               <div>
-                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-3 px-1">
+                <p className="text-xs font-bold text-gray-400 mb-3 px-1">
                   Editando nota de hoy
                 </p>
                 <NoteForm
@@ -233,7 +233,7 @@ export default function PatientDashboard() {
                 <div className="flex items-center justify-between mb-3 px-1">
                   <div className="flex items-center gap-2">
                     <CheckCircle2 size={14} className="text-emerald-500" />
-                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                    <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                       Nota de hoy
                     </p>
                   </div>
@@ -247,23 +247,23 @@ export default function PatientDashboard() {
                   )}
                 </div>
 
-                <div className="card border-l-4" style={{ borderLeftColor: todayMoodConfig?.color }}>
+                <div className="card">
                   <div className="flex items-center gap-4 mb-4">
                     <div
                       className="w-16 h-16 rounded-3xl flex flex-col items-center justify-center shrink-0 shadow-md"
                       style={{ backgroundColor: todayMoodConfig?.color }}
                     >
-                      <MoodIcon score={todayEntry.moodScore} size={24} color="white" />
-                      <span className="text-xs font-bold mt-1" style={{ color: 'white' }}>
+                      <MoodIcon score={todayEntry.moodScore} size={24} color={todayMoodConfig?.ink} />
+                      <span className="text-xs font-bold mt-1" style={{ color: todayMoodConfig?.ink }}>
                         {todayEntry.moodScore}/10
                       </span>
                     </div>
                     <div>
-                      <p className="text-xl font-bold" style={{ color: todayMoodConfig?.color }}>
+                      <p className="text-xl font-bold" style={{ color: todayMoodConfig?.text }}>
                         {todayMoodConfig?.label}
                       </p>
                       <p className="text-xs text-gray-400 mt-0.5">
-                        {!canEditToday ? '🔒 Período de edición expirado' : 'Hoy'}
+                        {!canEditToday ? 'Período de edición expirado' : 'Hoy'}
                       </p>
                     </div>
                   </div>
@@ -318,12 +318,12 @@ export default function PatientDashboard() {
             {entries.length >= 2 && (
               <div className="card">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-gray-500 dark:text-gray-400">
                     <BarChart2 size={13} />
                     Evolución del ánimo
                   </div>
                   {avgMood && (
-                    <span className="text-xs font-bold" style={{ color: todayMoodConfig?.color || '#b4533e' }}>
+                    <span className="text-xs font-bold" style={{ color: todayMoodConfig?.text || 'var(--theme-accent)' }}>
                       Prom. {avgMood}/10
                     </span>
                   )}
@@ -342,7 +342,7 @@ export default function PatientDashboard() {
             {yesterdayMode ? (
               <div>
                 <div className="flex items-center justify-between mb-2 px-1">
-                  <p className="text-xs font-bold text-pro-500 dark:text-pro-400 uppercase tracking-widest">
+                  <p className="text-xs font-bold text-pro-500 dark:text-pro-400">
                     {yesterdayEntry ? 'Editando nota de ayer' : 'Anotación de ayer'}
                   </p>
                   <span className="text-[11px] text-gray-400">Solo disponible hoy</span>
@@ -395,7 +395,7 @@ export default function PatientDashboard() {
 
         {/* Fecha + Saludo */}
         <div className="px-1 pt-1">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest capitalize">
+          <p className="text-xs font-semibold text-gray-400 capitalize">
             {todayString()}
           </p>
           <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white mt-0.5">
@@ -406,7 +406,7 @@ export default function PatientDashboard() {
         {/* Nota de hoy */}
         {!wroteToday ? (
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
+            <p className="text-xs font-bold text-gray-400 mb-2 px-1">
               ¿Cómo te sentís hoy?
             </p>
             <NoteForm
@@ -417,7 +417,7 @@ export default function PatientDashboard() {
           </div>
         ) : editMode ? (
           <div>
-            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">
+            <p className="text-xs font-bold text-gray-400 mb-2 px-1">
               Editando nota de hoy
             </p>
             <NoteForm
@@ -437,7 +437,7 @@ export default function PatientDashboard() {
             <div className="flex items-center justify-between mb-2 px-1">
               <div className="flex items-center gap-2">
                 <CheckCircle2 size={14} className="text-emerald-500" />
-                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-widest">
+                <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
                   Nota de hoy
                 </p>
               </div>
@@ -450,23 +450,23 @@ export default function PatientDashboard() {
                 </button>
               )}
             </div>
-            <div className="card border-l-4" style={{ borderLeftColor: todayMoodConfig?.color }}>
+            <div className="card">
               <div className="flex items-center gap-3 mb-3">
                 <div
                   className="w-12 h-12 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-sm"
                   style={{ backgroundColor: todayMoodConfig?.color }}
                 >
-                  <MoodIcon score={todayEntry.moodScore} size={18} color="white" />
-                  <span className="text-[10px] font-bold" style={{ color: 'white' }}>
+                  <MoodIcon score={todayEntry.moodScore} size={18} color={todayMoodConfig?.ink} />
+                  <span className="text-[10px] font-bold" style={{ color: todayMoodConfig?.ink }}>
                     {todayEntry.moodScore}
                   </span>
                 </div>
                 <div>
-                  <p className="font-bold" style={{ color: todayMoodConfig?.color }}>
+                  <p className="font-bold" style={{ color: todayMoodConfig?.text }}>
                     {todayMoodConfig?.label}
                   </p>
                   <p className="text-xs text-gray-400">
-                    {!canEditToday && '🔒 Bloqueada · '}Hoy
+                    Hoy{!canEditToday && ', bloqueada'}
                   </p>
                 </div>
               </div>
@@ -488,7 +488,7 @@ export default function PatientDashboard() {
                 </div>
               )}
               {!canEditToday && (
-                <p className="text-xs text-gray-400 mt-3">🔒 Esta entrada no se puede editar.</p>
+                <p className="text-xs text-gray-400 mt-3">Esta entrada ya no se puede editar.</p>
               )}
             </div>
           </div>
@@ -498,7 +498,7 @@ export default function PatientDashboard() {
         {yesterdayMode ? (
           <div>
             <div className="flex items-center justify-between mb-2 px-1">
-              <p className="text-xs font-bold text-pro-500 dark:text-pro-400 uppercase tracking-widest">
+              <p className="text-xs font-bold text-pro-500 dark:text-pro-400">
                 {yesterdayEntry ? 'Editando la nota de ayer' : 'Anotación pendiente de ayer'}
               </p>
               <span className="text-[11px] text-gray-400">Disponible solo hoy</span>

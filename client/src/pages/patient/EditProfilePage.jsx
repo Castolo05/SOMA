@@ -66,7 +66,7 @@ export default function EditProfilePage() {
       <div className="card space-y-4">
         {/* Selector de Avatar */}
         <div className="space-y-4">
-          <label className="text-xs font-bold text-gray-500 uppercase tracking-wide">Foto de Perfil</label>
+          <label className="text-xs font-bold text-gray-500">Foto de Perfil</label>
           <div className="flex flex-col items-center gap-4">
             <div className="w-24 h-24 bg-brand-50 dark:bg-brand-900/30 rounded-full flex items-center justify-center overflow-hidden border-2 border-brand-200 dark:border-brand-800">
               <AvatarDisplay avatar={editAvatar} size={48} className="text-brand-500" />
@@ -116,15 +116,15 @@ export default function EditProfilePage() {
 
         <div className="space-y-4 pt-6 border-t border-brand-100 dark:border-gray-700 mt-6">
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Nombre</label>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">Nombre</label>
             <input className="input" value={editName} onChange={e => setEditName(e.target.value)} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Email</label>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">Email</label>
             <input className="input" type="email" value={editEmail} onChange={e => setEditEmail(e.target.value)} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-1.5">Nueva Contraseña (opcional)</label>
+            <label className="block text-xs font-bold text-gray-500 mb-1.5">Nueva Contraseña (opcional)</label>
             <input className="input" type="password" placeholder="Dejar en blanco para no cambiar" value={editPassword} onChange={e => setEditPassword(e.target.value)} />
           </div>
         </div>

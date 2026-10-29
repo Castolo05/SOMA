@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { UserRound, Stethoscope, ArrowRight } from 'lucide-react'
+import { UserRound, Stethoscope } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import AuthLayout from '../../components/AuthLayout'
 
@@ -83,8 +83,8 @@ export default function RegisterPage() {
   const isPsych = form.role === 'PSYCHOLOGIST'
   const roleButtonClass = (active) => `flex min-h-11 items-center justify-center gap-2 rounded-2xl border-2 px-3 py-2.5 transition-all duration-200 ${
     active
-      ? 'border-[#5a4b4b] bg-[#5a4b4b] text-[#fff0dc] shadow-md dark:border-brand-300 dark:bg-brand-300/15 dark:text-brand-200'
-      : 'border-[#c8b3b0] text-gray-500 hover:border-[#5a4b4b]/50 dark:border-[var(--theme-border)]'
+      ? 'border-[var(--theme-primary)] bg-[var(--theme-primary)] text-[var(--theme-on-primary)] shadow-md dark:border-brand-300 dark:bg-brand-300/15 dark:text-brand-200'
+      : 'border-[var(--theme-border)] text-gray-500 hover:border-[var(--theme-primary)] dark:border-[var(--theme-border)]'
   }`
 
   return (
@@ -301,7 +301,7 @@ export default function RegisterPage() {
         </label>
 
         <button type="submit" className="btn-patient flex w-full items-center justify-center gap-2 short:!py-3" disabled={loading}>
-          {loading ? 'Creando cuenta...' : <>Crear cuenta <ArrowRight size={16} /></>}
+          {loading ? 'Creando cuenta...' : 'Crear cuenta'}
         </button>
       </form>
 

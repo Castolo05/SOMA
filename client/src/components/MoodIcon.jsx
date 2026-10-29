@@ -30,14 +30,14 @@ export default function MoodIcon({ score, size = 20, className = '', showLabel =
       <span
         className="inline-flex items-center justify-center rounded-full shrink-0"
         style={{
-          color: color || config.color,
+          color: color || config.text,
           padding: size > 24 ? '6px' : '4px',
         }}
       >
         <IconComponent size={size} strokeWidth={2} />
       </span>
       {showScore && (
-        <span className="font-bold tabular-nums" style={{ color: color || config.color }}>
+        <span className="font-bold tabular-nums" style={{ color: color || config.text }}>
           {score}
         </span>
       )}
@@ -64,7 +64,7 @@ export function MoodBadge({ score, size = 'md' }) {
   return (
     <span
       className="bg-[var(--mood-bg)] dark:bg-[var(--mood-bg-dark)] inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-semibold text-xs"
-      style={{ '--mood-bg': config.bg, '--mood-bg-dark': config.darkBg, color: config.color }}
+      style={{ '--mood-bg': config.bg, '--mood-bg-dark': config.darkBg, color: config.text }}
     >
       <IconComponent size={iconSize} strokeWidth={2.5} />
       <span>{score}/10</span>

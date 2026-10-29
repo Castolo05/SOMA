@@ -22,7 +22,7 @@ const CustomTooltip = ({ active, payload }) => {
         <div className="flex items-center gap-2">
           <MoodIcon score={score} size={16} />
           <div>
-            <p className="font-bold" style={{ color: config?.color }}>
+            <p className="font-bold" style={{ color: config?.text }}>
               {score}/10 — {config?.label}
             </p>
             <p className="text-xs text-gray-400">{payload[0].payload.dateLabel}</p>
@@ -43,7 +43,7 @@ const CustomDot = (props) => {
       cy={cy}
       r={5}
       fill={MOOD_CHART_COLOR(payload.mood)}
-      stroke={isDark ? '#f3e9e4' : '#fff6f0'}
+      stroke={isDark ? '#211915' : '#ffffff'}
       strokeWidth={2}
     />
   )
@@ -89,9 +89,9 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
     else setInternalDays(d)
   }
   const isDark = useIsDarkTheme()
-  const lineColor = isDark ? '#f3e9e4' : mode === 'psych' ? '#8f5644' : '#b4533e'
-  const gridColor = isDark ? 'rgba(243, 233, 228, 0.12)' : 'rgba(90, 75, 75, 0.12)'
-  const axisColor = isDark ? '#b3a3a0' : '#725f60'
+  const lineColor = isDark ? '#f7ece4' : '#6e402c'
+  const gridColor = isDark ? 'rgba(247, 236, 228, 0.1)' : 'rgba(58, 36, 26, 0.1)'
+  const axisColor = isDark ? '#c3ac9e' : '#7a5e50'
 
   // Filtrar entradas por período seleccionado
   const chartData = useMemo(() => {
@@ -193,7 +193,7 @@ export default function MoodChart({ entries = [], days = 14, onDaysChange, mode 
               stroke={lineColor}
               strokeWidth={2.5}
               dot={chartData.length <= 15 ? <CustomDot isDark={isDark} /> : false}
-              activeDot={{ r: 7, fill: lineColor, stroke: isDark ? '#1c1719' : '#fff6f0', strokeWidth: 2, cursor: onDayClick ? 'pointer' : 'default' }}
+              activeDot={{ r: 7, fill: lineColor, stroke: isDark ? '#211915' : '#ffffff', strokeWidth: 2, cursor: onDayClick ? 'pointer' : 'default' }}
             />
           </LineChart>
         </ResponsiveContainer>

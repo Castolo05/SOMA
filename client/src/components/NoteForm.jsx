@@ -49,7 +49,7 @@ export default function NoteForm({
           <span className="text-sm font-bold text-gray-700 dark:text-gray-200">Estado de ánimo</span>
           <div
             className="bg-[var(--mood-bg)] dark:bg-[var(--mood-bg-dark)] flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-sm"
-            style={{ '--mood-bg': moodConfig.bg, '--mood-bg-dark': moodConfig.darkBg, color: moodConfig.color }}
+            style={{ '--mood-bg': moodConfig.bg, '--mood-bg-dark': moodConfig.darkBg, color: moodConfig.text }}
           >
             <MoodIcon score={mood} size={15} />
             <span>{mood}/10</span>
@@ -65,7 +65,7 @@ export default function NoteForm({
           onChange={(e) => setMood(Number(e.target.value))}
           className="mood-slider w-full h-3 rounded-full appearance-none cursor-grab active:cursor-grabbing"
           style={{
-            background: `linear-gradient(to right, ${moodConfig.color} 0%, ${moodConfig.color} ${sliderPercent}%, var(--track-bg, #e5e7eb) ${sliderPercent}%, var(--track-bg, #e5e7eb) 100%)`,
+            background: `linear-gradient(to right, ${moodConfig.color} 0%, ${moodConfig.color} ${sliderPercent}%, var(--track-bg) ${sliderPercent}%, var(--track-bg) 100%)`,
           }}
         />
         <div className="flex justify-between mt-2 px-0.5">
@@ -75,7 +75,7 @@ export default function NoteForm({
               type="button"
               onClick={() => setMood(n)}
               className="text-[10px] font-bold transition-all"
-              style={mood === n ? { color: moodConfig.color, transform: 'scale(1.15)' } : { color: '#d1d5db' }}
+              style={mood === n ? { color: moodConfig.text, transform: 'scale(1.15)' } : { color: 'var(--theme-border-strong)' }}
             >
               {n}
             </button>

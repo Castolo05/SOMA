@@ -1,21 +1,30 @@
 // SOMA global constants (1-10 mood scale with Lucide icons).
-// La escala de ánimo va de violeta polvoriento (1) a dorado (10), dentro de la
-// paleta cálida de la marca; cada color tiene contraste ≥3:1 en ambos temas.
+// La escala de ánimo es un semáforo continuo: rojo (1) → amarillo (5-6) → verde (10).
+// Los tonos se calcularon en OKLCH para que los pasos se vean parejos.
+//   color: relleno (puntos, calendario, gráficos); igual en ambos temas
+//   ink:   color del ícono/texto sobre ese relleno (blanco o tinta oscura,
+//          según cuál tenga contraste ≥3:1)
+//   text:  color para texto sobre el fondo de la app; cambia con el tema
+//          (variables --mood-N-text en theme.css, contraste ≥4.5:1)
+//   bg / darkBg: tinte suave para pastillas
 
 // MOOD_ICONS: mapa de puntaje 1-10 → configuración visual
 // Los iconos son nombres de componentes de lucide-react
 // Se renderizan con el componente <MoodIcon score={n} />
+const INK_LIGHT = '#ffffff'
+const INK_DARK = '#2a201c'
+
 export const MOOD_ICONS = {
-  1:  { icon: 'CloudLightning', label: 'Terrible',    color: '#9058a3', bg: '#efe0e5', darkBg: '#3f2d41' },
-  2:  { icon: 'CloudRain',      label: 'Muy mal',     color: '#a2529b', bg: '#f2dfe4', darkBg: '#442c3f' },
-  3:  { icon: 'Cloud',          label: 'Mal',         color: '#b04f87', bg: '#f4dfe1', darkBg: '#472b3a' },
-  4:  { icon: 'Wind',           label: 'Regular',     color: '#b8506a', bg: '#f5dfdd', darkBg: '#492c33' },
-  5:  { icon: 'Minus',          label: 'Neutro',      color: '#bf5248', bg: '#f6dfd8', darkBg: '#4b2c2b' },
-  6:  { icon: 'CloudSun',       label: 'Bien',        color: '#b75c35', bg: '#f5e0d6', darkBg: '#492e27' },
-  7:  { icon: 'Sun',            label: 'Muy bien', color: '#ad682b', bg: '#f4e2d4', darkBg: '#463124' },
-  8:  { icon: 'Sparkles',       label: 'Genial',    color: '#a47226', bg: '#f2e3d4', darkBg: '#443423' },
-  9:  { icon: 'Star',           label: 'Excelente',   color: '#9e7923', bg: '#f1e4d3', darkBg: '#433522' },
-  10: { icon: 'Zap',            label: 'Perfecto',    color: '#987f1d', bg: '#f1e5d2', darkBg: '#413721' },
+  1:  { icon: 'CloudLightning', label: 'Terrible',  color: '#c43f3e', ink: INK_LIGHT, text: 'var(--mood-1-text)',  bg: '#ffe6e3', darkBg: '#492826' },
+  2:  { icon: 'CloudRain',      label: 'Muy mal',   color: '#ce4d2d', ink: INK_LIGHT, text: 'var(--mood-2-text)',  bg: '#ffe7df', darkBg: '#492921' },
+  3:  { icon: 'Cloud',          label: 'Mal',       color: '#d7621d', ink: INK_LIGHT, text: 'var(--mood-3-text)',  bg: '#ffe8db', darkBg: '#482a1c' },
+  4:  { icon: 'Wind',           label: 'Regular',   color: '#df7b0c', ink: INK_LIGHT, text: 'var(--mood-4-text)',  bg: '#ffe9d8', darkBg: '#462c18' },
+  5:  { icon: 'Minus',          label: 'Neutro',    color: '#e69812', ink: INK_DARK,  text: 'var(--mood-5-text)',  bg: '#feebd6', darkBg: '#432e14' },
+  6:  { icon: 'CloudSun',       label: 'Bien',      color: '#e3af19', ink: INK_DARK,  text: 'var(--mood-6-text)',  bg: '#f9edd5', darkBg: '#3e3112' },
+  7:  { icon: 'Sun',            label: 'Muy bien',  color: '#b6a800', ink: INK_DARK,  text: 'var(--mood-7-text)',  bg: '#f2f0d6', darkBg: '#373413' },
+  8:  { icon: 'Sparkles',       label: 'Genial',    color: '#7fa11c', ink: INK_DARK,  text: 'var(--mood-8-text)',  bg: '#e9f3da', darkBg: '#2d3719' },
+  9:  { icon: 'Star',           label: 'Excelente', color: '#4b943b', ink: INK_LIGHT, text: 'var(--mood-9-text)',  bg: '#e3f5df', darkBg: '#253920' },
+  10: { icon: 'Zap',            label: 'Perfecto',  color: '#1a8748', ink: INK_LIGHT, text: 'var(--mood-10-text)', bg: '#def6e3', darkBg: '#1e3a26' },
 }
 
 // Color semáforo para gráficos (Recharts dot color)

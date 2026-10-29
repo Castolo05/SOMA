@@ -2,7 +2,7 @@
  * Sistema de temas de SOMA.
  *
  * 1. Tokens: cada tema define sus colores una sola vez como variables CSS.
- *    Las escalas brand-* (coral, paciente) y pro-* (terracota, profesional)
+ *    Las escalas brand-* (ámbar, paciente) y pro-* (cacao, profesional)
  *    se exponen a Tailwind en tailwind.config.js como canales RGB, así que
  *    clases como bg-brand-50/60 cambian solas con el tema.
  * 2. Componentes (.card, .input, .btn-*): definidos una vez con tokens.
@@ -12,73 +12,90 @@
 
 /* ── 1. Tokens ─────────────────────────────────────────────── */
 
+/* La paleta sale del logotipo: el cacao del wordmark para la tinta y las
+   acciones, el ámbar de las hojas como acento y un durazno muy claro de fondo. */
 :root,
 html[data-theme='light'] {
   color-scheme: light;
-  /* Coral suave, rosa empolvado, marfil, topo y ciruela */
-  --theme-canvas: #f2c6b6;
-  --theme-header: #f9e2da;
-  --theme-nav: #f9e2da;
-  --theme-surface: #f9e2da;
-  --theme-raised: #fff6f0;
-  --theme-inset: #f6d4c7;
-  --theme-border: #dfc7c0;
-  --theme-border-strong: #c8b3b0;
-  --theme-text: #5a4b4b;
-  --theme-muted: #725f60;
-  --theme-primary: #5a4b4b;
-  --theme-primary-hover: #463a3a;
-  --theme-on-primary: #fff6f0;
-  --theme-accent: #9a4535;
-  --theme-accent-hover: #74342a;
-  --theme-focus: rgba(90, 75, 75, 0.55);
-  --theme-shadow: rgba(90, 75, 75, 0.14);
-  --theme-chart: #5a4b4b;
-  --theme-chart-grid: rgba(90, 75, 75, 0.12);
+  --theme-canvas: #fbf1ea;
+  --theme-header: #ffffff;
+  --theme-nav: #ffffff;
+  --theme-surface: #ffffff;
+  --theme-raised: #fffbf8;
+  --theme-inset: #f8ebe1;
+  --theme-border: #ecdcd1;
+  --theme-border-strong: #d8c2b3;
+  --theme-text: #3a241a;
+  --theme-muted: #7a5e50;
+  --theme-primary: #6e402c;
+  --theme-primary-hover: #59331f;
+  --theme-on-primary: #fff8f2;
+  --theme-accent: #8a4b12;
+  --theme-accent-hover: #6b3c0c;
+  --theme-highlight: #f2a33a;
+  --theme-focus: rgba(242, 163, 58, 0.65);
+  --theme-shadow: rgba(58, 36, 26, 0.07);
+  --theme-chart: #6e402c;
+  --theme-chart-grid: rgba(58, 36, 26, 0.1);
+  --theme-selection: #fdd49e;
+  --theme-wordmark: #6e402c;
 
-  --ok-bg: #dce9d8;
-  --ok-solid: #4f8a5c;
-  --ok-text: #3f6e4a;
-  --ok-border: #b7d1b3;
-  --danger-bg: #f4d3c9;
-  --danger-text: #a03f36;
-  --danger-border: #dda59b;
-  --warn-bg: #f5e2c6;
-  --warn-text: #8f5a22;
-  --warn-border: #dfbd8e;
+  --ok-bg: #e3f2dc;
+  --ok-solid: #3f8a3a;
+  --ok-text: #2f6e2b;
+  --ok-border: #b9d9ae;
+  --danger-bg: #fbe1dc;
+  --danger-text: #a8342c;
+  --danger-border: #eeb2a8;
+  --warn-bg: #fdecc8;
+  --warn-text: #85520a;
+  --warn-border: #f0cd8a;
+
+  /* Escala de ánimo 1-10 (rojo → amarillo → verde). El relleno es igual en
+     los dos temas; el texto se oscurece o aclara para leerse sobre el fondo. */
+  --mood-1-text: #b43938;
+  --mood-2-text: #b43d1f;
+  --mood-3-text: #af4100;
+  --mood-4-text: #a94900;
+  --mood-5-text: #9c5300;
+  --mood-6-text: #8d5b00;
+  --mood-7-text: #756600;
+  --mood-8-text: #506f00;
+  --mood-9-text: #2b7417;
+  --mood-10-text: #007638;
 
   /* Variables que leen algunos componentes (barras, pistas de sliders) */
   --surface: var(--theme-surface);
   --surface-muted: var(--theme-canvas);
   --border: var(--theme-border-strong);
   --text-muted: var(--theme-muted);
-  --track-bg: var(--theme-border-strong);
+  --track-bg: var(--theme-border);
 
-  /* brand: coral/terracota (canales RGB para Tailwind) */
-  --brand-50: 251 235 228;
-  --brand-100: 246 217 205;
-  --brand-200: 235 191 174;
-  --brand-300: 223 159 136;
-  --brand-400: 208 124 96;
-  --brand-500: 180 83 62;
-  --brand-600: 154 69 53;
-  --brand-700: 116 52 42;
-  --brand-800: 92 42 35;
-  --brand-900: 70 33 28;
-  --brand-950: 46 22 19;
+  /* brand: ámbar de las hojas del logo (canales RGB para Tailwind) */
+  --brand-50: 255 245 232;
+  --brand-100: 255 232 204;
+  --brand-200: 253 212 158;
+  --brand-300: 251 192 105;
+  --brand-400: 242 163 58;
+  --brand-500: 184 104 18;
+  --brand-600: 164 92 10;
+  --brand-700: 142 80 12;
+  --brand-800: 107 60 12;
+  --brand-900: 74 42 10;
+  --brand-950: 46 26 6;
 
-  /* pro: terracota tostado para el área profesional */
-  --pro-50: 247 233 225;
-  --pro-100: 240 216 203;
-  --pro-200: 226 187 167;
-  --pro-300: 205 151 125;
-  --pro-400: 176 112 90;
-  --pro-500: 163 101 79;
-  --pro-600: 143 86 68;
-  --pro-700: 116 69 55;
-  --pro-800: 90 54 44;
-  --pro-900: 67 40 33;
-  --pro-950: 45 27 22;
+  /* pro: cacao del wordmark para el área profesional */
+  --pro-50: 248 239 234;
+  --pro-100: 240 223 213;
+  --pro-200: 224 194 176;
+  --pro-300: 201 155 130;
+  --pro-400: 168 119 94;
+  --pro-500: 140 90 65;
+  --pro-600: 110 64 44;
+  --pro-700: 89 51 31;
+  --pro-800: 67 38 22;
+  --pro-900: 46 26 15;
+  --pro-950: 30 17 10;
 
   background: var(--theme-canvas);
 }
@@ -86,37 +103,51 @@ html[data-theme='light'] {
 html.dark,
 html[data-theme='dark'] {
   color-scheme: dark;
-  /* Versión nocturna de la misma paleta: ciruela profundo con acentos coral */
-  --theme-canvas: #1c1719;
-  --theme-header: #211b1d;
-  --theme-nav: #181315;
-  --theme-surface: #262022;
-  --theme-raised: #2f282a;
-  --theme-inset: #221c1e;
-  --theme-border: #43393b;
-  --theme-border-strong: #574a4c;
-  --theme-text: #f3e9e4;
-  --theme-muted: #b3a3a0;
-  --theme-primary: #a0563f;
-  --theme-primary-hover: #b0644c;
+  /* Noche cacao: el mismo marrón del wordmark llevado a fondo, con ámbar de acento */
+  --theme-canvas: #17110e;
+  --theme-header: #1c1512;
+  --theme-nav: #15100d;
+  --theme-surface: #211915;
+  --theme-raised: #2a201b;
+  --theme-inset: #1e1713;
+  --theme-border: #3b2e27;
+  --theme-border-strong: #4f3f36;
+  --theme-text: #f7ece4;
+  --theme-muted: #c3ac9e;
+  --theme-primary: #a65a16;
+  --theme-primary-hover: #b86a22;
   --theme-on-primary: #fff6f0;
-  --theme-accent: #eba68e;
-  --theme-accent-hover: #f3bba7;
-  --theme-focus: rgba(235, 166, 142, 0.6);
+  --theme-accent: #f7b866;
+  --theme-accent-hover: #fbc98a;
+  --theme-highlight: #f2a33a;
+  --theme-focus: rgba(247, 184, 102, 0.6);
   --theme-shadow: rgba(0, 0, 0, 0.4);
-  --theme-chart: #f3e9e4;
-  --theme-chart-grid: rgba(243, 233, 228, 0.12);
+  --theme-chart: #f7ece4;
+  --theme-chart-grid: rgba(247, 236, 228, 0.1);
+  --theme-selection: #6b3c0c;
+  --theme-wordmark: #f3dccb;
 
-  --ok-bg: #1f2b23;
-  --ok-solid: #5f9a6c;
-  --ok-text: #9cc6a3;
-  --ok-border: #3a5541;
-  --danger-bg: #3a2528;
-  --danger-text: #e3a4a0;
-  --danger-border: #6e4549;
-  --warn-bg: #352a1f;
-  --warn-text: #dcb684;
-  --warn-border: #6a5540;
+  --ok-bg: #1d2a1b;
+  --ok-solid: #4f9a48;
+  --ok-text: #97cf8c;
+  --ok-border: #35512f;
+  --danger-bg: #3a201d;
+  --danger-text: #f2a097;
+  --danger-border: #6e3d37;
+  --warn-bg: #352812;
+  --warn-text: #f0c47a;
+  --warn-border: #6a5226;
+
+  --mood-1-text: #f67d75;
+  --mood-2-text: #f58063;
+  --mood-3-text: #ef834c;
+  --mood-4-text: #e98a35;
+  --mood-5-text: #dc9110;
+  --mood-6-text: #cb9900;
+  --mood-7-text: #afa200;
+  --mood-8-text: #8aac33;
+  --mood-9-text: #67b157;
+  --mood-10-text: #50b371;
 
   --surface: var(--theme-raised);
   --surface-muted: var(--theme-surface);
@@ -124,29 +155,29 @@ html[data-theme='dark'] {
   --text-muted: var(--theme-muted);
   --track-bg: var(--theme-border);
 
-  --brand-50: 51 39 42;
-  --brand-100: 59 45 47;
-  --brand-200: 90 67 68;
-  --brand-300: 138 94 85;
-  --brand-400: 176 100 76;
-  --brand-500: 160 86 63;
-  --brand-600: 144 76 56;
-  --brand-700: 134 70 52;
-  --brand-800: 59 45 47;
-  --brand-900: 44 34 36;
-  --brand-950: 36 29 31;
+  --brand-50: 46 33 22;
+  --brand-100: 58 42 27;
+  --brand-200: 90 64 38;
+  --brand-300: 154 106 51;
+  --brand-400: 196 120 40;
+  --brand-500: 166 90 22;
+  --brand-600: 150 82 20;
+  --brand-700: 247 184 102;
+  --brand-800: 58 42 27;
+  --brand-900: 42 31 22;
+  --brand-950: 33 25 19;
 
-  --pro-50: 44 36 38;
-  --pro-100: 52 42 44;
-  --pro-200: 74 61 63;
-  --pro-300: 217 179 163;
-  --pro-400: 220 174 154;
-  --pro-500: 168 112 90;
-  --pro-600: 143 86 68;
-  --pro-700: 116 69 55;
-  --pro-800: 59 47 48;
-  --pro-900: 42 34 36;
-  --pro-950: 34 28 30;
+  --pro-50: 42 32 27;
+  --pro-100: 51 39 31;
+  --pro-200: 74 57 46;
+  --pro-300: 217 185 165;
+  --pro-400: 226 195 175;
+  --pro-500: 184 138 112;
+  --pro-600: 160 115 90;
+  --pro-700: 140 90 65;
+  --pro-800: 58 44 36;
+  --pro-900: 42 32 27;
+  --pro-950: 33 25 21;
 
   background: var(--theme-canvas);
 }
@@ -161,17 +192,15 @@ body {
    (mismo comportamiento que tenían los temas anteriores). */
 
 :root .btn-patient {
-  @apply font-bold py-3.5 px-6 rounded-2xl transition-all duration-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply font-semibold py-3.5 px-6 rounded-full transition-colors duration-200 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
   background-color: var(--theme-primary);
   color: var(--theme-on-primary);
-  box-shadow: 0 8px 22px var(--theme-shadow);
 }
 
 :root .btn-psych {
-  @apply font-semibold py-2.5 px-5 rounded-xl transition-all duration-300 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  @apply font-semibold py-2.5 px-5 rounded-full transition-colors duration-200 active:scale-[.98] disabled:opacity-50 disabled:cursor-not-allowed;
   background-color: var(--theme-primary);
   color: var(--theme-on-primary);
-  box-shadow: 0 8px 22px var(--theme-shadow);
 }
 
 :root .btn-patient:hover:not(:disabled),
@@ -180,7 +209,7 @@ body {
 }
 
 :root .btn-ghost {
-  @apply font-medium py-2.5 px-5 rounded-xl transition-all duration-300;
+  @apply font-medium py-2.5 px-5 rounded-full transition-colors duration-200;
   border: 1px solid var(--theme-border-strong);
   color: var(--theme-text);
 }
@@ -191,10 +220,10 @@ body {
 
 :root .card,
 :root .card-pastel {
-  @apply rounded-3xl p-5 sm:p-6;
+  @apply rounded-[22px] p-5 sm:p-6;
   background-color: var(--theme-surface);
   border: 1px solid var(--theme-border);
-  box-shadow: 0 8px 28px var(--theme-shadow);
+  box-shadow: 0 1px 2px var(--theme-shadow), 0 6px 16px -10px var(--theme-shadow);
 }
 
 :root .card-pastel {
@@ -206,7 +235,7 @@ body {
   @apply rounded-2xl p-4 sm:p-5 transition-colors duration-300;
   background-color: var(--theme-surface);
   border: 1px solid var(--theme-border);
-  box-shadow: 0 6px 22px var(--theme-shadow);
+  box-shadow: 0 1px 2px var(--theme-shadow);
 }
 
 html.dark .card,
@@ -216,7 +245,7 @@ html.dark .card-psych {
 
 :root .input,
 :root .input-psych {
-  @apply w-full px-4 py-3.5 rounded-2xl focus:outline-none transition-all duration-300 text-base shadow-sm;
+  @apply w-full px-4 py-3.5 rounded-xl focus:outline-none transition-colors duration-200 text-base;
   border: 1px solid var(--theme-border);
   background-color: var(--theme-raised);
   color: var(--theme-text);
@@ -239,8 +268,8 @@ html.dark .input-psych {
 
 :root .input:focus,
 :root .input-psych:focus {
-  border-color: var(--theme-border-strong);
-  box-shadow: 0 0 0 2px var(--theme-focus);
+  border-color: var(--theme-highlight);
+  box-shadow: 0 0 0 3px var(--theme-focus);
 }
 
 :root .tag {
@@ -260,8 +289,7 @@ html.dark .label {
 }
 
 :root .glass {
-  @apply backdrop-blur-md;
-  background-color: color-mix(in srgb, var(--theme-header) 92%, transparent);
+  background-color: var(--theme-header);
   border-bottom: 1px solid var(--theme-border);
 }
 
@@ -316,6 +344,22 @@ html.dark .label {
   outline-offset: 2px;
 }
 
+::selection {
+  background-color: var(--theme-selection);
+  color: var(--theme-text);
+}
+
+input,
+textarea {
+  caret-color: var(--theme-highlight);
+}
+
+input[type='checkbox'],
+input[type='radio'],
+input[type='range'] {
+  accent-color: var(--theme-primary);
+}
+
 ::-webkit-scrollbar-thumb {
   background: var(--theme-border-strong);
 }
@@ -347,8 +391,7 @@ html.dark .label {
 /* Bordes */
 :root .border-gray-100,
 :root .border-gray-200,
-:root .border-gray-300,
-:root .border-\[\#c8b3b0\] { border-color: var(--theme-border) !important; }
+:root .border-gray-300 { border-color: var(--theme-border) !important; }
 
 /* Estados semánticos: cada color comunica una acción distinta */
 :root .bg-emerald-50,
@@ -389,8 +432,6 @@ html.dark .label {
 :root .border-sky-200 { border-color: var(--theme-border) !important; }
 
 /* Ajustes propios del tema oscuro */
-html.dark .bg-\[\#f9e2da\] { background-color: var(--theme-surface) !important; }
-html.dark .bg-\[\#f2c6b6\] { background-color: var(--theme-canvas) !important; }
 html.dark .dark-surface-header { background-color: var(--theme-header) !important; }
 html.dark .dark-surface-nav { background-color: var(--theme-nav) !important; }
 /* Los selectores por atributo cubren también las variantes con opacidad (/70, /80…) */
@@ -427,11 +468,16 @@ html.dark .text-white { color: #fff6f0 !important; }
 /* En oscuro, los tonos de acento como texto se aclaran para leerse sobre ciruela */
 html.dark [class*='text-brand-'],
 html.dark [class*='text-pro-'] { color: var(--theme-accent) !important; }
-html.dark .bg-brand-400,
-html.dark .bg-brand-500,
-html.dark .bg-brand-600,
 html.dark .bg-pro-500,
 html.dark .bg-pro-600 { background-color: var(--theme-primary) !important; }
+
+/* Los rellenos de acento llevan texto blanco encima: usan el color de acción
+   del tema para que el contraste no dependa del ámbar. */
+:root .bg-brand-400,
+:root .bg-brand-500,
+:root .bg-brand-600 { background-color: var(--theme-primary) !important; }
+:root .hover\:bg-brand-600:hover,
+:root .hover\:bg-pro-700:hover { background-color: var(--theme-primary-hover) !important; }
 
 /* Gráficos */
 html.dark .recharts-cartesian-grid line { stroke: var(--theme-chart-grid) !important; }

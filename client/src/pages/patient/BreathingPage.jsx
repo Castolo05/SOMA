@@ -4,9 +4,9 @@ import { ArrowLeft, Wind } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 
 const PHASES = [
-  { label: 'Inhala', duration: 4, color: '#bf5248' },
-  { label: 'Sostén', duration: 4, color: '#9058a3' },
-  { label: 'Exhala', duration: 4, color: '#ad682b' },
+  { label: 'Inhala', duration: 4, color: '#d6841e' },
+  { label: 'Sostén', duration: 4, color: '#8c5a41' },
+  { label: 'Exhala', duration: 4, color: '#4b943b' },
 ]
 
 const INITIAL_BREATHING = { phase: 0, secondsLeft: PHASES[0].duration, cycles: 0 }
@@ -60,11 +60,11 @@ export default function BreathingPage() {
         <div className="relative w-44 h-44">
           {/* Círculo de fondo */}
           <svg className="w-full h-full -rotate-90" viewBox="0 0 160 160">
-            <circle cx="80" cy="80" r="70" fill="none" stroke="var(--theme-border, #e5e7eb)" strokeWidth="8" />
+            <circle cx="80" cy="80" r="70" fill="none" stroke="var(--theme-border)" strokeWidth="8" />
             <circle
               cx="80" cy="80" r="70"
               fill="none"
-              stroke={running ? currentPhase.color : 'var(--theme-muted, #725f60)'}
+              stroke={running ? currentPhase.color : 'var(--theme-muted)'}
               strokeWidth="8"
               strokeLinecap="round"
               strokeDasharray={circumference}

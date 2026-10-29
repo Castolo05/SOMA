@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import ThemeLogo from '../../components/ThemeLogo'
+import Wordmark from '../../components/Wordmark'
 import ConfirmLogoutModal from '../../components/ConfirmLogoutModal'
 import InviteCodeCard from '../../components/InviteCodeCard'
 import { applyTheme } from '../../lib/theme'
@@ -116,8 +117,8 @@ export default function PsychLayout() {
     <div className="flex flex-col h-full">
       {/* Logo + close */}
       <div className="flex items-center gap-3 px-1 mb-8">
-        <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-lg shrink-0" />
-        <span className="font-bold text-gray-900 dark:text-white text-lg">SOMA</span>
+        <ThemeLogo alt="" className="w-8 h-8 shrink-0" />
+        <Wordmark className="h-[15px] text-[var(--theme-wordmark)]" />
         <button
           onClick={onClose}
           aria-label="Cerrar menú"
@@ -185,7 +186,11 @@ export default function PsychLayout() {
 
       {/* ── Desktop: always-visible 60px icon strip ─────────── */}
       <aside className="hidden lg:flex flex-col items-center py-5 gap-2 bg-white dark:bg-[var(--theme-surface)] border-r border-gray-200 dark:border-[var(--theme-border)] w-[60px] shrink-0 sticky top-0 h-screen z-30">
-        <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-lg mb-3" />
+        <ThemeLogo alt="" className="w-8 h-8" />
+        {/* El wordmark va vertical para entrar en la tira de 60px */}
+        <div className="relative w-[13px] h-[66px] mt-2 mb-3">
+          <Wordmark className="absolute left-1/2 top-1/2 h-[13px] -translate-x-1/2 -translate-y-1/2 -rotate-90 text-[var(--theme-wordmark)]" />
+        </div>
 
         {/* Open drawer button */}
         <button
@@ -287,8 +292,8 @@ export default function PsychLayout() {
             <button onClick={() => setMobileOpen(true)} aria-label="Abrir menú" className="p-2 rounded-lg text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800">
               <Menu size={20} />
             </button>
-            <ThemeLogo alt="SOMA" className="w-7 h-7 rounded-lg" />
-            <span className="font-bold text-gray-900 dark:text-white">SOMA</span>
+            <ThemeLogo alt="" className="w-7 h-7" />
+            <Wordmark className="h-[13px] text-[var(--theme-wordmark)]" />
           </div>
           <div className="flex gap-1">
             {navItems.map(({ to, icon: Icon, label }) => {

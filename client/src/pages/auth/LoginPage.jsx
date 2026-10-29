@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Capacitor } from '@capacitor/core'
 import { useAuth, OAUTH_ERROR_KEY } from '../../context/AuthContext'
-import { Eye, EyeOff, ArrowRight } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import { isGoogleAuthEnabled } from '../../lib/supabase'
 import AuthLayout from '../../components/AuthLayout'
@@ -101,7 +101,7 @@ export default function LoginPage() {
             type="button"
             onClick={handleGoogle}
             disabled={busy}
-            className="mt-6 flex w-full items-center justify-center gap-3 rounded-2xl border border-[#c8b3b0] bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60 short:mt-5 short:py-2.5 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-100 dark:hover:bg-[var(--theme-accent)]"
+            className="mt-6 flex w-full items-center justify-center gap-3 rounded-full border border-[var(--theme-border)] bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60 short:mt-5 short:py-2.5 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-100 dark:hover:bg-[var(--theme-accent)]"
           >
             {googleLoading
               ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-gray-600" />
@@ -109,10 +109,10 @@ export default function LoginPage() {
             Continuar con Google
           </button>
 
-          <div className="my-6 flex items-center gap-3 text-xs uppercase tracking-wider text-gray-400 short:my-4">
-            <span className="h-px flex-1 bg-[#c8b3b0]/70 dark:bg-[var(--theme-border)]" />
+          <div className="my-6 flex items-center gap-3 text-xs text-gray-400 short:my-4">
+            <span className="h-px flex-1 bg-[var(--theme-border)] dark:bg-[var(--theme-border)]" />
             o con tu email
-            <span className="h-px flex-1 bg-[#c8b3b0]/70 dark:bg-[var(--theme-border)]" />
+            <span className="h-px flex-1 bg-[var(--theme-border)] dark:bg-[var(--theme-border)]" />
           </div>
         </>
       )}
@@ -183,7 +183,7 @@ export default function LoginPage() {
               Entrando...
             </span>
           ) : (
-            <>Entrar <ArrowRight size={16} /></>
+            'Entrar'
           )}
         </button>
       </form>

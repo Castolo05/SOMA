@@ -39,7 +39,7 @@ export default function InviteCodeCard({ code, compact = false }) {
 
   return (
     <div className={`bg-pro-50 dark:bg-pro-900/20 border border-pro-100 dark:border-pro-800 rounded-xl ${compact ? 'px-3 py-2.5' : 'px-4 py-3'}`}>
-      <div className="text-[10px] font-bold text-pro-400 uppercase tracking-widest mb-0.5">Código de invitación</div>
+      <div className="text-xs font-bold text-pro-400 mb-0.5">Código de invitación</div>
       <div className="flex items-center gap-2">
         <span className={`flex-1 font-mono font-bold text-pro-700 dark:text-pro-300 tracking-widest select-all ${compact ? 'text-sm' : 'text-lg'}`}>{code}</span>
         <button type="button" onClick={() => copy(code)} aria-label="Copiar código de invitación" title="Copiar código" className={buttonCls}>

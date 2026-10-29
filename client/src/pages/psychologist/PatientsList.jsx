@@ -87,7 +87,7 @@ export default function PatientsList() {
         {!error && !loading && (
           <p className="text-gray-400 mt-1">
             {patients.length} paciente{patients.length !== 1 ? 's' : ''} vinculado{patients.length !== 1 ? 's' : ''}
-            {withAlerts > 0 && <> · <span className="text-amber-600 dark:text-amber-400 font-medium">{withAlerts} para revisar</span></>}
+            {withAlerts > 0 && <>, <span className="text-amber-600 dark:text-amber-400 font-medium">{withAlerts} para revisar</span></>}
           </p>
         )}
       </div>
@@ -189,7 +189,7 @@ export default function PatientsList() {
       {!loading && filteredArchived.length > 0 && (
         <section aria-labelledby="archived-patients-title" className="space-y-3">
           <div>
-            <h2 id="archived-patients-title" className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide flex items-center gap-2">
+            <h2 id="archived-patients-title" className="text-sm font-bold text-gray-500 dark:text-gray-400 flex items-center gap-2">
               <Archive size={14} /> Pacientes archivados
             </h2>
             <p className="text-xs text-gray-400 mt-0.5">Desvinculados. Conservás tus notas y objetivos en solo lectura.</p>
@@ -205,7 +205,7 @@ export default function PatientsList() {
                 <div className="flex-1 min-w-0">
                   <span className="font-medium text-gray-700 dark:text-gray-200">{p.name}</span>
                   <div className="text-xs text-gray-400 mt-0.5">
-                    {p.notesCount} nota{p.notesCount !== 1 ? 's' : ''} · {p.goalsCount} objetivo{p.goalsCount !== 1 ? 's' : ''}
+                    {p.notesCount} nota{p.notesCount !== 1 ? 's' : ''}, {p.goalsCount} objetivo{p.goalsCount !== 1 ? 's' : ''}
                   </div>
                 </div>
                 <ChevronRight size={16} className="text-gray-300 group-hover:text-pro-400 transition-colors shrink-0" />

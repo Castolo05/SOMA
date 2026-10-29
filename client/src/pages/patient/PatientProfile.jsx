@@ -221,7 +221,7 @@ export default function PatientProfile() {
 
   const TrackingTypeSelector = ({ value, onChange }) => (
     <div className="space-y-1.5">
-      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wide">Tipo de seguimiento</p>
+      <p className="text-xs font-bold text-gray-500 dark:text-gray-400">Tipo de seguimiento</p>
       <div className="flex gap-2 flex-wrap">
         {TRACKING_TYPES.map(t => (
           <button

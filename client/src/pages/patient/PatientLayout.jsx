@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext'
 import { Home, BookOpen, User, Moon, Sun } from 'lucide-react'
 import { preloadPatientData } from '../../lib/patientCache'
 import ThemeLogo from '../../components/ThemeLogo'
+import Wordmark from '../../components/Wordmark'
 import { applyTheme } from '../../lib/theme'
 
 // Import the three primary patient pages for side‑by‑side rendering
@@ -163,16 +164,13 @@ export default function PatientLayout() {
   ]
 
   return (
-    <div className="h-[100dvh] flex flex-col bg-[#f2c6b6] dark:bg-[var(--theme-canvas)] transition-colors duration-300 overflow-hidden">
+    <div className="h-[100dvh] flex flex-col bg-[var(--theme-canvas)] dark:bg-[var(--theme-canvas)] transition-colors duration-300 overflow-hidden">
 
       {/* ── Header (all screens) ── */}
-      <header className="dark-surface-header shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-brand-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_rgba(25,50,56,0.04)]">
+      <header className="dark-surface-header shrink-0 z-50 bg-white/90 dark:bg-gray-900/80 backdrop-blur-md border-b border-brand-100 dark:border-gray-800 px-4 sm:px-6 py-3 flex items-center justify-between shadow-[0_4px_18px_var(--theme-shadow)]">
         <div className="flex items-center gap-2.5">
-          <ThemeLogo alt="SOMA" className="w-8 h-8 rounded-[10px] shadow-sm" />
-          <div className="flex flex-col leading-none">
-            <span className="font-display font-bold text-lg text-gray-800 dark:text-white">SOMA</span>
-            <span className="hidden sm:block text-[10px] font-semibold tracking-[0.18em] text-brand-600 dark:text-brand-400 uppercase">un espacio de bienestar</span>
-          </div>
+          <ThemeLogo alt="" className="w-8 h-8" />
+          <Wordmark className="h-[15px] text-[var(--theme-wordmark)]" />
         </div>
         <div className="flex items-center gap-1.5">
           <button
@@ -289,7 +287,7 @@ export default function PatientLayout() {
 
       {/* Bottom nav – solo en mobile */}
       <nav
-        className="md:hidden dark-surface-nav shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-brand-100 dark:border-gray-800 shadow-[0_-1px_18px_rgba(25,50,56,0.08)]"
+        className="md:hidden dark-surface-nav shrink-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-t border-brand-100 dark:border-gray-800 shadow-[0_-1px_18px_var(--theme-shadow)]"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="max-w-xl mx-auto flex justify-around items-center py-1">

@@ -1,4 +1,4 @@
-/* Las fuentes (DM Sans y Fraunces) se cargan con <link> en index.html */
+/* Las fuentes (Figtree y Quicksand) se cargan con <link> en index.html */
 /* Estilos base para react-grid-layout (inline, sin dependencia del paquete instalado) */
 
 .react-resizable-handle {
@@ -138,15 +138,17 @@ html {
 }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Figtree', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Quicksand es la voz redondeada del logotipo; queda para títulos */
 h1, h2, h3, h4 {
-  font-family: 'Fraunces', Georgia, serif;
-  font-optical-sizing: auto;
-  letter-spacing: -0.01em;
+  font-family: 'Quicksand', 'Figtree', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  text-wrap: balance;
 }
 
 button, a, input, textarea, select {

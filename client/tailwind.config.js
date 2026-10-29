@@ -9,8 +9,8 @@ export default {
         short: { raw: '(max-height: 820px)' },
       },
       fontFamily: {
-        sans: ['DM Sans', 'sans-serif'],
-        display: ['Fraunces', 'Georgia', 'serif'],
+        sans: ['Figtree', 'system-ui', 'sans-serif'],
+        display: ['Quicksand', 'Figtree', 'sans-serif'],
       },
       colors: {
         // Paleta SOMA: los valores viven en src/theme.css y cambian con el tema
@@ -42,18 +42,18 @@ export default {
           900: 'rgb(var(--pro-900) / <alpha-value>)',
           950: 'rgb(var(--pro-950) / <alpha-value>)',
         },
-        // ── Ánimo 1-10: de violeta polvoriento a dorado (ver lib/constants.js) ──
+        // ── Ánimo 1-10: semáforo rojo → amarillo → verde (ver lib/constants.js) ──
         mood: {
-          1: '#9058a3',
-          2: '#a2529b',
-          3: '#b04f87',
-          4: '#b8506a',
-          5: '#bf5248',
-          6: '#b75c35',
-          7: '#ad682b',
-          8: '#a47226',
-          9: '#9e7923',
-          10: '#987f1d',
+          1: '#c43f3e',
+          2: '#ce4d2d',
+          3: '#d7621d',
+          4: '#df7b0c',
+          5: '#e69812',
+          6: '#e3af19',
+          7: '#b6a800',
+          8: '#7fa11c',
+          9: '#4b943b',
+          10: '#1a8748',
         },
       },
       animation: {

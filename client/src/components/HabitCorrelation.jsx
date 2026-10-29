@@ -37,7 +37,9 @@ const TYPE_LABEL = { toggle: 'Sí / No', qty: 'Cantidad', 'toggle+qty': 'Sí/No 
 
 const fmt = (v, digits = 1) => Number(v).toFixed(digits)
 const signed = (v, digits = 1) => `${v > 0 ? '+' : ''}${fmt(v, digits)}`
-const moodColor = v => MOOD_ICONS[Math.min(10, Math.max(1, Math.round(v)))]?.color
+const moodConfig = v => MOOD_ICONS[Math.min(10, Math.max(1, Math.round(v)))]
+const moodColor = v => moodConfig(v)?.color
+const moodText = v => moodConfig(v)?.text
 
 function toneOf(headline) {
   if (!headline || STRENGTH_RANK[headline.strength] < STRENGTH_RANK.moderate || headline.direction === 0) {
@@ -111,13 +113,13 @@ function MoodCompare({ stats, title }) {
 
   return (
     <div className="mt-3">
-      <p className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold mb-2">{title}</p>
+      <p className="text-xs text-gray-400 font-semibold mb-2">{title}</p>
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
         <span className="flex items-center gap-1.5">
           <span className="inline-block w-2.5 h-2.5 rounded-full" style={{ backgroundColor: moodColor(avgWith) }} />
           Con el hábito <span className="text-gray-400">({countWith} días)</span>
         </span>
-        <span className="font-bold" style={{ color: moodColor(avgWith) }}>{avgWith}/10</span>
+        <span className="font-bold" style={{ color: moodText(avgWith) }}>{avgWith}/10</span>
       </div>
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mb-2.5">
         <span className="flex items-center gap-1.5">
@@ -158,7 +160,7 @@ function ScatterTooltip({ active, payload, unit }) {
   return (
     <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl px-3 py-2 shadow-lg text-xs">
       <p className="font-semibold text-gray-700 dark:text-gray-200">
-        {moodIcon?.emoji ?? ''} Ánimo: <span style={{ color: moodIcon?.color }}>{d.mood}/10</span>
+        {moodIcon?.emoji ?? ''} Ánimo: <span style={{ color: moodIcon?.text }}>{d.mood}/10</span>
       </p>
       <p className="text-gray-400 mt-0.5">
         Cantidad: <strong className="text-gray-600 dark:text-gray-300">{d.qty}{unit ? ` ${unit}` : ''}</strong>
@@ -195,7 +197,7 @@ function HabitScatterChart({ dose, unit, onlyDoneDays }) {
   return (
     <div className="mt-3">
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 flex items-center gap-1.5">
+        <p className="text-xs font-bold text-gray-400 flex items-center gap-1.5">
           <BarChart2 size={11} /> Cantidad vs. ánimo{onlyDoneDays ? ' (días cumplidos)' : ''}
         </p>
         {r !== null && (
@@ -280,11 +282,9 @@ function HabitCard({ item }) {
           <div className="min-w-0">
             <span className="text-sm font-bold text-gray-800 dark:text-white break-words">{item.text}</span>
             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              <span className="text-[10px] uppercase tracking-wide text-gray-400 font-semibold">
-                {TYPE_LABEL[item.trackingType]}
+              <span className="text-xs text-gray-400">
+                {TYPE_LABEL[item.trackingType]}, {item.consistencyPct}% de los días
               </span>
-              <span className="text-[10px] text-gray-400">·</span>
-              <span className="text-[10px] text-gray-400 font-medium">{item.consistencyPct}% de los días</span>
             </div>
           </div>
         </div>
@@ -306,7 +306,7 @@ function HabitCard({ item }) {
       )}
       {item.compare && !item.compare.ready && (
         <p className="text-xs text-gray-400 mt-3">
-          Para comparar días con y sin este hábito faltan datos ({item.compare.countWith}/{MIN_DAYS_PER_GROUP} con · {item.compare.countWithout}/{MIN_DAYS_PER_GROUP} sin).
+          Para comparar días con y sin este hábito faltan datos ({item.compare.countWith}/{MIN_DAYS_PER_GROUP} con y {item.compare.countWithout}/{MIN_DAYS_PER_GROUP} sin).
         </p>
       )}
       {showNextDay && (
@@ -350,7 +350,7 @@ function CollectingList({ items }) {
     <div className="card">
       <div className="flex items-center gap-2 mb-1">
         <Hourglass size={14} className="text-gray-400" />
-        <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Juntando datos</h3>
+        <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300">Juntando datos</h3>
       </div>
       <p className="text-xs text-gray-400 mb-3">Estos hábitos todavía no tienen registros suficientes para sacar conclusiones.</p>
       <ul className="space-y-3">
@@ -395,7 +395,7 @@ function Summary({ analyzed }) {
     <div className="card space-y-2">
       <div className="flex items-center gap-2">
         <Sparkles size={14} className="text-brand-500" />
-        <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Resumen</h3>
+        <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300">Resumen</h3>
       </div>
       {good.length > 0 && (
         <p className="text-sm" style={{ color: TONES.positive.color }}>
@@ -429,8 +429,8 @@ function PatientHabitRow({ item }) {
         {detail && (
           <p className="text-xs text-gray-400 mt-1">
             {detail.label}:{' '}
-            <strong style={{ color: moodColor(detail.withValue) }}>{plain(detail.withValue)}</strong> cuando lo hacés
-            {' · '}
+            <strong style={{ color: moodText(detail.withValue) }}>{plain(detail.withValue)}</strong> cuando lo hacés
+            {', '}
             <strong>{plain(detail.withoutValue)}</strong> cuando no
           </p>
         )}
@@ -487,7 +487,7 @@ function PatientView({ items }) {
         <div className="card">
           <div className="flex items-center gap-2 mb-1">
             <Minus size={14} className="text-gray-400" />
-            <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300 uppercase tracking-wide">Sin relación clara por ahora</h3>
+            <h3 className="text-xs font-bold text-gray-600 dark:text-gray-300">Sin relación clara por ahora</h3>
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-300">{unclear.map(i => i.text).join(', ')}</p>
           <p className="text-xs text-gray-400 mt-1">Puede que te sirvan igual: solo que con estos datos no se nota en tu ánimo.</p>
@@ -531,7 +531,7 @@ export default function HabitCorrelationCard({ habits, entries, audience = 'pati
         <div className="flex items-center justify-between gap-3 flex-wrap mb-1">
           <div className="flex items-center gap-2">
             <BarChart2 size={16} className="text-brand-500" />
-            <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide">
+            <h2 className="text-sm font-bold text-gray-700 dark:text-gray-200">
               Hábitos y estado de ánimo
             </h2>
           </div>

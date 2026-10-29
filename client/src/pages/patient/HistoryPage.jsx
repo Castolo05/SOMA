@@ -426,14 +426,14 @@ export default function HistoryPage() {
               >
                             <div
                               className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-sm"
-                              style={{ backgroundColor: config?.color, border: `1px solid ${config?.color}40` }}
+                              style={{ backgroundColor: config?.color }}
                             >
-                              <MoodIcon score={entry.moodScore} size={22} color="white" />
-                              <span className="text-xs font-bold mt-0.5" style={{ color: 'white' }}>{entry.moodScore}/10</span>
+                              <MoodIcon score={entry.moodScore} size={22} color={config?.ink} />
+                              <span className="text-xs font-bold mt-0.5" style={{ color: config?.ink }}>{entry.moodScore}/10</span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="text-sm font-bold mb-0.5 flex flex-wrap items-center gap-1.5">
-                                <span className="capitalize" style={{ color: config?.color }}>
+                                <span className="capitalize" style={{ color: config?.text }}>
                                   {new Date(entry.createdAt).toLocaleDateString('es-AR', { weekday: 'long' })}
                                 </span>
                                 <span className="text-gray-500 dark:text-gray-400 font-normal text-xs">
@@ -506,7 +506,7 @@ export default function HistoryPage() {
                                 if (allHabits.length === 0) return null
                                 return (
                                   <div>
-                                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Hábitos</p>
+                                    <p className="text-xs font-bold text-gray-400 mb-2">Hábitos</p>
                                     <div className="flex flex-wrap gap-2">
                                       {toggleDone.map(h => {
                                         const IconComp = HABIT_ICONS[h.icon] || HABIT_ICONS.CheckCircle
@@ -641,14 +641,14 @@ export default function HistoryPage() {
                     <div className="flex items-center gap-3">
                       <div
                         className="w-14 h-14 rounded-2xl flex flex-col items-center justify-center shrink-0 shadow-sm"
-                        style={{ backgroundColor: config?.color, border: `1px solid ${config?.color}40` }}
+                        style={{ backgroundColor: config?.color }}
                       >
-                        <MoodIcon score={entry.moodScore} size={22} color="white" />
-                        <span className="text-xs font-bold mt-0.5" style={{ color: 'white' }}>{entry.moodScore}/10</span>
+                        <MoodIcon score={entry.moodScore} size={22} color={config?.ink} />
+                        <span className="text-xs font-bold mt-0.5" style={{ color: config?.ink }}>{entry.moodScore}/10</span>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-sm font-bold mb-0.5 flex flex-wrap items-center gap-1.5">
-                          <span className="capitalize" style={{ color: config?.color }}>
+                          <span className="capitalize" style={{ color: config?.text }}>
                             {entryDateObj.toLocaleDateString('es-AR', { weekday: 'long' })}
                           </span>
                           <span className="text-gray-500 dark:text-gray-400 font-normal text-xs">
@@ -705,7 +705,7 @@ export default function HistoryPage() {
                         if (allHabits.length === 0) return null
                         return (
                           <div>
-                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2">Hábitos</p>
+                            <p className="text-xs font-bold text-gray-400 mb-2">Hábitos</p>
                             <div className="flex flex-wrap gap-2">
                               {toggleDone.map(h => {
                                 const IconComp = HABIT_ICONS[h.icon] || HABIT_ICONS.CheckCircle

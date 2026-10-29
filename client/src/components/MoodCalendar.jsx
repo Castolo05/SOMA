@@ -143,13 +143,13 @@ export default function MoodCalendar({ entries = [], onDayClick, selectedDate, m
               style={hasEntries ? { backgroundColor: moodConfig?.color, borderColor: selected ? moodConfig?.color : 'transparent' } : {}}
             >
               <span className={`text-sm font-bold z-10 relative ${
-                hasEntries ? 'text-white' : selected ? 'text-white' : today_ ? 'text-brand-600 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300'
-              }`}>
+                hasEntries ? '' : selected ? 'text-white' : today_ ? 'text-brand-600 dark:text-brand-400' : 'text-gray-700 dark:text-gray-300'
+              }`} style={hasEntries ? { color: moodConfig?.ink } : undefined}>
                 {day}
               </span>
 
               {hasEntries && dayEntries.length > 1 && (
-                <span className="absolute bottom-0 right-0 -mr-1 -mb-1 bg-white dark:bg-gray-800 text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm" style={{ color: moodConfig?.color }}>
+                <span className="absolute bottom-0 right-0 -mr-1 -mb-1 bg-white dark:bg-gray-800 text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center shadow-sm" style={{ color: moodConfig?.text }}>
                   {dayEntries.length}
                 </span>
               )}

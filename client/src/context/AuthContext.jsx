@@ -3,6 +3,7 @@ import { setSessionPersistence, supabase } from '../lib/supabase'
 import { clearProfileCache } from '../lib/api'
 import { clearPatientCache } from '../lib/patientCache'
 import ThemeLogo from '../components/ThemeLogo'
+import Wordmark from '../components/Wordmark'
 
 const AuthContext = createContext(null)
 const OAUTH_RETURN_FLAG = 'oauth'
@@ -320,11 +321,9 @@ export function AuthProvider({ children }) {
 
 function InitialLoadingScreen() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#f2c6b6] dark:bg-[var(--theme-canvas)]">
-      <div className="flex h-20 w-20 items-center justify-center overflow-hidden rounded-3xl border border-[#c8b3b0] bg-[#f9e2da] shadow-lg dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]">
-        <ThemeLogo alt="SOMA" className="h-full w-full object-contain" />
-      </div>
-      <p className="mt-5 text-lg font-bold tracking-wide text-gray-800">SOMA</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--theme-canvas)] dark:bg-[var(--theme-canvas)]">
+      <ThemeLogo alt="" className="h-20 w-20" />
+      <Wordmark className="mt-5 h-5 text-[var(--theme-wordmark)]" />
       <div className="mt-4 flex items-center gap-2 text-sm text-gray-500" role="status" aria-live="polite">
         <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-200 border-t-brand-500" />
         <span>Preparando tu espacio...</span>

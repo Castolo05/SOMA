@@ -3,12 +3,13 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import {
-  ArrowRight, BookOpen, BrainCircuit, CheckCircle2, HeartPulse, Sparkles, X,
+  BookOpen, BrainCircuit, CheckCircle2, HeartPulse, X,
 } from 'lucide-react'
 
 // Auth
 import LoginPage from './pages/auth/LoginPage'
 import CookieBanner from './components/CookieBanner'
+import Wordmark from './components/Wordmark'
 import { applyTheme } from './lib/theme'
 import { isPasswordRecoveryPending } from './lib/supabase'
 
@@ -122,13 +123,10 @@ function FirstVisitTutorial() {
         aria-modal="true"
         aria-labelledby="first-visit-tutorial-title"
         onKeyDown={(e) => { if (e.key === 'Escape') handleClose() }}
-        className="w-full max-w-md overflow-hidden rounded-[30px] border border-[#c8b3b0] bg-[#f9e2da] shadow-2xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]"
+        className="w-full max-w-md overflow-hidden rounded-[22px] border border-[var(--theme-border)] bg-[var(--theme-surface)] shadow-2xl dark:border-[var(--theme-border)] dark:bg-[var(--theme-surface)]"
       >
         <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4 dark:border-slate-800">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[0.2em] text-brand-600 dark:text-brand-400">
-            <Sparkles size={14} />
-            Bienvenido
-          </div>
+          <Wordmark className="h-[13px] text-[var(--theme-wordmark)]" />
           <button
             type="button"
             onClick={handleClose}
@@ -188,7 +186,7 @@ function FirstVisitTutorial() {
               <button
                 type="button"
                 onClick={() => setStep((prev) => prev - 1)}
-                className="flex-1 rounded-2xl border border-[#c8b3b0] bg-[#f2c6b6] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-brand-100 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-200 dark:hover:bg-[var(--theme-accent)]"
+                className="flex-1 rounded-full border border-[var(--theme-border)] bg-[var(--theme-canvas)] px-4 py-3 text-sm font-semibold text-gray-700 transition hover:bg-brand-100 dark:border-[var(--theme-border)] dark:bg-[var(--theme-canvas)] dark:text-gray-200 dark:hover:bg-[var(--theme-accent)]"
               >
                 Atrás
               </button>
@@ -198,7 +196,7 @@ function FirstVisitTutorial() {
               <button
                 type="button"
                 onClick={() => setStep((prev) => prev + 1)}
-                className="flex-1 rounded-2xl bg-brand-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
+                className="flex-1 rounded-full bg-brand-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
               >
                 Siguiente
               </button>
@@ -206,9 +204,9 @@ function FirstVisitTutorial() {
               <button
                 type="button"
                 onClick={handleClose}
-                className="flex flex-1 items-center justify-center gap-2 rounded-2xl bg-brand-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
+                className="flex flex-1 items-center justify-center gap-2 rounded-full bg-brand-500 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-brand-600"
               >
-                Empezar <ArrowRight size={16} />
+                Empezar
               </button>
             )}
           </div>
@@ -235,7 +233,7 @@ export default function App() {
         <Suspense
           fallback={
             <div
-              className="flex min-h-screen items-center justify-center bg-[#FAFAFA] text-sm font-medium text-gray-500 dark:bg-[var(--theme-canvas)] dark:text-gray-300"
+              className="flex min-h-screen items-center justify-center bg-[var(--theme-canvas)] text-sm font-medium text-gray-500 dark:bg-[var(--theme-canvas)] dark:text-gray-300"
               role="status"
               aria-live="polite"
             >

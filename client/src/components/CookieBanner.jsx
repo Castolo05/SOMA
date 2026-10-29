@@ -28,7 +28,7 @@ export default function CookieBanner() {
     <div
       role="region"
       aria-label="Uso de cookies"
-      className="fixed inset-x-3 bottom-3 z-[110] max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-[#c8b3b0] bg-[#fff6f0]/95 p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_18px_50px_rgba(90,75,75,0.22)] backdrop-blur-md animate-slide-up dark:border-[var(--theme-border)] dark:bg-[var(--theme-raised)] sm:inset-x-auto sm:left-5 sm:bottom-5 sm:w-[22rem]"
+      className="fixed inset-x-3 bottom-3 z-[110] max-h-[calc(100dvh-1.5rem)] overflow-y-auto overscroll-contain rounded-2xl border border-[var(--theme-border)] bg-[var(--theme-raised)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] shadow-[0_18px_50px_var(--theme-shadow)] backdrop-blur-md animate-slide-up dark:border-[var(--theme-border)] dark:bg-[var(--theme-raised)] sm:inset-x-auto sm:left-5 sm:bottom-5 sm:w-[22rem]"
     >
       <p className="font-display text-base font-semibold text-gray-800 dark:text-white">Uso de cookies</p>
       <p className="mt-1 text-sm leading-6 text-gray-600 dark:text-gray-300">
@@ -42,7 +42,7 @@ export default function CookieBanner() {
         <button
           type="button"
           onClick={() => handleChoice(false)}
-          className="rounded-xl border border-[#c8b3b0] px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-[#f9e2da] dark:border-[var(--theme-border)] dark:text-gray-200 dark:hover:bg-[var(--theme-surface)]"
+          className="rounded-xl border border-[var(--theme-border)] px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-[var(--theme-surface)] dark:border-[var(--theme-border)] dark:text-gray-200 dark:hover:bg-[var(--theme-surface)]"
         >
           Rechazar
         </button>

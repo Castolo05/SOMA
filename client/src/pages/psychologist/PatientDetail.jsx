@@ -500,11 +500,11 @@ function PatientEntries({ entries, habitsList, selectedEntryId, onClearSelectedE
               >
                 <div className="w-10 h-10 rounded-lg flex flex-col items-center justify-center shrink-0" style={{ backgroundColor: cfg?.bg }}>
                   <MoodIcon score={entry.moodScore} size={16} />
-                  <span className="text-[10px] font-bold" style={{ color: cfg?.color }}>{entry.moodScore}</span>
+                  <span className="text-[10px] font-bold" style={{ color: cfg?.text }}>{entry.moodScore}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-bold" style={{ color: cfg?.color }}>{cfg?.label}</span>
+                    <span className="text-sm font-bold" style={{ color: cfg?.text }}>{cfg?.label}</span>
                   </div>
                   <p className="text-xs text-gray-400">{formatDateShort(entry.createdAt)}</p>
                 </div>
@@ -687,7 +687,7 @@ export default function PatientDetail() {
         </div>
         <div className="min-w-0">
           <h1 className="text-lg font-bold text-gray-900 dark:text-white tracking-tight">{archived.name}</h1>
-          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"><Archive size={11} /> Desvinculado · solo lectura</p>
+          <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1"><Archive size={11} /> Desvinculado, solo lectura</p>
         </div>
       </div>
       <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -744,7 +744,7 @@ export default function PatientDetail() {
               {patient.lastMood && (
                 <span className="flex items-center gap-1">
                   Ánimo: <MoodIcon score={patient.lastMood} size={13} />
-                  <span style={{ color: MOOD_ICONS[patient.lastMood]?.color }}>{MOOD_ICONS[patient.lastMood]?.label}</span>
+                  <span style={{ color: MOOD_ICONS[patient.lastMood]?.text }}>{MOOD_ICONS[patient.lastMood]?.label}</span>
                 </span>
               )}
               {avgMood && <span className="flex items-center gap-1"><TrendingUp size={11} /> Prom. 7 días: <strong>{avgMood}</strong></span>}
@@ -783,7 +783,7 @@ export default function PatientDetail() {
             <>
               <div className="fixed inset-0 z-40" onClick={() => setPanelMenu(false)} />
               <div className="absolute left-0 top-full mt-2 w-56 bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 z-50 py-2 animate-scale-in">
-                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 py-1">Visibilidad</p>
+                <p className="text-xs font-bold text-gray-400 px-4 py-1">Visibilidad</p>
                 {PANELS.map(panel => {
                   const on = visible.includes(panel.i)
                   return (
@@ -807,7 +807,7 @@ export default function PatientDetail() {
         </button>
 
         <p className="ml-auto text-xs font-medium text-gray-400 hidden sm:block">
-          Arrastrá por el título · Redimensioná desde las esquinas
+          Arrastrá por el título y redimensioná desde las esquinas
         </p>
       </div>
 
@@ -876,7 +876,7 @@ export default function PatientDetail() {
               <PanelWrapper title="Hábitos del Paciente" icon={Activity} onHide={() => togglePanel('habits')} scrollable={true}>
                 <div className="space-y-6 animate-fade-in pb-4">
                   <div>
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
                       Hábitos configurados
                     </h3>
                     {habitsList.length === 0 ? (
@@ -900,7 +900,7 @@ export default function PatientDetail() {
                                 <p className="text-xs text-gray-500 font-medium capitalize">{h.trackingType === 'toggle' ? 'Sí/No' : h.trackingType === 'qty' ? 'Cantidad' : 'Sí/No + Cantidad'}</p>
                               </div>
                               <div className="text-right">
-                                <p className="text-[10px] text-gray-400 uppercase tracking-widest font-semibold mb-0.5">Registrado</p>
+                                <p className="text-xs text-gray-400 font-semibold mb-0.5">Registrado</p>
                                 <p className="text-sm font-bold text-pro-600 dark:text-pro-400">
                                   {totalTimes} {totalTimes === 1 ? 'día' : 'días'}
                                 </p>
@@ -918,7 +918,7 @@ export default function PatientDetail() {
                   </div>
                   
                   <div>
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 uppercase tracking-wide mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
+                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
                       Análisis de Correlación
                     </h3>
                     <HabitCorrelationCard habits={habitsList} entries={entries} audience="psychologist" />
