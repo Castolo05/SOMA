@@ -4,18 +4,20 @@ import { useAuth } from '../../context/AuthContext'
 import {
   createHabit,
   deleteHabit,
+  getHabitChangeLog,
   getHabits,
   getJournal,
   getMyPsychologists,
   getMySharedGoals,
   previewPsychologistLink,
   requestPsychologistLink,
+  setHabitEditPermission,
   unlinkPsychologist,
   updateHabit,
 } from '../../lib/api'
 import {
   Link2, LogOut, Plus, Pencil, Trash2, Check, X, AlertCircle,
-  Target, CheckCircle2, Circle,
+  Target, CheckCircle2, Circle, Lock, History,
 } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { HABIT_ICONS } from '../../lib/constants'
@@ -50,6 +52,9 @@ export default function PatientProfile() {
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [confirmUnlinkPsych, setConfirmUnlinkPsych] = useState(null)
   const [confirmDeleteHabit, setConfirmDeleteHabit] = useState(null)
+  // Cambios que un psicólogo hizo en mis hábitos, y qué permiso se está guardando.
+  const [habitLog, setHabitLog] = useState([])
+  const [savingPermissionId, setSavingPermissionId] = useState(null)
 
   // Hábitos
   const initialCache = getPatientCache()
@@ -69,9 +74,11 @@ export default function PatientProfile() {
   const [editHasNote, setEditHasNote] = useState(false)
 
   useEffect(() => {
-    if (!initialCache.habits) getHabits().then(({ data }) => { setHabits(data.habits); updatePatientCache('habits', data.habits) }).catch(() => {})
     if (!initialCache.entries) getJournal().then(({ data }) => { setEntries(data.entries); updatePatientCache('entries', data.entries) }).catch(() => {})
     getMyPsychologists().then(({ data }) => setPsychologists(data.psychologists)).catch(() => {})
+    getHabitChangeLog().then(({ data }) => setHabitLog(data.log)).catch(() => {})
+    // La caché puede no tener las marcas de "asignado por tu psicólogo".
+    getHabits().then(({ data }) => { setHabits(data.habits); updatePatientCache('habits', data.habits) }).catch(() => {})
     getMySharedGoals()
       .then(({ data }) => setSharedGoals(data.goals))
       .catch(err => console.error('Error cargando objetivos compartidos:', err))
@@ -176,7 +183,7 @@ export default function PatientProfile() {
         return nextHabits
       })
       setEditingId(null)
-    } catch { showError('Error al guardar.') }
+    } catch (err) { showError(err.response?.data?.error || 'Error al guardar.') }
   }
 
   const handleDeleteHabit = async (id) => {
@@ -188,8 +195,32 @@ export default function PatientProfile() {
         return nextHabits
       })
       setConfirmDeleteHabit(null)
-    } catch { showError('Error al eliminar.') }
+    } catch (err) {
+      setConfirmDeleteHabit(null)
+      showError(err.response?.data?.error || 'Error al eliminar.')
+    }
   }
+
+  // Concede o retira el permiso de gestionar mis hábitos. Los hábitos que ya
+  // asignó el psicólogo se quedan; solo cambia quién puede tocarlos.
+  const handleToggleHabitPermission = async (psychologistId, allowed) => {
+    setSavingPermissionId(psychologistId)
+    try {
+      await setHabitEditPermission(psychologistId, allowed)
+      setPsychologists(prev => prev.map(p => p.id === psychologistId ? { ...p, canEditHabits: allowed } : p))
+      const { data } = await getHabits()
+      setHabits(data.habits)
+      updatePatientCache('habits', data.habits)
+    } catch (err) {
+      showError(err.response?.data?.error || 'No se pudo cambiar el permiso.')
+    } finally {
+      setSavingPermissionId(null)
+    }
+  }
+
+  const activeHabits = habits.filter(h => !h.archived)
+  const archivedHabits = habits.filter(h => h.archived)
+  const psychologistName = (id) => psychologists.find(p => p.id === id)?.name || 'Tu psicólogo/a'
 
   const IconSelector = ({ value, onChange }) => (
     <div className="flex items-center gap-1 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-brand-200">
@@ -276,7 +307,8 @@ export default function PatientProfile() {
             
             <div className="space-y-3 mb-4">
               {psychologists.map(p => (
-                <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl px-4 py-3">
+                <div key={p.id} className="space-y-3 bg-brand-50 dark:bg-brand-900/20 border border-brand-200 dark:border-brand-800 rounded-2xl px-4 py-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 shrink-0 bg-white dark:bg-gray-800 rounded-full flex items-center justify-center overflow-hidden border border-brand-200 dark:border-brand-700">
                       <AvatarDisplay avatar={p.avatar_url} size={24} className="text-brand-500" />
@@ -291,6 +323,32 @@ export default function PatientProfile() {
                   <button onClick={() => setConfirmUnlinkPsych(p.id)} className="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 dark:bg-red-900/20 dark:hover:bg-red-900/40 border border-red-100 dark:border-red-900/50 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors">
                     Desvincular
                   </button>
+                  </div>
+                  {p.status === 'ACCEPTED' && (
+                    <div className="flex items-start gap-3 border-t border-brand-200/70 dark:border-brand-800 pt-3">
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={!!p.canEditHabits}
+                        aria-label={`Permitir que ${p.name} gestione mis hábitos`}
+                        disabled={savingPermissionId === p.id}
+                        onClick={() => handleToggleHabitPermission(p.id, !p.canEditHabits)}
+                        className={`w-10 h-5 rounded-full transition-colors relative shrink-0 mt-0.5 disabled:opacity-60 ${
+                          p.canEditHabits ? 'bg-brand-400' : 'bg-gray-300 dark:bg-gray-600'
+                        }`}
+                      >
+                        <span className={`w-4 h-4 bg-white rounded-full absolute top-0.5 transition-all shadow-sm ${
+                          p.canEditHabits ? 'left-5' : 'left-0.5'
+                        }`} />
+                      </button>
+                      <div className="text-xs text-gray-600 dark:text-gray-300">
+                        <p className="font-semibold">Permitir que gestione mis hábitos</p>
+                        <p className="mt-0.5 text-gray-500 dark:text-gray-400">
+                          Podrá añadir, cambiar y archivar los hábitos que registras. Verás cada cambio en tu perfil y puedes quitar el permiso cuando quieras: los hábitos se quedan contigo.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
               {psychologists.length === 0 && (
@@ -401,13 +459,13 @@ export default function PatientProfile() {
         )}
 
         {/* Lista de hábitos */}
-        {habits.length === 0 && !adding && (
+        {activeHabits.length === 0 && !adding && (
           <p className="text-sm text-gray-400 text-center py-4">
             Sin hábitos configurados. ¡Añadí el primero!
           </p>
         )}
         <div className="space-y-2">
-          {habits.map(habit => {
+          {activeHabits.map(habit => {
             const IconComponent = HABIT_ICONS[habit.icon] || HABIT_ICONS.CheckCircle
             const type = habit.trackingType || 'toggle'
             const typeLabel = type === 'toggle+qty' ? `Sí/No+${habit.unit||'cant.'}` : type === 'qty' ? `${habit.unit||'cant.'}` : null
@@ -466,32 +524,75 @@ export default function PatientProfile() {
                       )}
                       {habit.hasNote && <span className="ml-1.5 text-[10px] text-gray-400">💬 aclaración</span>}
                     </div>
-                    <button
-                      onClick={() => {
-                        setEditingId(habit.id)
-                        setEditText(habit.text)
-                        setEditIcon(habit.icon)
-                        setEditTrackingType(habit.trackingType || 'toggle')
-                        setEditUnit(habit.unit || '')
-                        setEditHasNote(habit.hasNote || false)
-                      }}
-                      className="p-1.5 text-gray-400 hover:text-pro-500 hover:bg-pro-50 dark:hover:bg-pro-900/20 rounded-xl transition-colors"
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      onClick={() => setConfirmDeleteHabit(habit.id)}
-                      className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
-                    >
-                      <Trash2 size={15} />
-                    </button>
+                    {habit.locked ? (
+                      <span
+                        className="flex items-center gap-1 text-[10px] font-bold text-pro-600 dark:text-pro-300 bg-pro-50 dark:bg-pro-900/30 border border-pro-100 dark:border-pro-800 rounded-full px-2 py-1 shrink-0"
+                        title="Tu psicólogo/a lo administra mientras tenga el permiso activo"
+                      >
+                        <Lock size={11} /> Asignado por {psychologistName(habit.assignedBy)}
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => {
+                            setEditingId(habit.id)
+                            setEditText(habit.text)
+                            setEditIcon(habit.icon)
+                            setEditTrackingType(habit.trackingType || 'toggle')
+                            setEditUnit(habit.unit || '')
+                            setEditHasNote(habit.hasNote || false)
+                          }}
+                          className="p-1.5 text-gray-400 hover:text-pro-500 hover:bg-pro-50 dark:hover:bg-pro-900/20 rounded-xl transition-colors"
+                        >
+                          <Pencil size={15} />
+                        </button>
+                        <button
+                          onClick={() => setConfirmDeleteHabit(habit.id)}
+                          className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </>
+                    )}
                   </div>
                 )}
               </div>
             )
           })}
         </div>
+
+        {/* Hábitos que tu psicólogo archivó: ya no se registran, el historial se conserva */}
+        {archivedHabits.length > 0 && (
+          <details className="text-xs text-gray-500 dark:text-gray-400">
+            <summary className="cursor-pointer font-semibold">Archivados ({archivedHabits.length})</summary>
+            <ul className="mt-2 space-y-1 pl-4 list-disc">
+              {archivedHabits.map(h => <li key={h.id}>{h.text}</li>)}
+            </ul>
+            <p className="mt-2">Ya no aparecen para registrar, pero tu historial se conserva.</p>
+          </details>
+        )}
       </div>
+
+      {/* Cambios que un psicólogo hizo en tus hábitos */}
+      {habitLog.length > 0 && (
+        <div className="card">
+          <h2 className="font-semibold text-gray-700 dark:text-gray-200 mb-2 flex items-center gap-2">
+            <History size={18} /> Cambios en tus hábitos
+          </h2>
+          <ul className="space-y-2">
+            {habitLog.slice(0, 15).map(entry => (
+              <li key={entry.id} className="text-sm text-gray-600 dark:text-gray-300">
+                <span className="font-semibold">{psychologistName(entry.psychologistId)}</span>{' '}
+                {{ created: 'añadió', updated: 'modificó', archived: 'archivó', restored: 'restauró' }[entry.action] || 'cambió'}{' '}
+                el hábito «{entry.habitText}»
+                <span className="block text-xs text-gray-400">
+                  {new Date(entry.createdAt).toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       </div>{/* ── Fin columna izquierda ── */}
 
