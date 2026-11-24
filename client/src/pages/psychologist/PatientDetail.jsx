@@ -29,6 +29,7 @@ import {
   LayoutGrid, RotateCcw, GripHorizontal, UserMinus, Archive,
 } from 'lucide-react'
 import HabitCorrelationCard from '../../components/HabitCorrelation'
+import PsychHabitManager from '../../components/PsychHabitManager'
 import { usePageTitle } from '../../hooks/usePageTitle'
 import AvatarDisplay from '../../components/AvatarDisplay'
 import ConfirmActionModal from '../../components/ConfirmActionModal'
@@ -875,47 +876,12 @@ export default function PatientDetail() {
             <div key="habits">
               <PanelWrapper title="Hábitos del Paciente" icon={Activity} onHide={() => togglePanel('habits')} scrollable={true}>
                 <div className="space-y-6 animate-fade-in pb-4">
-                  <div>
-                    <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">
-                      Hábitos configurados
-                    </h3>
-                    {habitsList.length === 0 ? (
-                      <p className="text-sm text-gray-400 px-1">El paciente no tiene hábitos configurados actualmente.</p>
-                    ) : (
-                      <div className="grid gap-2">
-                        {habitsList.map(h => {
-                          // Mismo criterio que el historial: completado, marcado o con cantidad cargada.
-                          const habitEntries = entries.filter(e => e.completedHabits?.includes(h.id) || e.habitData?.[h.id]?.done === true || e.habitData?.[h.id]?.qty !== undefined)
-                          const totalTimes = habitEntries.length
-                          
-                          let totalQty = null
-                          if (h.trackingType === 'qty' || h.trackingType === 'toggle+qty') {
-                            totalQty = habitEntries.reduce((sum, e) => sum + (e.habitData?.[h.id]?.qty || 0), 0)
-                          }
-
-                          return (
-                            <div key={h.id} className="bg-gray-50 dark:bg-gray-700/40 rounded-xl px-4 py-3 flex items-center justify-between border border-gray-100 dark:border-gray-700">
-                              <div>
-                                <p className="text-sm font-bold text-gray-800 dark:text-white">{h.text}</p>
-                                <p className="text-xs text-gray-500 font-medium capitalize">{h.trackingType === 'toggle' ? 'Sí/No' : h.trackingType === 'qty' ? 'Cantidad' : 'Sí/No + Cantidad'}</p>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-xs text-gray-400 font-semibold mb-0.5">Registrado</p>
-                                <p className="text-sm font-bold text-pro-600 dark:text-pro-400">
-                                  {totalTimes} {totalTimes === 1 ? 'día' : 'días'}
-                                </p>
-                                {totalQty !== null && totalQty > 0 && (
-                                  <p className="text-[10px] font-bold text-gray-500 mt-0.5">
-                                    Suma cant: {totalQty} {h.unit ? h.unit : ''}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          )
-                        })}
-                      </div>
-                    )}
-                  </div>
+                  <PsychHabitManager
+                    patientId={id}
+                    habits={habitsList}
+                    entries={entries}
+                    onHabitsChange={setHabitsList}
+                  />
                   
                   <div>
                     <h3 className="text-sm font-bold text-gray-700 dark:text-gray-200 mb-3 px-1 border-b border-gray-100 dark:border-gray-700 pb-2">

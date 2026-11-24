@@ -26,6 +26,14 @@ export default function NoteForm({
   const [habitData, setHabitData] = useState(initialHabitData)
   const [preferInSession, setPreferInSession] = useState(false)
 
+  // Los hábitos archivados por el psicólogo ya no se ofrecen para registrar,
+  // salvo que esta entrada ya tenga datos de ellos (al editar un día pasado).
+  const visibleHabits = habits.filter(h =>
+    !h.archived
+    || initialHabits.includes(h.id)
+    || initialHabitData?.[h.id] !== undefined
+  )
+
   const moodConfig = MOOD_ICONS[mood]
   const sliderPercent = ((mood - 1) / 9) * 100
 
@@ -110,11 +118,11 @@ export default function NoteForm({
       </div>
 
       {/* Hábitos del día */}
-      {habits.length > 0 && (
+      {visibleHabits.length > 0 && (
         <div className="card">
           <label className="label">¿Qué hábitos cumpliste {dayLabel}?</label>
           <div className="space-y-2">
-            {habits.map((habit) => {
+            {visibleHabits.map((habit) => {
               const type = habit.trackingType || 'toggle'
               const IconComp = HABIT_ICONS[habit.icon] || HABIT_ICONS.CheckCircle
               const hData = habitData[habit.id] || {}

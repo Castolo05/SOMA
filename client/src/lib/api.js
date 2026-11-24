@@ -199,13 +199,33 @@ export async function getHabits(patientId) {
   const user = await currentUser()
   if (patientId && user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
 
-  const { data, error } = await supabase
-    .from('habits')
-    .select('*')
-    .eq('user_id', patientId || user?.id)
-    .order('order', { ascending: true })
-  if (error) return fail(error.message)
-  return ok({ habits: (data || []).map(normalizeHabit) })
+  // Se devuelven también los archivados (el historial necesita sus nombres):
+  // quien arma un formulario de registro filtra por `archived`.
+  // `locked` (solo para el paciente): el hábito lo asignó un psicólogo que hoy
+  // tiene el permiso activo, así que el paciente no puede editarlo ni borrarlo.
+  const [habitsResult, grantsResult] = await Promise.all([
+    supabase
+      .from('habits')
+      .select('*')
+      .eq('user_id', patientId || user?.id)
+      .order('order', { ascending: true }),
+    patientId
+      ? Promise.resolve({ data: [] })
+      : supabase
+        .from('patient_psychologists')
+        .select('psychologist_id')
+        .eq('patient_id', user?.id)
+        .eq('status', 'ACCEPTED')
+        .eq('can_edit_habits', true),
+  ])
+  if (habitsResult.error) return fail(habitsResult.error.message)
+  const granted = new Set((grantsResult.data || []).map(g => g.psychologist_id))
+  return ok({
+    habits: (habitsResult.data || []).map(h => ({
+      ...normalizeHabit(h),
+      locked: !patientId && !!h.assigned_by && granted.has(h.assigned_by),
+    })),
+  })
 }
 
 export async function createHabit({ text, icon, trackingType, unit, hasNote }) {
@@ -242,36 +262,141 @@ export async function updateHabit(habitId, { text, icon, trackingType, unit, has
     .eq('user_id', user?.id)
     .select()
     .single()
+  // Sin filas: la RLS lo rechazó porque lo administra un psicólogo con permiso.
+  if (error?.code === 'PGRST116') return fail(HABIT_MANAGED_MESSAGE, 403)
   if (error) return fail(error.message)
   return ok({ habit: normalizeHabit(data) })
 }
 
-export async function deleteHabit(habitId) {
-  const user = await currentUser()
-  // Se quita el hábito de las entradas de diario que lo tenían completado.
-  const { data: entries, error: entriesError } = await supabase
-    .from('journal_entries')
-    .select('id, completed_habits')
-    .eq('patient_id', user?.id)
-    .contains('completed_habits', [habitId])
-  if (entriesError) return fail(entriesError.message)
-  if (entries?.length > 0) {
-    const results = await Promise.all(entries.map(e => supabase
-      .from('journal_entries')
-      .update({ completed_habits: e.completed_habits.filter(h => h !== habitId) })
-      .eq('id', e.id)
-    ))
-    const updateError = results.find(r => r.error)?.error
-    if (updateError) return fail(updateError.message)
-  }
+const HABIT_MANAGED_MESSAGE = 'Este hábito lo administra tu psicólogo/a mientras tenga el permiso activo.'
 
-  const { error } = await supabase
-    .from('habits')
-    .delete()
-    .eq('id', habitId)
-    .eq('user_id', user?.id)
+export async function deleteHabit(habitId) {
+  // Una sola función en la base: borra el hábito (si la RLS lo permite) y lo
+  // quita de las entradas del diario en la misma transacción.
+  const { data: deleted, error } = await supabase.rpc('delete_my_habit', { p_habit_id: habitId })
   if (error) return fail(error.message)
+  if (!deleted) return fail(HABIT_MANAGED_MESSAGE, 403)
   return ok({ ok: true })
+}
+
+// ── Hábitos del paciente, gestionados por el psicólogo ────
+// Requieren el permiso que el propio paciente concede (can_edit_habits). La
+// base lo exige por RLS; las comprobaciones de aquí solo dan mensajes claros.
+
+const NO_HABIT_PERMISSION = 'El paciente no te dio permiso para editar sus hábitos.'
+
+export async function getHabitEditPermission(patientId) {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+  const { data, error } = await supabase
+    .from('patient_psychologists')
+    .select('can_edit_habits')
+    .eq('patient_id', patientId)
+    .eq('psychologist_id', user.id)
+    .eq('status', 'ACCEPTED')
+    .maybeSingle()
+  if (error) return fail(dbMessage(error))
+  return ok({ allowed: data?.can_edit_habits === true })
+}
+
+export async function psychCreateHabit(patientId, { text, icon, trackingType, unit, hasNote }) {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+  const { data: last, error: lastError } = await supabase
+    .from('habits')
+    .select('order')
+    .eq('user_id', patientId)
+    .order('order', { ascending: false })
+    .limit(1)
+  if (lastError) return fail(dbMessage(lastError))
+
+  const { data, error } = await supabase
+    .from('habits')
+    .insert({
+      user_id: patientId,
+      text,
+      icon: icon || 'CheckCircle',
+      tracking_type: trackingType || 'toggle',
+      unit: unit || '',
+      has_note: hasNote || false,
+      order: (last?.[0]?.order ?? -1) + 1,
+    })
+    .select()
+    .single()
+  if (error?.code === '42501') return fail(NO_HABIT_PERMISSION, 403)
+  if (error) return fail(dbMessage(error))
+  return ok({ habit: normalizeHabit(data) })
+}
+
+export async function psychUpdateHabit(habitId, { text, icon, trackingType, unit, hasNote }) {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+  const { data, error } = await supabase
+    .from('habits')
+    .update({ text, icon, tracking_type: trackingType, unit, has_note: hasNote })
+    .eq('id', habitId)
+    .select()
+    .single()
+  if (error?.code === 'PGRST116') return fail(NO_HABIT_PERMISSION, 403)
+  if (error) return fail(dbMessage(error))
+  return ok({ habit: normalizeHabit(data) })
+}
+
+// Archivar oculta el hábito del registro sin perder el historial; se puede restaurar.
+export async function psychSetHabitArchived(habitId, archived) {
+  const user = await currentUser()
+  if (user?.role !== 'PSYCHOLOGIST') return fail('No autorizado', 403)
+  const { data, error } = await supabase
+    .from('habits')
+    .update({ archived_at: archived ? new Date().toISOString() : null })
+    .eq('id', habitId)
+    .select()
+    .single()
+  if (error?.code === 'PGRST116') return fail(NO_HABIT_PERMISSION, 403)
+  if (error) return fail(dbMessage(error))
+  return ok({ habit: normalizeHabit(data) })
+}
+
+// Cambios que un psicólogo hizo en los hábitos: el paciente ve todos los suyos;
+// el psicólogo ve solo los que él hizo (RLS).
+export async function getHabitChangeLog(patientId) {
+  const user = await currentUser()
+  const { data, error } = await supabase
+    .from('habit_change_log')
+    .select('*')
+    .eq('patient_id', patientId || user?.id)
+    .order('created_at', { ascending: false })
+    .limit(100)
+  if (error) return fail(dbMessage(error))
+  return ok({
+    log: (data || []).map(l => ({
+      id: l.id,
+      patientId: l.patient_id,
+      psychologistId: l.psychologist_id,
+      habitId: l.habit_id,
+      habitText: l.habit_text,
+      action: l.action,
+      details: l.details || {},
+      createdAt: l.created_at,
+    })),
+  })
+}
+
+// El paciente concede o retira el permiso a un psicólogo vinculado.
+export async function setHabitEditPermission(psychologistId, allowed) {
+  const user = await currentUser()
+  if (user?.role !== 'PATIENT') return fail('No autorizado', 403)
+  const { data, error } = await supabase
+    .from('patient_psychologists')
+    .update({ can_edit_habits: !!allowed })
+    .eq('patient_id', user.id)
+    .eq('psychologist_id', psychologistId)
+    .eq('status', 'ACCEPTED')
+    .select('id')
+    .maybeSingle()
+  if (error) return fail(dbMessage(error))
+  if (!data) return fail('El vínculo ya no está disponible.', 404)
+  return ok({ allowed: !!allowed })
 }
 
 // ── Pacientes del psicólogo ───────────────────────────────
@@ -627,18 +752,23 @@ export async function getMyPsychologists() {
   const user = await currentUser()
   const { data: links, error } = await supabase
     .from('patient_psychologists')
-    .select('psychologist_id, status')
+    .select('psychologist_id, status, can_edit_habits')
     .eq('patient_id', user?.id)
   if (error) return fail(error.message)
   if (!links?.length) return ok({ psychologists: [] })
 
   const statusById = new Map(links.map(l => [l.psychologist_id, l.status]))
+  const canEditHabitsById = new Map(links.map(l => [l.psychologist_id, l.can_edit_habits === true]))
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
     .select('id, name, avatar_url')
     .in('id', [...statusById.keys()])
   if (profilesError) return fail(profilesError.message)
-  return ok({ psychologists: (profiles || []).map(p => ({ ...p, status: statusById.get(p.id) })) })
+  return ok({ psychologists: (profiles || []).map(p => ({
+    ...p,
+    status: statusById.get(p.id),
+    canEditHabits: canEditHabitsById.get(p.id) === true,
+  })) })
 }
 
 async function findPsychologistByInviteCode(inviteCode) {
@@ -720,6 +850,9 @@ function normalizeHabit(h) {
     hasNote: h.has_note,
     order: h.order,
     createdAt: h.created_at,
+    archived: !!h.archived_at,
+    archivedAt: h.archived_at || null,
+    assignedBy: h.assigned_by || null,
   }
 }
 
