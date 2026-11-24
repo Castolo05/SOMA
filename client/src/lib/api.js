@@ -30,14 +30,12 @@ async function currentUser() {
   // Intentar leer el perfil con reintentos (puede haber delay de RLS post-registro)
   let profile = null
   for (let attempt = 1; attempt <= 3; attempt++) {
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('role, invite_code, psychologist_id, psychologist_status')
-      .eq('id', user.id)
-      .single()
+    // El perfil propio sale de get_my_profile(): profiles ya no se puede leer
+    // con select de columnas sensibles desde el cliente.
+    const { data, error } = await supabase.rpc('get_my_profile').maybeSingle()
     if (data) { profile = data; break }
-    // Si es un error de "0 rows" y no el último intento, esperar y reintentar
-    if (error?.code === 'PGRST116' && attempt < 3) {
+    // Sin fila todavía y no es el último intento: esperar y reintentar
+    if (!error && attempt < 3) {
       await new Promise(r => setTimeout(r, attempt * 400))
     } else {
       break
@@ -51,17 +49,12 @@ async function currentUser() {
       id: user.id,
       email: user.email,
       role: null,
-      inviteCode: null,
-      psychologistId: null,
     }
   }
 
   profileCache = {
     id: user.id,
     role: profile.role,
-    inviteCode: profile.invite_code,
-    psychologistId: profile.psychologist_id,
-    psychologistStatus: profile.psychologist_status,
   }
   return { ...profileCache, email: user.email }
 }
@@ -87,6 +80,14 @@ async function summarizeEntriesByPatient(patientIds) {
 
 // ── Helpers ───────────────────────────────────────────────
 function ok(data) { return Promise.resolve({ data }) }
+// Mensajes comprensibles para los errores de Postgres más comunes, en lugar
+// de mostrar el texto crudo de la base.
+function dbMessage(error) {
+  if (error?.code === '23505') return 'Ese registro ya existe.'
+  if (error?.code === '42501') return 'No tenés permiso para hacer esto.'
+  if (error?.code === '23514') return error.message
+  return error?.message || 'Ocurrió un error inesperado.'
+}
 function fail(message, status = 400) {
   const err = new Error(message)
   err.response = { status, data: { error: message } }
@@ -157,7 +158,9 @@ export async function createJournalEntry({ moodScore, content, completedHabits, 
     })
     .select()
     .single()
-  if (error) return fail(error.message)
+  // 23505: otro dispositivo creó la entrada del día entre la consulta y el alta.
+  if (error?.code === '23505') return fail(`Ya existe una entrada para esta fecha (${requestedEntryDate}).`, 409)
+  if (error) return fail(dbMessage(error))
   return ok({ entry: normalizeEntry(data) })
 }
 
@@ -559,19 +562,11 @@ export async function createGoal(patientId, { text, visibleToPatient = false }) 
 }
 
 export async function toggleGoal(goalId) {
-  const { data: goal, error: goalError } = await supabase
-    .from('therapy_goals')
-    .select('completed')
-    .eq('id', goalId)
-    .single()
-  if (goalError) return fail(goalError.message)
+  // Una sola sentencia en la base: dos clics seguidos no se pisan.
   const { data, error } = await supabase
-    .from('therapy_goals')
-    .update({ completed: !goal.completed })
-    .eq('id', goalId)
-    .select()
+    .rpc('toggle_therapy_goal', { p_goal_id: goalId })
     .single()
-  if (error) return fail(error.message)
+  if (error) return fail(dbMessage(error))
   return ok({ goal: normalizeGoal(data) })
 }
 
@@ -609,6 +604,23 @@ export async function deleteGoal(goalId) {
   return ok({ ok: true })
 }
 
+// ── Código de invitación del psicólogo ────────────────────
+// El código vence a los 7 días; get_my_invite_code() entrega el vigente y
+// genera uno nuevo si venció. Los pacientes ya vinculados no lo necesitan.
+
+export async function getMyInviteCode() {
+  const { data, error } = await supabase.rpc('get_my_invite_code').maybeSingle()
+  if (error) return fail(dbMessage(error))
+  return ok({ code: data?.code ?? null, expiresAt: data?.expires_at ?? null })
+}
+
+// Revoca el código actual (por ejemplo si se filtró) y entrega uno nuevo.
+export async function regenerateMyInviteCode() {
+  const { data, error } = await supabase.rpc('regenerate_my_invite_code').single()
+  if (error) return fail(dbMessage(error))
+  return ok({ code: data.code, expiresAt: data.expires_at })
+}
+
 // ── Vínculo paciente–psicólogo ────────────────────────────
 
 export async function getMyPsychologists() {
@@ -635,7 +647,7 @@ async function findPsychologistByInviteCode(inviteCode) {
   })
   if (error) return { error: error.message }
   const psychologist = data?.[0]
-  if (!psychologist) return { error: 'Código de invitación inválido.' }
+  if (!psychologist) return { error: 'Código de invitación inválido o vencido. Pedile uno nuevo a tu profesional.' }
   return { psychologist }
 }
 

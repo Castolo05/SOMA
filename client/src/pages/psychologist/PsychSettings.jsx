@@ -10,7 +10,7 @@ import InviteCodeCard from '../../components/InviteCodeCard'
 export default function PsychSettings() {
   const { showError } = useToast()
   const { darkMode, setDarkMode } = useOutletContext()
-  const { user, updateUser } = useAuth()
+  const { user, updateUser, regenerateInviteCode } = useAuth()
   
   const [isEditing, setIsEditing] = useState(false)
   const [editName, setEditName] = useState(user?.name || '')
@@ -115,7 +115,7 @@ export default function PsychSettings() {
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Invitar pacientes</h2>
             </div>
             <div className="p-6">
-              <InviteCodeCard code={user.inviteCode} />
+              <InviteCodeCard code={user.inviteCode} expiresAt={user.inviteCodeExpiresAt} onRegenerate={regenerateInviteCode} />
             </div>
           </div>
         )}

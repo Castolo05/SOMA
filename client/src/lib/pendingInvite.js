@@ -3,7 +3,7 @@
 // regreso desde Google, y se borra una vez cargado en el perfil del paciente.
 const KEY = 'soma_pending_invite_code'
 
-export const normalizeInviteCode = (value) => (value || '').trim().toUpperCase().slice(0, 8)
+export const normalizeInviteCode = (value) => (value || '').trim().toUpperCase().slice(0, 12)
 
 export function savePendingInvite(code) {
   const normalized = normalizeInviteCode(code)

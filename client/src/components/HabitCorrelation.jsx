@@ -578,6 +578,7 @@ export default function HabitCorrelationCard({ habits, entries, audience = 'pati
           <>
             <p>* Cada hábito se analiza desde su creación. Comparar requiere {MIN_DAYS_PER_GROUP} días en cada grupo; la correlación, {MIN_POINTS_FOR_R} registros.</p>
             <p>** Asociaciones observacionales: no implican causalidad clínica.</p>
+            <p>*** Se prueban varios hábitos y comparaciones a la vez, sin corrección por comparaciones múltiples: con muchos hábitos, alguna señal puede aparecer por azar. Tomala como punto de partida para conversar, no como conclusión.</p>
           </>
         )}
       </div>

@@ -14,7 +14,7 @@ import {
   updateHabit,
 } from '../../lib/api'
 import {
-  Link2, LogOut, Plus, Pencil, Trash2, Check, X, AlertCircle, Mail,
+  Link2, LogOut, Plus, Pencil, Trash2, Check, X, AlertCircle,
   Target, CheckCircle2, Circle,
 } from 'lucide-react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
@@ -307,10 +307,10 @@ export default function PatientProfile() {
               <input
                 type="text"
                 className="input flex-1 uppercase tracking-widest font-mono text-center text-sm"
-                placeholder="Ej: A1B2C3D4"
+                placeholder="Ej: A1B2C3D4E5F6"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                maxLength={8}
+                maxLength={12}
               />
               <button type="submit" className="btn-patient px-4 text-sm shrink-0" disabled={linkLoading || !code}>
                 {linkLoading ? '...' : 'Vincular'}
@@ -558,10 +558,6 @@ export default function PatientProfile() {
               <div className="text-center">
                 <p className="font-bold text-gray-900 dark:text-white text-lg">{previewPsych.name}</p>
                 <p className="text-xs text-pro-600 dark:text-pro-400 font-semibold mt-1">Psicólogo/a</p>
-                <p className="mt-2 flex items-center justify-center gap-1.5 break-all text-sm text-gray-600 dark:text-gray-300">
-                  <Mail size={14} className="shrink-0" />
-                  {previewPsych.email || 'Correo no disponible'}
-                </p>
               </div>
             </div>
 

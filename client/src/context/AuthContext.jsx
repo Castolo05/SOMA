@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { setSessionPersistence, supabase } from '../lib/supabase'
-import { clearProfileCache } from '../lib/api'
+import { clearProfileCache, getMyInviteCode, regenerateMyInviteCode } from '../lib/api'
 import { clearPatientCache } from '../lib/patientCache'
 import ThemeLogo from '../components/ThemeLogo'
 import Wordmark from '../components/Wordmark'
@@ -26,16 +26,11 @@ export function AuthProvider({ children }) {
   async function loadProfile(authUser) {
     if (!authUser) { userIdRef.current = null; setUser(null); return null }
 
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', authUser.id)
-      .single()
-
-    // PGRST116 = "0 rows returned" → el trigger handle_new_user aún no creó el perfil
-    if (error?.code === 'PGRST116') {
-      return null
-    } else if (error) {
+    // get_my_profile() devuelve solo la fila del usuario autenticado (incluye
+    // teléfono y fecha de nacimiento, que ya no se leen con select directo).
+    // Sin fila: el trigger handle_new_user aún no creó el perfil.
+    const { data: profile, error } = await supabase.rpc('get_my_profile').maybeSingle()
+    if (error) {
       console.error('Error cargando perfil:', error.code, error.message)
       return null
     }
@@ -51,17 +46,46 @@ export function AuthProvider({ children }) {
         birthDate: profile.birth_date || null,
         phone: profile.phone || null,
         specialization: profile.specialization || null,
-        inviteCode: profile.invite_code,
-        psychologistId: profile.psychologist_id,
-        psychologistStatus: profile.psychologist_status,
+        inviteCode: null,
+        inviteCodeExpiresAt: null,
         avatar: profile.avatar_url || null,
       }
       userIdRef.current = userData.id
       setUser(userData)
+      if (userData.role === 'PSYCHOLOGIST') loadInviteCode()
       return userData
     }
     return null
   }
+
+  // Código de invitación vigente. El servidor lo renueva solo cuando vence;
+  // con { regenerate: true } se revoca el actual y se entrega uno nuevo.
+  async function loadInviteCode({ regenerate = false } = {}) {
+    try {
+      const { data } = await (regenerate ? regenerateMyInviteCode() : getMyInviteCode())
+      setUser(prev => (prev ? { ...prev, inviteCode: data.code, inviteCodeExpiresAt: data.expiresAt } : prev))
+    } catch (err) {
+      if (regenerate) throw err
+      console.error('No se pudo cargar el código de invitación:', err.message)
+    }
+  }
+
+  // Al llegar el vencimiento (o al volver a la pestaña después de él) se pide
+  // el código nuevo, sin que el psicólogo tenga que hacer nada.
+  useEffect(() => {
+    if (user?.role !== 'PSYCHOLOGIST' || !user.inviteCodeExpiresAt) return undefined
+    const expiresAt = new Date(user.inviteCodeExpiresAt).getTime()
+    const timer = setTimeout(() => loadInviteCode(), Math.min(Math.max(expiresAt - Date.now(), 0) + 1000, 2 ** 31 - 1))
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && Date.now() >= expiresAt) loadInviteCode()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.role, user?.inviteCodeExpiresAt])
 
   useEffect(() => {
     // supabase-js recupera la sesión guardada (y la del fragmento de la URL al
@@ -219,25 +243,8 @@ export function AuthProvider({ children }) {
         userData = await loadProfile(data.user)
         if (userData) break
       }
-      // Fallback con datos del formulario si RLS aún no propagó
-      if (!userData && data.user) {
-        userIdRef.current = data.user.id
-        userData = {
-          id: data.user.id,
-          name,
-          email,
-          role: normalizedRole,
-          firstName: firstName || null,
-          lastName: lastName || null,
-          birthDate: birthDate || null,
-          phone: phone || null,
-          specialization: specialization || null,
-          inviteCode: null,
-          psychologistId: null,
-          avatar: null,
-        }
-        setUser(userData)
-      }
+      // Sin perfil en la base no se entra: el rol nunca se toma del formulario,
+      // igual que en login(). Si el perfil tarda, el usuario inicia sesión.
       if (userData) return userData
     }
 
@@ -313,7 +320,7 @@ export function AuthProvider({ children }) {
   if (loading) return <InitialLoadingScreen />
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithGoogle, register, logout, updateUser, regenerateInviteCode: () => loadInviteCode({ regenerate: true }) }}>
       {children}
     </AuthContext.Provider>
   )

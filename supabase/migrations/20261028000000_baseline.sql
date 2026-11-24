@@ -1,7 +1,10 @@
 -- ============================================================
 -- SOMA — Esquema base exportado de producción (2026-10-28).
 -- Refleja el estado real de la base después de todos los scripts de
--- supabase/legacy/. Es idempotente solo sobre una base vacía.
+-- los scripts históricos de supabase/legacy/ (carpeta que ya no se versiona;
+-- este archivo es la fuente de verdad). Es idempotente solo sobre una base vacía.
+-- Las correcciones posteriores (códigos de invitación con vencimiento, permisos
+-- por columna en profiles, etc.) están en las migraciones siguientes.
 -- ============================================================
 
 -- ── Tablas ────────────────────────────────────────────────

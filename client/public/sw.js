@@ -26,15 +26,30 @@ self.addEventListener('fetch', (event) => {
     requestUrl.origin !== self.location.origin
   ) return
 
+  // Solo se guardan el shell de la app y los archivos con hash de /assets/:
+  // así la caché no crece sin límite con cualquier GET del sitio.
+  const cacheable = APP_SHELL.includes(requestUrl.pathname) || requestUrl.pathname.startsWith('/assets/')
+  const isNavigation = event.request.mode === 'navigate'
+
   event.respondWith(
     fetch(event.request)
       .then((response) => {
-        if (response.ok) {
+        if (response.ok && cacheable) {
           const copy = response.clone()
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy))
         }
         return response
       })
-      .catch(() => caches.match(event.request).then((cached) => cached || caches.match('/index.html'))),
+      .catch(async () => {
+        const cached = await caches.match(event.request)
+        if (cached) return cached
+        // index.html solo reemplaza navegaciones: devolverlo como si fuera un
+        // script o una imagen causaba errores confusos sin conexión.
+        if (isNavigation) {
+          const shell = await caches.match('/index.html')
+          if (shell) return shell
+        }
+        return Response.error()
+      }),
   )
 })

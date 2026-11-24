@@ -1,14 +1,34 @@
 import { useState } from 'react'
-import { Check, Copy, Share2 } from 'lucide-react'
+import { Check, Copy, RefreshCw, Share2 } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 
 // Enlace que abre el perfil del paciente con el código ya cargado.
 export const inviteLink = (code) => `${window.location.origin}/patient/profile?codigo=${encodeURIComponent(code)}`
 
-export default function InviteCodeCard({ code, compact = false }) {
+const formatExpiry = (iso) => {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  return date.toLocaleDateString('es-AR', { day: 'numeric', month: 'short' })
+}
+
+// expiresAt: cuándo vence el código (se renueva solo). onRegenerate: revoca el
+// actual y genera otro de inmediato (por ejemplo si se compartió por error).
+export default function InviteCodeCard({ code, expiresAt, onRegenerate, compact = false }) {
   const { showError } = useToast()
   const [copied, setCopied] = useState(false)
+  const [regenerating, setRegenerating] = useState(false)
   if (!code) return null
+
+  const regenerate = async () => {
+    setRegenerating(true)
+    try {
+      await onRegenerate()
+    } catch {
+      showError('No se pudo renovar el código. Intentá de nuevo.')
+    } finally {
+      setRegenerating(false)
+    }
+  }
 
   const message = `Vinculate conmigo en SOMA: en Mi Perfil ingresá el código ${code} o abrí ${inviteLink(code)}`
 
@@ -48,11 +68,17 @@ export default function InviteCodeCard({ code, compact = false }) {
         <button type="button" onClick={share} aria-label="Compartir invitación" title="Compartir invitación" className={buttonCls}>
           <Share2 size={15} />
         </button>
+        {onRegenerate && (
+          <button type="button" onClick={regenerate} disabled={regenerating} aria-label="Generar un código nuevo" title="Generar un código nuevo" className={buttonCls}>
+            <RefreshCw size={15} className={regenerating ? 'animate-spin' : ''} />
+          </button>
+        )}
       </div>
       <span role="status" className="sr-only">{copied ? 'Copiado' : ''}</span>
       {!compact && (
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
           Compartilo con tus pacientes: lo ingresan en Mi Perfil y te llega la solicitud.
+          {expiresAt && ` Se renueva solo el ${formatExpiry(expiresAt)}; quienes ya se vincularon no necesitan ingresarlo de nuevo.`}
         </p>
       )}
     </div>

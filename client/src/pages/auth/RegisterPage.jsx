@@ -241,11 +241,11 @@ export default function RegisterPage() {
               type="password"
               autoComplete="new-password"
               className="input short:!py-2.5"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Mínimo 8 caracteres"
               value={form.password}
               onChange={updateField('password')}
               required
-              minLength={6}
+              minLength={8}
             />
           </div>
           {isPsych && (
@@ -260,7 +260,7 @@ export default function RegisterPage() {
                 value={form.confirmPassword}
                 onChange={updateField('confirmPassword')}
                 required
-                minLength={6}
+                minLength={8}
               />
             </div>
           )}
