@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { setSessionPersistence, supabase } from '../lib/supabase'
-import { clearProfileCache, getMyInviteCode, regenerateMyInviteCode } from '../lib/api'
+import { clearProfileCache, getMyInviteCode, primeProfileCache, regenerateMyInviteCode } from '../lib/api'
 import { clearPatientCache } from '../lib/patientCache'
 import ThemeLogo from '../components/ThemeLogo'
 import Wordmark from '../components/Wordmark'
@@ -20,12 +20,22 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const initializedRef = useRef(false)
   const userIdRef = useRef(null)
+  const profileLoadRef = useRef(null) // { id, promise }: carga de perfil en curso
 
-  // Carga el perfil completo desde la tabla profiles.
-  // Si no existe (ej: cuenta creada antes del trigger), lo crea automáticamente.
+  // Carga el perfil completo del usuario autenticado.
+  // login() y el listener de sesión piden el mismo perfil casi a la vez: la
+  // segunda llamada comparte la petición de la primera en lugar de repetirla.
   async function loadProfile(authUser) {
     if (!authUser) { userIdRef.current = null; setUser(null); return null }
+    if (profileLoadRef.current?.id === authUser.id) return profileLoadRef.current.promise
+    const promise = fetchProfile(authUser).finally(() => {
+      if (profileLoadRef.current?.promise === promise) profileLoadRef.current = null
+    })
+    profileLoadRef.current = { id: authUser.id, promise }
+    return promise
+  }
 
+  async function fetchProfile(authUser) {
     // get_my_profile() devuelve solo la fila del usuario autenticado (incluye
     // teléfono y fecha de nacimiento, que ya no se leen con select directo).
     // Sin fila: el trigger handle_new_user aún no creó el perfil.
@@ -52,6 +62,7 @@ export function AuthProvider({ children }) {
       }
       userIdRef.current = userData.id
       setUser(userData)
+      primeProfileCache({ id: userData.id, role: userData.role })
       if (userData.role === 'PSYCHOLOGIST') loadInviteCode()
       return userData
     }

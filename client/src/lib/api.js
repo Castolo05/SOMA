@@ -14,9 +14,35 @@ import { computeInsights, daysAgoKey, weeklyMood } from './stats'
 // El rol y los datos de vínculo no se pueden editar desde el cliente, así que
 // el perfil se consulta una sola vez por usuario en lugar de en cada llamada.
 let profileCache = null
+// Petición de perfil en curso: varias pantallas piden el usuario a la vez al
+// abrirse y todas comparten una sola consulta.
+let profileInflight = null // { id, promise }
 
 export function clearProfileCache() {
   profileCache = null
+  profileInflight = null
+}
+
+// El AuthContext ya leyó el perfil al iniciar sesión: se reutiliza para que las
+// pantallas no lo pidan otra vez (era una espera en serie antes de cargar datos).
+export function primeProfileCache({ id, role }) {
+  profileCache = { id, role }
+}
+
+// Lee el perfil propio con reintentos (puede haber delay post-registro). Sale de
+// get_my_profile(): profiles ya no se puede leer con select de columnas sensibles.
+async function fetchOwnProfile() {
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const { data, error } = await supabase.rpc('get_my_profile').maybeSingle()
+    if (data) return data
+    // Sin fila todavía y no es el último intento: esperar y reintentar
+    if (!error && attempt < 3) {
+      await new Promise(r => setTimeout(r, attempt * 400))
+    } else {
+      break
+    }
+  }
+  return null
 }
 
 async function currentUser() {
@@ -27,20 +53,13 @@ async function currentUser() {
 
   if (profileCache?.id === user.id) return { ...profileCache, email: user.email }
 
-  // Intentar leer el perfil con reintentos (puede haber delay de RLS post-registro)
-  let profile = null
-  for (let attempt = 1; attempt <= 3; attempt++) {
-    // El perfil propio sale de get_my_profile(): profiles ya no se puede leer
-    // con select de columnas sensibles desde el cliente.
-    const { data, error } = await supabase.rpc('get_my_profile').maybeSingle()
-    if (data) { profile = data; break }
-    // Sin fila todavía y no es el último intento: esperar y reintentar
-    if (!error && attempt < 3) {
-      await new Promise(r => setTimeout(r, attempt * 400))
-    } else {
-      break
-    }
+  if (profileInflight?.id !== user.id) {
+    const promise = fetchOwnProfile().finally(() => {
+      if (profileInflight?.promise === promise) profileInflight = null
+    })
+    profileInflight = { id: user.id, promise }
   }
+  const profile = await profileInflight.promise
 
   // Sin perfil todavía (el trigger handle_new_user aún no lo creó): no se
   // adivina el rol desde user_metadata, que el propio usuario puede editar.
